@@ -27,7 +27,7 @@ This works with
 - Choose one of the access points scanned, enter password, click save.
 - ESP will try to connect. If successful, the IP address on the new network will be displayed in the configuration portal. 
 - The configuration portal will now be visible on two networks, these being it's own network and the network to which it has connected.  On it's own network it will have two IP addresses, the original `192.168.4.1` and the same IP address it has on the network to which it connected.
-- Selecting "close configuration portal" will shutdown the web server, shutdown the `ESP32 / ESP826`6 WiFi network and return control to the following sketch code.
+- Selecting "close configuration portal" will shutdown the web server, shutdown the `ESP32 / ESP8266` WiFi network and return control to the following sketch code.
 
 ## Quick Start
 
