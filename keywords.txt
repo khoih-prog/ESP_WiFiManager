@@ -1,0 +1,54 @@
+##########################################
+# Syntax Coloring Map For ESP_WifiManager
+##########################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+ESP_WiFiManager	KEYWORD1
+ESP_WMParameter KEYWORD1
+
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+getID KEYWORD2
+getValue KEYWORD2
+getPlaceholder KEYWORD2
+getValueLength KEYWORD2
+getLabelPlacement KEYWORD2
+getCustomHTML KEYWORD2
+autoConnect	KEYWORD2
+startConfigPortal KEYWORD2
+getConfigPortalSSID KEYWORD2
+resetSettings	KEYWORD2
+setConfigPortalTimeout	KEYWORD2
+setTimeout  KEYWORD2
+setConnectTimeout KEYWORD2
+setDebugOutput	KEYWORD2
+setMinimumSignalQuality KEYWORD2
+setAPStaticIPConfig	KEYWORD2
+setSTAStaticIPConfig KEYWORD2
+setAPCallback	KEYWORD2
+setSaveConfigCallback KEYWORD2
+addParameter KEYWORD2
+setBreakAfterConfig KEYWORD2
+setCustomHeadElement  KEYWORD2
+setRemoveDuplicateAPs KEYWORD2
+scanWifiNetworks  KEYWORD2
+getSSID	KEYWORD2
+getPW	KEYWORD2
+getParameters KEYWORD2
+getParametersCount  KEYWORD2
+getStatus KEYWORD2
+getStoredWiFiSSID KEYWORD2
+getStoredWiFiPass KEYWORD2
+WiFi_SSID KEYWORD2
+WiFi_Pass KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+#	LITERAL1
