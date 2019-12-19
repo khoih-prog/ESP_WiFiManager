@@ -98,6 +98,7 @@ Also see examples:
 2. [ConfigOnSwitchFS](examples/ConfigOnSwitchFS)
 3. [ConfigOnStartup](examples/ConfigOnStartup) 
 4. [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) 
+5. [ConfigPortalParamsOnSwitch] (examples/ConfigPortalParamsOnSwitch)  ***New to configure Portal Credentials***
 
 ## Documentation
 
