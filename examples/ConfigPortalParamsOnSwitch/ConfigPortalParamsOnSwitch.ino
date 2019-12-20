@@ -13,12 +13,13 @@
  * 
  * Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
  * Licensed under MIT license
- * Version: 1.0.1
+ * Version: 1.0.2
  *
  * Version Modified By   Date      Comments
  * ------- -----------  ---------- -----------
  *  1.0.0   K Hoang      07/10/2019 Initial coding
  *  1.0.1   K Hoang      13/12/2019 Fix bug. Add features. Add support for ESP32
+ *  1.0.2   K Hoang      19/12/2019 Fix bug that keeps ConfigPortal in endless loop if Portal/Router SSID or Password is NULL.
  *****************************************************************************************************************************/
 /****************************************************************************************************************************
  * This example will open a configuration portal when a predetermined button is pressed
@@ -67,10 +68,11 @@
 // Default Config Portal SID and Password
 // SSID and PW for Config Portal
 
-//String PortalSSID = "ESP_" + String(ESP_getChipId(), HEX);
+String DefaultPortalSSID = "ESP_" + String(ESP_getChipId(), HEX);
 char PortalSSID[SSID_MAX_LENGTH + 1] = "your_ssid";
 
-//char* password = "your_password";
+// Use in case PortalSSID or PortalPassword is invalid (NULL)
+String DefaultPortalPassword = "My" + DefaultPortalSSID;
 char PortalPassword[PASSWORD_MAX_LENGTH + 1] = "your_password";
 
 #define PortalSSID_Label       "PortalSSID"
@@ -284,10 +286,22 @@ void setup()
     
     //it starts an access point 
     //and goes into a blocking loop awaiting configuration
-    if (!ESP_wifiManager.startConfigPortal((const char *) PortalSSID, PortalPassword)) 
-      Serial.println("Not connected to WiFi but continuing anyway.");
+    // If Invalid PortalSSID or PortalPassword => use default
+
+    bool resultConfigPortal;
+    if ( (PortalSSID[0] == 0) || (PortalPassword[0] == 0) )
+    {
+      resultConfigPortal = ESP_wifiManager.startConfigPortal((const char *) DefaultPortalSSID.c_str(), DefaultPortalPassword.c_str());
+    }
+    else
+    {
+      resultConfigPortal = ESP_wifiManager.startConfigPortal((const char *) PortalSSID, PortalPassword);
+    }
+
+    if (resultConfigPortal)
+      Serial.println("WiFi connected...yeey :)"); 
     else 
-      Serial.println("WiFi connected...yeey :)");    
+      Serial.println("Not connected to WiFi but continuing anyway.");    
   }
 
   digitalWrite(PIN_LED, LED_OFF); // Turn led off as we are not in configuration mode.
@@ -373,21 +387,27 @@ void loop()
     // Sets timeout in seconds until configuration portal gets turned off.
     // If not specified device will remain in configuration mode until
     // switched off via webserver or device is restarted.
-    // ESP_wifiManager.setConfigPortalTimeout(600);
+    ESP_wifiManager.setConfigPortalTimeout(60);
 
     // It starts an access point 
     // and goes into a blocking loop awaiting configuration.
     // Once the user leaves the portal with the exit button
     // processing will continue
-    if (!ESP_wifiManager.startConfigPortal((const char *) PortalSSID, PortalPassword)) 
+
+    static bool resultConfigPortal;
+    if ( (PortalSSID[0] == 0) || (PortalPassword[0] == 0) )
     {
-      Serial.println("Not connected to WiFi but continuing anyway.");
-    } 
-    else 
-    {
-      // If you get here you have connected to the WiFi
-      Serial.println("Connected...yeey :)");
+      resultConfigPortal = ESP_wifiManager.startConfigPortal((const char *) DefaultPortalSSID.c_str(), DefaultPortalPassword.c_str());
     }
+    else
+    {
+      resultConfigPortal = ESP_wifiManager.startConfigPortal((const char *) PortalSSID, PortalPassword);
+    }
+
+    if (resultConfigPortal)
+      Serial.println("WiFi connected...yeey :)"); 
+    else 
+      Serial.println("Not connected to WiFi but continuing anyway.");
     
     // Getting posted form values and overriding local variables parameters
     // Config file is written regardless the connection state

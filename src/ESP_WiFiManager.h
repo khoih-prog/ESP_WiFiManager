@@ -21,6 +21,7 @@
  * ------- -----------  ---------- -----------
  *  1.0.0   K Hoang      07/10/2019 Initial coding
  *  1.0.1   K Hoang      13/12/2019 Fix bug. Add features. Add support for ESP32
+ *  1.0.2   K Hoang      19/12/2019 Fix bug thatkeeps ConfigPortal in endless loop if Portal/Router SSID or Password is NULL.
  *****************************************************************************************************************************/
 
 #ifndef ESP_WiFiManager_h
@@ -115,6 +116,7 @@ class ESP_WMParameter {
 };
 
 #define USE_DYNAMIC_PARAMS			true
+#define DEFAULT_PORTAL_TIMEOUT  60000L
     
 class ESP_WiFiManager
 {
@@ -226,13 +228,15 @@ class ESP_WiFiManager
     void          startWPS();
     //const char*   getStatus(int status);
 
-    const char*   _apName                 = "no-net";
-    const char*   _apPassword             = NULL;
-    String        _ssid                   = "";
-    String        _pass                   = "";
-    unsigned long _configPortalTimeout    = 0;
-    unsigned long _connectTimeout         = 0;
-    unsigned long _configPortalStart      = 0;
+    const char*   _apName                   = "no-net";
+    const char*   _apPassword               = NULL;
+    String        _ssid                     = "";
+    String        _pass                     = "";
+    
+    unsigned long _configPortalTimeout      = 0;
+    
+    unsigned long _connectTimeout           = 0;
+    unsigned long _configPortalStart        = 0;
 	
 	  int numberOfNetworks;
 	  int *networkIndices;
@@ -278,7 +282,7 @@ class ESP_WiFiManager
 
     boolean       connect;
     boolean       stopConfigPortal = false;
-    boolean       _debug = true;
+    boolean       _debug = false;     //true;
  
     void (*_apcallback)(ESP_WiFiManager*) = NULL;
     void (*_savecallback)(void) = NULL;

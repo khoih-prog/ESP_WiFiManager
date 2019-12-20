@@ -35,7 +35,7 @@ This works with
 See ["Installing Arduino libraries"](https://www.arduino.cc/en/Guide/Libraries) and use the Importing a .zip Library method or preferably use manual installation as you can checkout the release from github and use that. This makes it easier to keep current with updates. Installing using the Library Manager currently does not work with this version of the library.
 
 ####  Compatibility
-Github version `1.0.1` currently works with :
+Github version `1.0.2` currently works with :
 1. release `2.6.2` or newer of the [ESP8266 core for Arduino](https://github.com/esp8266/Arduino)
 2. release `1.0.4` or newer of the [ESP32 core for Arduino](https://github.com/espressif/arduino-esp32)
 
@@ -98,7 +98,7 @@ Also see examples:
 2. [ConfigOnSwitchFS](examples/ConfigOnSwitchFS)
 3. [ConfigOnStartup](examples/ConfigOnStartup) 
 4. [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) 
-5. [ConfigPortalParamsOnSwitch](examples//ConfigPortalParamsOnSwitch)  ***New to configure Portal Credentials***
+5. [ConfigPortalParamsOnSwitch](examples/ConfigPortalParamsOnSwitch) 
 
 ## Documentation
 
@@ -269,14 +269,17 @@ Sometimes, the library will only work if you update the `ESP32 / ESP8266` core t
 If you connect to the created configuration Access Point but the configuration portal does not show up, just open a browser and type in the IP of the web portal, by default `192.168.4.1`.
 
 
-## Releases
-#### 1.0.1
+## Releases 1.0.2
 
 - Forked, modified, bug-fixed and improved from these versions of WiFiManager.
 
 See [Tzapu's version](https://github.com/tzapu/WiFiManager) for previous release information.
 See [KenTaylor's version]( https://github.com/kentaylor/WiFiManager) for previous release information.
 
+#### New in v1.0.2
+
+- Fix bug that keeps ConfigPortal in endless loop if Portal/Router SSID or Password is NULL.
+- Add example ConfigPortalParamsOnSwitch to enable ConfigPortal credentials to be reconfigurable using ConfigPortal.
 
 ### Contributions and thanks
 Forked from [Tzapu](https://github.com/tzapu/WiFiManager) and [KenTaylor's version]( https://github.com/kentaylor/WiFiManager)

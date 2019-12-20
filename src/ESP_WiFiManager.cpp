@@ -15,12 +15,13 @@
  * 
  * Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
  * Licensed under MIT license
- * Version: 1.0.1
+ * Version: 1.0.2
  *
  * Version Modified By   Date      Comments
  * ------- -----------  ---------- -----------
  *  1.0.0   K Hoang      07/10/2019 Initial coding
  *  1.0.1   K Hoang      13/12/2019 Fix bug. Add features. Add support for ESP32
+ *  1.0.2   K Hoang      19/12/2019 Fix bug that keeps ConfigPortal in endless loop if Portal/Router SSID or Password is NULL. 
  *****************************************************************************************************************************/
 
 #include "ESP_WiFiManager.h"
@@ -413,6 +414,8 @@ boolean  ESP_WiFiManager::startConfigPortal(char const *apName, char const *apPa
       TimedOut = false;
       delay(2000);
       
+      //DEBUG_WM(F("_configPortalTimeout ="));
+      //DEBUG_WM(_configPortalTimeout);
       DEBUG_WM(F("Connecting to new AP"));
 
       // using user-provided  _ssid, _pass in place of system-stored ssid and pass
@@ -741,7 +744,7 @@ void ESP_WiFiManager::handleWifi()
 	DEBUG_WM(F("Handle WiFi"));
 
 	// Disable _configPortalTimeout when someone accessing Portal to give some time to config
-	_configPortalTimeout = 0;		//KH 
+	_configPortalTimeout      = 0;		//KH 
 	
   server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   server->sendHeader("Pragma", "no-cache");
@@ -958,6 +961,9 @@ void ESP_WiFiManager::handleWifiSave()
   DEBUG_WM(F("Sent wifi save page"));
 
   connect = true; //signal ready to connect/reset
+  
+	// Restore when Press Save WiFi
+	_configPortalTimeout = DEFAULT_PORTAL_TIMEOUT;  
 }
 
 /** Handle shut down the server page */
@@ -985,8 +991,10 @@ void ESP_WiFiManager::handleServerClose()
     page += FPSTR(HTTP_END);
     server->send(200, "text/html", page);
     //stopConfigPortal = true; //signal ready to shutdown config portal		//KH crash if use this ???
-  DEBUG_WM(F("Sent server close page"));
+    DEBUG_WM(F("Sent server close page"));
 
+	  // Restore when Press Save WiFi
+	  _configPortalTimeout = DEFAULT_PORTAL_TIMEOUT;  
 }
 
 /** Handle the info page */
@@ -995,7 +1003,7 @@ void ESP_WiFiManager::handleInfo()
 	DEBUG_WM(F("Info"));
 
 	// Disable _configPortalTimeout when someone accessing Portal to give some time to config
-	_configPortalTimeout = 0;		//KH 
+	_configPortalTimeout      = 0;		//KH 
 	
   //DEBUG_WM(F("Info"));
   server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -1132,7 +1140,7 @@ void ESP_WiFiManager::handleScan()
 	DEBUG_WM(F("Scan"));
 
 	// Disable _configPortalTimeout when someone accessing Portal to give some time to config
-	_configPortalTimeout = 0;		//KH 
+	_configPortalTimeout      = 0;		//KH 
 	
   DEBUG_WM(F("State - json"));
   server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
