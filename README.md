@@ -32,7 +32,8 @@ This works with
 ## Quick Start
 
 ### Installing
-See ["Installing Arduino libraries"](https://www.arduino.cc/en/Guide/Libraries) and use the Importing a .zip Library method or preferably use manual installation as you can checkout the release from github and use that. This makes it easier to keep current with updates. Installing using the Library Manager currently does not work with this version of the library.
+
+The easiest way is to use Arduino Library Manager. Search for ESP_WiFiManager, then select / install the latest version.
 
 ####  Compatibility
 Github version `1.0.2` currently works with :
