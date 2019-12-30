@@ -1,5 +1,7 @@
 # ESP_WiFiManager
 
+[![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_WiFiManager.svg?)](https://www.ardu-badge.com/ESP_WiFiManager)
+
 This library is based on, modified, bug-fixed and improved from:
 
 1. [`Tzapu WiFiManager`] (https://github.com/tzapu/WiFiManager)
