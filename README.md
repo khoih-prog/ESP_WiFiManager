@@ -117,10 +117,16 @@ After you connected, please, go to http://192.168.4.1, you'll see this `Main` pa
     <img src="https://github.com/khoih-prog/ESP_WiFiManager/blob/master/Images/Main.png">
 </p>
 
-Select `Information` to enter the Info page where the board info will be shown
+Select `Information` to enter the Info page where the board info will be shown (long page)
 
 <p align="center">
     <img src="https://github.com/khoih-prog/ESP_WiFiManager/blob/master/Images/Info.png">
+</p>
+
+or short page (default)
+
+<p align="center">
+    <img src="https://github.com/khoih-prog/ESP_WiFiManager/blob/master/Images/Info_Short.png">
 </p>
 
 Select `Configuration` to enter this page where you can select an AP and specify its WiFi Credentials
