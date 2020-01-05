@@ -103,6 +103,34 @@ Also see examples:
 4. [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) 
 5. [ConfigPortalParamsOnSwitch](examples/ConfigPortalParamsOnSwitch) 
 
+## So, how it works?
+In `Configuration Portal Mode`, it starts an access point called `ESP_xxxxxx`. Connect to it using the configurable password you can define in the code. For example, `your_password` (see examples):
+
+```cpp
+// SSID and PW for Config Portal
+String ssid = "ESP_" + String(ESP_getChipId(), HEX);
+const char* password = "your_password";
+```
+After you connected, please, go to http://192.168.4.1, you'll see this page:
+
+<p align="center">
+    <img src="https://github.com/khoih-prog/ESP_WiFiManager/blob/master/Images/Main.png">
+</p>
+
+Select `Information` to enter the Info page where the board info will be shown
+
+<p align="center">
+    <img src="https://github.com/khoih-prog/ESP_WiFiManager/blob/master/Images/Info.png">
+</p>
+
+Select `Configuration` to enter this page where you can select an AP and specify its WiFi Credentials
+
+<p align="center">
+    <img src="https://github.com/khoih-prog/ESP_WiFiManager/blob/master/Images/Configuration.png">
+</p>
+
+Enter your credentials, then click `Save`. The WiFi Credentials will be saved and the board reboots to connect to the selected WiFi AP.
+
 ## Documentation
 
 #### Password protect the configuration Access Point
