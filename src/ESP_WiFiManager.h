@@ -84,6 +84,16 @@ const char HTTP_HEAD_CT2[]        PROGMEM = "text/plain";
 const char HTTP_HEAD_CORS[]       PROGMEM = "Access-Control-Allow-Origin";
 const char HTTP_HEAD_CORS_ALLOW_ALL[]  PROGMEM = "*";
 
+#ifndef USE_AVAILABLE_PAGES
+#define USE_AVAILABLE_PAGES		true
+#endif
+
+#if USE_AVAILABLE_PAGES
+const char HTTP_AVAILABLE_PAGES[] PROGMEM = "<h3>Available Pages</h3><table class=\"table\"><thead><tr><th>Page</th><th>Function</th></tr></thead><tbody><tr><td><a href=\"/\">/</a></td><td>Menu page.</td></tr><tr><td><a href=\"/wifi\">/wifi</a></td><td>Show WiFi scan results and enter WiFi configuration.</td></tr><tr><td><a href=\"/wifisave\">/wifisave</a></td><td>Save WiFi configuration information and configure device. Needs variables supplied.</td></tr><tr><td><a href=\"/close\">/close</a></td><td>Close the configuration server and configuration WiFi network.</td></tr><tr><td><a href=\"/i\">/i</a></td><td>This page.</td></tr><tr><td><a href=\"/r\">/r</a></td><td>Delete WiFi configuration and reboot. ESP device will not reconnect to a network until new WiFi configuration data is entered.</td></tr><tr><td><a href=\"/state\">/state</a></td><td>Current device state in JSON format. Interface for programmatic WiFi configuration.</td></tr><tr><td><a href=\"/scan\">/scan</a></td><td>Run a WiFi scan and return results in JSON format. Interface for programmatic WiFi configuration.</td></tr></table>";
+#else
+const char HTTP_AVAILABLE_PAGES[] PROGMEM = "";
+#endif
+
 //KH
 #define WIFI_MANAGER_MAX_PARAMS 20
 
