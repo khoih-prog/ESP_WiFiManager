@@ -663,12 +663,12 @@ void ESP_WiFiManager::reportStatus(String &page)
 {
 	if (WiFi_SSID() != "")
   {
-	  page += F("Configured to connect to access point ");
+	  page += F("Configured to connect to access point <strong>");
 	  page += WiFi_SSID();
 	  
 		if (WiFi.status()==WL_CONNECTED)
 		{
-			page += F(" and <strong>currently connected</strong> on IP <a href=\"http://");
+			page += F(" and currently connected</strong> on IP <a href=\"http://");
 			page += WiFi.localIP().toString();
 			page += F("/\">");
 			page += WiFi.localIP().toString();
@@ -676,7 +676,7 @@ void ESP_WiFiManager::reportStatus(String &page)
 		}
 		else 
 		{
-			page += F(" but <strong>not currently connected</strong> to network.");
+			page += F(" but not currently connected</strong> to network.");
 		}
   }
   else 
@@ -1016,7 +1016,6 @@ void ESP_WiFiManager::handleInfo()
   page += _customHeadElement;
   page += FPSTR(HTTP_HEAD_END);
   page += F("<h2>WiFi Information</h2>");
-  page += F("Android app from <a href=\"https://play.google.com/store/apps/details?id=au.com.umranium.espconnect\">https://play.google.com/store/apps/details?id=au.com.umranium.espconnect</a> provides easier ESP WiFi configuration.<p/>");
   reportStatus(page);
   page += F("<h3>Device Data</h3>");
   page += F("<table class=\"table\">");
@@ -1093,7 +1092,7 @@ void ESP_WiFiManager::handleInfo()
   page += F("<tr><td><a href=\"/scan\">/scan</a></td>");
   page += F("<td>Run a WiFi scan and return results in JSON format. Interface for programmatic WiFi configuration.</td></tr>");
   page += F("</table>");
-  page += F("<p/>More information about ESP_WiFiManager at <a href=\"https://github.com/kentaylor/WiFiManager\">https://github.com/kentaylor/WiFiManager</a>.");
+  page += F("<p/>More information about ESP_WiFiManager at <a href=\"https://github.com/khoih-prog/ESP_WiFiManager\">https://github.com/khoih-prog/ESP_WiFiManager</a>");
   page += FPSTR(HTTP_END);
 
   server->send(200, "text/html", page);
