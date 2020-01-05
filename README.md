@@ -111,7 +111,7 @@ In `Configuration Portal Mode`, it starts an access point called `ESP_xxxxxx`. C
 String ssid = "ESP_" + String(ESP_getChipId(), HEX);
 const char* password = "your_password";
 ```
-After you connected, please, go to http://192.168.4.1, you'll see this page:
+After you connected, please, go to http://192.168.4.1, you'll see this `Main` page:
 
 <p align="center">
     <img src="https://github.com/khoih-prog/ESP_WiFiManager/blob/master/Images/Main.png">
@@ -130,6 +130,8 @@ Select `Configuration` to enter this page where you can select an AP and specify
 </p>
 
 Enter your credentials, then click `Save`. The WiFi Credentials will be saved and the board reboots to connect to the selected WiFi AP.
+
+If you're already connected to a listed WiFi AP and don't want to change anything, just select `Exit Portal` from the `Main` page to reboot the board and connect to the previously-stored AP. The WiFi Credentials are still intact.
 
 ## Documentation
 
