@@ -291,6 +291,8 @@ void setup()
  //Local intialization. Once its business is done, there is no need to keep it around
   ESP_WiFiManager ESP_wifiManager;
 
+  ESP_wifiManager.setMinimumSignalQuality(-1);
+
   // We can't use WiFi.SSID() in ESP32as it's only valid after connected. 
   // SSID and Password stored in ESP32 wifi_ap_record_t and wifi_config_t are also cleared in reboot
   // Have to create a new function to store in EEPROM/SPIFFS for this purpose
