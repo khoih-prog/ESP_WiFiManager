@@ -15,14 +15,14 @@
  * 
  * Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
  * Licensed under MIT license
- * Version: 1.0.1
+ * Version: 1.0.3
  *
  * Version Modified By   Date      Comments
  * ------- -----------  ---------- -----------
  *  1.0.0   K Hoang      07/10/2019 Initial coding
  *  1.0.1   K Hoang      13/12/2019 Fix bug. Add features. Add support for ESP32
  *  1.0.2   K Hoang      19/12/2019 Fix bug thatkeeps ConfigPortal in endless loop if Portal/Router SSID or Password is NULL.
- *  1.0.3		K Hoang			 05/01/2020 Option not displaying AvailablePages in Info page. Enhance README.md. Modify examples
+ *  1.0.3   K Hoang	 05/01/2020 Option not displaying AvailablePages in Info page. Enhance README.md. Modify examples
  *****************************************************************************************************************************/
 
 #ifndef ESP_WiFiManager_h
