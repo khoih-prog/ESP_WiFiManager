@@ -83,6 +83,14 @@ String Router_Pass;
 ```cpp
 ESP_WiFiManager ESP_wifiManager;
 ```
+If you like to have a personalized hostname 
+`(RFC952-conformed,- 24 chars max,- only a..z A..Z 0..9 '-' and no '-' as last char)`
+
+add
+
+```cpp
+WiFi.hostname("Personalized-HostName");
+```
 
 then call
 
