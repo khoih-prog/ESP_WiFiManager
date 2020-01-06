@@ -81,6 +81,20 @@ String Router_Pass;
 
 #include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
 
+// These defines must be put before #include <ESP_DoubleResetDetector.h>
+// to select where to store DoubleResetDetector's variable.
+// For ESP32, You must select one to be true (EEPROM or SPIFFS)
+// For ESP8266, You must select one to be true (RTC, EEPROM or SPIFFS)
+// Otherwise, library will use default EEPROM storage
+#define ESP_DRD_USE_EEPROM      false
+#define ESP_DRD_USE_SPIFFS      true    //false
+
+#ifdef ESP8266
+  #define ESP8266_DRD_USE_RTC     false   //true
+#endif
+
+#define DOUBLERESETDETECTOR_DEBUG       true  //false
+
 #include <ESP_DoubleResetDetector.h>      //https://github.com/khoih-prog/ESP_DoubleResetDetector
 
 // Number of seconds after reset during which a 
@@ -144,6 +158,8 @@ void setup()
 
  //Local intialization. Once its business is done, there is no need to keep it around
   ESP_WiFiManager ESP_wifiManager;
+
+  WiFi.hostname("ConfigOnDoubleReset");
 
   ESP_wifiManager.setMinimumSignalQuality(-1);
 
