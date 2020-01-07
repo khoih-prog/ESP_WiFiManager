@@ -48,7 +48,7 @@ This shows you how to use this example in Ubuntu (but you can use similar comman
 1. Upload the contents of that `data folder`  with MkSPIFFS Tool ("ESP8266 Sketch Data Upload" in Tools menu in Arduino IDE)
 2. or upload the contents of a folder by running the following commands: 
  - Ubuntu$ cd ~/Arduino/libraries/ESP_WiFiManager-master/examples/ESP_FSWebServer/data
- - Ubuntu$ for file in `\ls -A1`; do curl -F "file=@$PWD/$file" esp8266fs.local/edit; done
+ - Ubuntu$ for file in \`\ls -A1\`; do curl -F "file=@$PWD/$file" esp8266fs.local/edit; done
 3. Access the sample web page at http://esp8266fs.local
 
 <p align="center">
