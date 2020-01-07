@@ -39,7 +39,7 @@ If you're already connected to a listed WiFi AP and don't want to change anythin
 
 ## How to use this ESP_FSWebServer example?
 
-This show you how to use this example in Ubuntu (but you can use similar commands in other OSes)
+This shows you how to use this example in Ubuntu (but you can use similar commands in other OSes)
 
 1. For example, you already downloaded from (https://github.com/khoih-prog/ESP_WiFiManager/tree/master/examples/ESP_FSWebServer/data) to a local folder, e.g., 
 
