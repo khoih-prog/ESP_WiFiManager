@@ -37,7 +37,7 @@ Enter your credentials, then click `Save`. The WiFi Credentials will be saved an
 If you're already connected to a listed WiFi AP and don't want to change anything, just select `Exit Portal` from the `Main` page to reboot the board and connect to the previously-stored AP. The WiFi Credentials are still intact.
 
 
-## How, how to use example?
+## How to use this ESP_FSWebServer example?
 
 This show you how to use this example in Ubuntu (but you can use similar commands in other OSes)
 
