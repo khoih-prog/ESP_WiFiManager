@@ -122,13 +122,15 @@ class ESP_WMParameter {
     friend class ESP_WiFiManager;
 };
 
-#define USE_DYNAMIC_PARAMS			true
-#define DEFAULT_PORTAL_TIMEOUT  60000L
-    
+#define USE_DYNAMIC_PARAMS				true
+#define DEFAULT_PORTAL_TIMEOUT  	60000L
+   
 class ESP_WiFiManager
 {
   public:
-    ESP_WiFiManager();
+
+		ESP_WiFiManager(const char *iHostname = "");
+
     ~ESP_WiFiManager();
 
     boolean       autoConnect(); //Deprecated. Do not use.
@@ -220,6 +222,20 @@ class ESP_WiFiManager
       return getStoredWiFiPass();
       #endif
     }
+
+		void setHostname(void)
+		{
+			if (RFC952_hostname[0] != 0)
+			{
+				#ifdef ESP8266
+					WiFi.hostname(RFC952_hostname);
+				#else		//ESP32
+					// See https://github.com/espressif/arduino-esp32/issues/2537
+					WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
+					WiFi.setHostname(RFC952_hostname);
+				#endif
+			}
+		}
     
   private:
     std::unique_ptr<DNSServer>        dnsServer;
@@ -230,6 +246,11 @@ class ESP_WiFiManager
 #else		//ESP32
     std::unique_ptr<WebServer>        server;
 #endif    
+
+		#define RFC952_HOSTNAME_MAXLEN      24
+		char RFC952_hostname[RFC952_HOSTNAME_MAXLEN + 1];
+
+		char* getRFC952_hostname(const char* iHostname);
 
     void          setupConfigPortal();
     void          startWPS();

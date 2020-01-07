@@ -128,7 +128,30 @@ int ESP_WiFiManager::getParametersCount() {
   return _paramsCount;
 }
 
-ESP_WiFiManager::ESP_WiFiManager() 
+char* ESP_WiFiManager::getRFC952_hostname(const char* iHostname)
+{ 
+  memset(RFC952_hostname, 0, sizeof(RFC952_hostname));
+  
+  size_t len = ( RFC952_HOSTNAME_MAXLEN < strlen(iHostname) ) ? RFC952_HOSTNAME_MAXLEN : strlen(iHostname);
+  
+  size_t j = 0;
+  
+  for (size_t i = 0; i < len - 1; i++)
+  {
+    if ( isalnum(iHostname[i]) || iHostname[i] == '-' )
+    {
+      RFC952_hostname[j] = iHostname[i];
+      j++;
+    }  
+  }
+  // no '-' as last char
+  if ( isalnum(iHostname[len - 1]) || (iHostname[len - 1] != '-') )
+    RFC952_hostname[j] = iHostname[len - 1];
+
+  return RFC952_hostname;
+}
+
+ESP_WiFiManager::ESP_WiFiManager(const char *iHostname)
 {
 	#if USE_DYNAMIC_PARAMS
 		_max_params = WIFI_MANAGER_MAX_PARAMS;
@@ -136,7 +159,32 @@ ESP_WiFiManager::ESP_WiFiManager()
 	#endif
 	
 	//WiFi not yet started here, must call WiFi.mode(WIFI_STA) and modify function WiFiGenericClass::mode(wifi_mode_t m) !!!
+
 	WiFi.mode(WIFI_STA);
+
+	if (iHostname[0] == 0)
+	{
+		#ifdef ESP8266
+			String _hostname = "ESP8266-" + String(ESP.getChipId(), HEX);
+		#else		//ESP32
+			String _hostname = "ESP32-" + String((uint32_t)ESP.getEfuseMac(), HEX);
+		#endif
+		_hostname.toUpperCase();
+
+		getRFC952_hostname(_hostname.c_str());		
+		
+	}
+	else
+	{
+		// Prepare and store the hostname only not NULL
+		getRFC952_hostname(iHostname);
+	}
+
+	DEBUG_WM(F("RFC925 Hostname = "));
+	DEBUG_WM(RFC952_hostname);
+
+	setHostname();
+
 	networkIndices = NULL;
 
 	//Do a network scan before setting up an access point so as not to close WiFiNetwork while scanning.
@@ -461,6 +509,8 @@ boolean  ESP_WiFiManager::startConfigPortal(char const *apName, char const *apPa
   WiFi.mode(WIFI_STA);
   if (TimedOut) 
   {
+		setHostname();
+
 		WiFi.begin();	
 		int connRes = waitForConnectResult();
 		
@@ -502,6 +552,8 @@ int ESP_WiFiManager::connectWifi(String ssid, String pass)
 		}
 		
 		WiFi.mode(WIFI_AP_STA); //It will start in station mode if it was previously in AP mode.
+
+		setHostname();
 
 		WiFi.begin(ssid.c_str(), pass.c_str());   // Start Wifi with new values.
 	}
@@ -1074,7 +1126,8 @@ void ESP_WiFiManager::handleInfo()
 
 	page += FPSTR(HTTP_AVAILABLE_PAGES);
 
-  page += F("<p/>More information about ESP_WiFiManager at <a href=\"https://github.com/khoih-prog/ESP_WiFiManager\">https://github.com/khoih-prog/ESP_WiFiManager</a>");
+  page += F("<p/>More information about ESP_WiFiManager at");
+	page += F("<p/><a href=\"https://github.com/khoih-prog/ESP_WiFiManager\">https://github.com/khoih-prog/ESP_WiFiManager</a>");
   page += FPSTR(HTTP_END);
 
   server->send(200, "text/html", page);

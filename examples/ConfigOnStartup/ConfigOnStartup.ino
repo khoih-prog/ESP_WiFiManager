@@ -13,12 +13,13 @@
  * 
  * Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
  * Licensed under MIT license
- * Version: 1.0.1
+ * Version: 1.0.4
  *
  * Version Modified By   Date      Comments
  * ------- -----------  ---------- -----------
  *  1.0.0   K Hoang      07/10/2019 Initial coding
  *  1.0.1   K Hoang      13/12/2019 Fix bug. Add features. Add support for ESP32
+ *  1.0.4   K Hoang      07/01/2020 Use ESP_WiFiManager setHostname feature
  *****************************************************************************************************************************/
 /****************************************************************************************************************************
  * This example will open a configuration portal for 60 seconds when first powered up if the boards has stored WiFi Credentials.
@@ -124,7 +125,10 @@ void setup()
   digitalWrite(PIN_LED, LED_ON); // turn the LED on by making the voltage LOW to tell us we are in configuration mode.
   
   //Local intialization. Once its business is done, there is no need to keep it around
+  // Use this to default DHCP hostname to ESP8266-XXXXXX or ESP32-XXXXXX
   ESP_WiFiManager ESP_wifiManager;
+  // Use this to personalize DHCP hostname (RFC952 conformed)
+  //ESP_WiFiManager ESP_wifiManager("ConfigOnStartup");
   
   ESP_wifiManager.setMinimumSignalQuality(-1);
 
@@ -137,7 +141,7 @@ void setup()
   //Remove this line if you do not want to see WiFi password printed
   Serial.println("Stored: SSID = " + Router_SSID + ", Pass = " + Router_Pass);
   
-  //Check if there is stored WiFi router/passeord credentials.
+  //Check if there is stored WiFi router/password credentials.
   //If not found, device will remain in configuration mode until switched off via webserver.
   Serial.print("Opening configuration portal.");
   
@@ -198,8 +202,8 @@ void setup()
     Serial.print("connected. Local IP: ");
     Serial.println(WiFi.localIP());
   }
-  else
-    Serial.println(ESP_wifiManager.getStatus(WiFi.status()));
+  //else
+  //  Serial.println(ESP_wifiManager.getStatus(WiFi.status()));
 }
 
 

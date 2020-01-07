@@ -39,7 +39,7 @@ The easiest way is to use Arduino Library Manager. Search for ESP_WiFiManager, t
 
 ####  Compatibility
 Github version `1.0.2` currently works with :
-1. release `2.6.2` or newer of the [ESP8266 core for Arduino](https://github.com/esp8266/Arduino)
+1. release `2.6.3` or newer of the [ESP8266 core for Arduino](https://github.com/esp8266/Arduino)
 2. release `1.0.4` or newer of the [ESP32 core for Arduino](https://github.com/espressif/arduino-esp32)
 
 - Checkout [library](https://github.com/khoih-prog/ESP_WiFiManager) to your Arduino libraries folder. Must be [https://github.com/khoih-prog/ESP_WiFiManager](https://github.com/khoih-prog/ESP_WiFiManager) version.
@@ -79,29 +79,30 @@ String Router_Pass;
 #include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
 ```
 
-- When you want open a config portal initialize library, add
+- When you want to open a config portal, with default DHCP hostname `ESP8266-XXXXXX` or `ESP32-XXXXXX`, just add
+
 ```cpp
 ESP_WiFiManager ESP_wifiManager;
 ```
-If you like to have a personalized hostname 
+If you'd like to have a personalized hostname 
 `(RFC952-conformed,- 24 chars max,- only a..z A..Z 0..9 '-' and no '-' as last char)`
 
 add
 
 ```cpp
-WiFi.hostname("Personalized-HostName");
+ESP_WiFiManager ESP_wifiManager("Personalized-HostName");
 ```
 
-then call
+then later call
 
 ```cpp
 ESP_wifiManager.startConfigPortal()
 ```
 
-While in AP mode, connect to it then open a browser to the gateway IP, default `192.168.4.1`, configure wifi, save and it should save WiFi connection information in non volatile memory, reboot and connect.
+While in AP mode, connect to it using its `SSID` (ESP_XXXXXX) / `Password` ("your_password"), then open a browser to the gateway IP, default `192.168.4.1`, configure wifi then save. The WiFi connection information will be saved in non volatile memory. It will then reboot and autoconnect.
 
 
-Once WiFi network information is saved in the `ESP32 / ESP8266`, it will try to connect to WiFi every time it is started without requiring any function calls in the sketch.
+Once WiFi network information is saved in the `ESP32 / ESP8266`, it will try to autoconnect to WiFi every time it is started, without requiring any function calls in the sketch.
 
 
 Also see examples: 
@@ -109,10 +110,11 @@ Also see examples:
 2. [ConfigOnSwitchFS](examples/ConfigOnSwitchFS)
 3. [ConfigOnStartup](examples/ConfigOnStartup) 
 4. [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) 
-5. [ConfigPortalParamsOnSwitch](examples/ConfigPortalParamsOnSwitch) 
+5. [ConfigPortalParamsOnSwitch](examples/ConfigPortalParamsOnSwitch)
+6. [ESP_FSWebServer](examples/ESP_FSWebServer)
 
 ## So, how it works?
-In `Configuration Portal Mode`, it starts an access point called `ESP_xxxxxx`. Connect to it using the configurable password you can define in the code. For example, `your_password` (see examples):
+In `Configuration Portal Mode`, it starts an access point called `ESP_XXXXXX`. Connect to it using the `configurable password` you can define in the code. For example, `your_password` (see examples):
 
 ```cpp
 // SSID and PW for Config Portal
@@ -202,9 +204,14 @@ void loop()
     Serial.println("\nConfiguration portal requested.");
     digitalWrite(PIN_LED, LED_ON); // turn the LED on by making the voltage LOW to tell us we are in configuration mode.
     
-    //Local intialization. Once its business is done, there is no need to keep it around
-    ESP_WiFiManager ESP_wifiManager;
-    
+		//Local intialization. Once its business is done, there is no need to keep it around
+		// Use this to default DHCP hostname to ESP8266-XXXXXX or ESP32-XXXXXX		
+    // ESP_WiFiManager ESP_wifiManager;
+		// Use this to personalize DHCP hostname (RFC952 conformed)
+    ESP_WiFiManager ESP_wifiManager("Personalized-HostName");
+		
+	  ESP_wifiManager.setMinimumSignalQuality(-1);
+		  
     //Check if there is stored WiFi router/password credentials.
     //If not found, device will remain in configuration mode until switched off via webserver.
     Serial.print("Opening configuration portal. ");
@@ -315,8 +322,22 @@ Sometimes, the library will only work if you update the `ESP32 / ESP8266` core t
 
 If you connect to the created configuration Access Point but the configuration portal does not show up, just open a browser and type in the IP of the web portal, by default `192.168.4.1`.
 
+### Releases 1.0.4
 
-## Releases 1.0.2
+#### New in v1.0.4
+
+- Add ESP_WiFiManager setHostname feature
+- Modify and add examples. Enhance README.md
+
+### Releases 1.0.3
+
+#### New in v1.0.3
+
+- Add option not displaying AvailablePages in Info page.
+- Delete unnecessary files
+- Modify examples, Images and enhance README.md
+
+### Releases 1.0.2
 
 - Forked, modified, bug-fixed and improved from these versions of WiFiManager.
 
@@ -330,5 +351,17 @@ See [KenTaylor's version]( https://github.com/kentaylor/WiFiManager) for previou
 
 ### Contributions and thanks
 Forked from [Tzapu](https://github.com/tzapu/WiFiManager) and [KenTaylor's version]( https://github.com/kentaylor/WiFiManager)
+
+### Contributing
+
+If you want to contribute to this project:
+- Report bugs and errors
+- Ask for enhancements
+- Create issues and pull requests
+- Tell other people about this library
+
+### Copyright
+
+Copyright 2019- Khoi Hoang
 
 

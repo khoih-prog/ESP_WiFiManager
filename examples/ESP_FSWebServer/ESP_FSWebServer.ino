@@ -10,7 +10,7 @@
  * 
  * Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
  * Licensed under MIT license
- * Version: 1.0.3
+ * Version: 1.0.4
  * 
  * Example modified from https://github.com/esp8266/Arduino/blob/master/libraries/ESP8266WebServer/examples/FSBrowser/FSBrowser.ino
  * 
@@ -31,6 +31,7 @@
  * Version Modified By   Date      Comments
  * ------- -----------  ---------- --------------------------------------------
  *  1.0.3   K Hoang      06/01/2020 Add code to use ESP_WiFiManager
+ *  1.0.4   K Hoang      07/01/2020 Use ESP_WiFiManager setHostname feature
  *****************************************************************************************************************************/
 /*****************************************************************************************************************************
  * How To Use: 
@@ -265,9 +266,11 @@ void setup(void) {
 
   unsigned long startedAt = millis();
   
- //Local intialization. Once its business is done, there is no need to keep it around
-  ESP_WiFiManager ESP_wifiManager;
-  WiFi.hostname("ESP_FSWebServer");
+  //Local intialization. Once its business is done, there is no need to keep it around
+  // Use this to default DHCP hostname to ESP8266-XXXXXX or ESP32-XXXXXX
+  //ESP_WiFiManager ESP_wifiManager;
+  // Use this to personalize DHCP hostname (RFC952 conformed)
+  ESP_WiFiManager ESP_wifiManager("ESP-FSWebServer");
 
   ESP_wifiManager.setMinimumSignalQuality(-1);
 
