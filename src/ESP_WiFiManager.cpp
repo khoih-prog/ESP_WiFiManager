@@ -22,7 +22,9 @@
  *  1.0.0   K Hoang      07/10/2019 Initial coding
  *  1.0.1   K Hoang      13/12/2019 Fix bug. Add features. Add support for ESP32
  *  1.0.2   K Hoang      19/12/2019 Fix bug that keeps ConfigPortal in endless loop if Portal/Router SSID or Password is NULL.
- *  1.0.3   K Hoang	 05/01/2020 Option not displaying AvailablePages in Info page. Enhance README.md. Modify examples
+ *  1.0.3   K Hoang	     05/01/2020 Option not displaying AvailablePages in Info page.
+ *  1.0.4   K Hoang	     07/01/2020 Add RFC952 setHostname feature.
+ *  1.0.5   K Hoang	     15/01/2020 Add configurable DNS feature. Thanks to @Amorphous of https://community.blynk.cc
  *****************************************************************************************************************************/
 
 #include "ESP_WiFiManager.h"
@@ -536,6 +538,28 @@ int ESP_WiFiManager::connectWifi(String ssid, String pass)
 	{
 		resetSettings();
 		   
+#if USE_CONFIGURABLE_DNS
+    if (_sta_static_ip) 
+    {
+        DEBUG_WM(F("Custom STA IP/GW/Subnet"));
+	    //***** Added section for DNS config option *****
+	    if (_sta_static_dns1 && _sta_static_dns2) {
+		    DEBUG_WM(F("dns1 and dns2 set"));
+		    WiFi.config(_sta_static_ip, _sta_static_gw, _sta_static_sn, _sta_static_dns1, _sta_static_dns2);
+	    }
+	    else if (_sta_static_dns1) {
+		    DEBUG_WM(F("only dns1 set"));
+		    WiFi.config(_sta_static_ip, _sta_static_gw, _sta_static_sn, _sta_static_dns1);
+	    }
+	    else {
+		    DEBUG_WM(F("No DNS server set"));
+		    WiFi.config(_sta_static_ip, _sta_static_gw, _sta_static_sn);
+        }
+	    //***** End added section for DNS config option *****
+	    
+	    DEBUG_WM(WiFi.localIP());
+    }
+#else		
 	 	// check if we've got static_ip settings, if we do, use those.
 		if (_sta_static_ip) 
 		{
@@ -543,6 +567,7 @@ int ESP_WiFiManager::connectWifi(String ssid, String pass)
 			WiFi.config(_sta_static_ip, _sta_static_gw, _sta_static_sn);
 			DEBUG_WM(WiFi.localIP());
 		}
+#endif
 	
 	  //fix for auto connect racing issue
 		if (WiFi.status() == WL_CONNECTED) 
@@ -695,12 +720,23 @@ void ESP_WiFiManager::setAPStaticIPConfig(IPAddress ip, IPAddress gw, IPAddress 
   _ap_static_sn = sn;
 }
 
-void ESP_WiFiManager::setSTAStaticIPConfig(IPAddress ip, IPAddress gw, IPAddress sn) 
+void ESP_WiFiManager::setSTAStaticIPConfig(IPAddress ip, IPAddress gw, IPAddress sn)
 {
   _sta_static_ip = ip;
   _sta_static_gw = gw;
   _sta_static_sn = sn;
 }
+
+#if USE_CONFIGURABLE_DNS
+void ESP_WiFiManager::setSTAStaticIPConfig(IPAddress ip, IPAddress gw, IPAddress sn, IPAddress dns_address_1, IPAddress dns_address_2)
+{
+  _sta_static_ip = ip;
+  _sta_static_gw = gw;
+  _sta_static_sn = sn;
+  _sta_static_dns1 = dns_address_1; //***** Added argument *****
+  _sta_static_dns2 = dns_address_2; //***** Added argument *****  
+}
+#endif
 
 void ESP_WiFiManager::setMinimumSignalQuality(int quality) 
 {
@@ -932,6 +968,28 @@ void ESP_WiFiManager::handleWifi()
     item.replace("{p}", "Subnet");
     item.replace("{l}", "15");
     item.replace("{v}", _sta_static_sn.toString());
+ 
+#if USE_CONFIGURABLE_DNS    
+    //***** Added for DNS address options *****
+    page += item;
+
+    item = FPSTR(HTTP_FORM_PARAM);
+    item.replace("{i}", "dns1");
+    item.replace("{n}", "dns1");
+    item.replace("{p}", "DNS Address 1");
+    item.replace("{l}", "15");
+    item.replace("{v}", _sta_static_dns1.toString());
+
+    page += item;
+
+    item = FPSTR(HTTP_FORM_PARAM);
+    item.replace("{i}", "dns2");
+    item.replace("{n}", "dns2");
+    item.replace("{p}", "DNS Address 2");
+    item.replace("{l}", "15");
+    item.replace("{v}", _sta_static_dns2.toString());
+    //***** End added for DNS address options *****    
+#endif
 
     page += item;
 
@@ -998,6 +1056,26 @@ void ESP_WiFiManager::handleWifiSave()
     optionalIPFromString(&_sta_static_sn, sn.c_str());
   }
 
+#if USE_CONFIGURABLE_DNS
+  //*****  Added for DNS Options *****
+  if (server->arg("dns1") != "") 
+  {
+  DEBUG_WM(F("DNS address 1"));
+  DEBUG_WM(server->arg("dns1"));
+  String dns1 = server->arg("dns1");
+  optionalIPFromString(&_sta_static_dns1, dns1.c_str());
+  }
+  
+  if (server->arg("dns2") != "") 
+  {
+  DEBUG_WM(F("DNS address 2"));
+  DEBUG_WM(server->arg("dns2"));
+  String dns2 = server->arg("dns2");
+  optionalIPFromString(&_sta_static_dns2, dns2.c_str());
+  }
+  //*****  End added for DNS Options *****
+#endif
+  
   String page = FPSTR(HTTP_HEAD_START);
   page.replace("{v}", "Credentials Saved");
   page += FPSTR(HTTP_SCRIPT);

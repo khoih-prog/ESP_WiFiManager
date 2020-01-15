@@ -211,6 +211,9 @@ void loop()
     ESP_WiFiManager ESP_wifiManager("Personalized-HostName");
 		
 	  ESP_wifiManager.setMinimumSignalQuality(-1);
+	  // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
+	  ESP_wifiManager.setSTAStaticIPConfig(IPAddress(192,168,2,114), IPAddress(192,168,2,1), IPAddress(255,255,255,0), 
+                                        IPAddress(192,168,2,1), IPAddress(8,8,8,8));
 		  
     //Check if there is stored WiFi router/password credentials.
     //If not found, device will remain in configuration mode until switched off via webserver.
@@ -322,6 +325,13 @@ Sometimes, the library will only work if you update the `ESP32 / ESP8266` core t
 
 If you connect to the created configuration Access Point but the configuration portal does not show up, just open a browser and type in the IP of the web portal, by default `192.168.4.1`.
 
+### Releases 1.0.5
+
+#### New in v1.0.5
+
+- Add option to specify static DNS servers, besides static IP, Gateway and Subnet Mask
+- Modify and add examples. Enhance README.md
+
 ### Releases 1.0.4
 
 #### New in v1.0.4
@@ -350,7 +360,8 @@ See [KenTaylor's version]( https://github.com/kentaylor/WiFiManager) for previou
 - Add example ConfigPortalParamsOnSwitch to enable ConfigPortal credentials to be reconfigurable using ConfigPortal.
 
 ### Contributions and thanks
-Forked from [Tzapu](https://github.com/tzapu/WiFiManager) and [KenTaylor's version]( https://github.com/kentaylor/WiFiManager)
+1. Forked from [Tzapu](https://github.com/tzapu/WiFiManager) and [KenTaylor's version]( https://github.com/kentaylor/WiFiManager)
+2. Thanks to [Amorphous](https://community.blynk.cc/t/esp-wifimanager-for-esp32-and-esp8266/42257/13) for the static DNS feature and code, included in v1.0.5
 
 ### Contributing
 

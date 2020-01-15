@@ -20,6 +20,7 @@
  *  1.0.0   K Hoang      07/10/2019 Initial coding
  *  1.0.1   K Hoang      13/12/2019 Fix bug. Add features. Add support for ESP32
  *  1.0.4   K Hoang      07/01/2020 Use ESP_WiFiManager setHostname feature
+ *  1.0.5   K Hoang       15/01/2020 Add configurable DNS feature. Thanks to @Amorphous of https://community.blynk.cc
  *****************************************************************************************************************************/
 /****************************************************************************************************************************
  * This example will open a configuration portal when no WiFi configuration has been previously entered or when a button is pushed. 
@@ -240,6 +241,9 @@ void setup()
   ESP_WiFiManager ESP_wifiManager("ConfigOnSwitch");
   
   ESP_wifiManager.setMinimumSignalQuality(-1);
+  // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
+  ESP_wifiManager.setSTAStaticIPConfig(IPAddress(192,168,2,114), IPAddress(192,168,2,1), IPAddress(255,255,255,0), 
+                                        IPAddress(192,168,2,1), IPAddress(8,8,8,8));
   
   // We can't use WiFi.SSID() in ESP32as it's only valid after connected. 
   // SSID and Password stored in ESP32 wifi_ap_record_t and wifi_config_t are also cleared in reboot

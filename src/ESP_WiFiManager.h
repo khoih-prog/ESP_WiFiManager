@@ -23,6 +23,8 @@
  *  1.0.1   K Hoang      13/12/2019 Fix bug. Add features. Add support for ESP32
  *  1.0.2   K Hoang      19/12/2019 Fix bug thatkeeps ConfigPortal in endless loop if Portal/Router SSID or Password is NULL.
  *  1.0.3   K Hoang      05/01/2020 Option not displaying AvailablePages in Info page. Enhance README.md. Modify examples
+ *  1.0.4   K Hoang	     07/01/2020 Add RFC952 setHostname feature.
+ *  1.0.5   K Hoang	     15/01/2020 Add configurable DNS feature. Thanks to @Amorphous of https://community.blynk.cc
  *****************************************************************************************************************************/
 
 #ifndef ESP_WiFiManager_h
@@ -94,6 +96,10 @@ const char HTTP_AVAILABLE_PAGES[] PROGMEM = "";
 //KH
 #define WIFI_MANAGER_MAX_PARAMS 20
 
+// Thanks to @Amorphous for the feature and code, from v1.0.5
+// (https://community.blynk.cc/t/esp-wifimanager-for-esp32-and-esp8266/42257/13)
+#define USE_CONFIGURABLE_DNS      true
+
 class ESP_WMParameter {
   public:
     ESP_WMParameter(const char *custom);
@@ -162,6 +168,12 @@ class ESP_WiFiManager
     void          setAPStaticIPConfig(IPAddress ip, IPAddress gw, IPAddress sn);
     //sets config for a static IP
     void          setSTAStaticIPConfig(IPAddress ip, IPAddress gw, IPAddress sn);
+    
+#if USE_CONFIGURABLE_DNS    
+    void          setSTAStaticIPConfig(IPAddress ip, IPAddress gw, IPAddress sn, 
+                                        IPAddress dns_address_1, IPAddress dns_address_2);
+#endif   
+ 
     //called when AP mode and config portal is started
     void          setAPCallback( void (*func)(ESP_WiFiManager*) );
     //called when settings have been changed and connection was successful
@@ -275,6 +287,11 @@ class ESP_WiFiManager
     IPAddress     _sta_static_ip;
     IPAddress     _sta_static_gw;
     IPAddress     _sta_static_sn;
+    
+#if USE_CONFIGURABLE_DNS
+    IPAddress     _sta_static_dns1;
+    IPAddress     _sta_static_dns2;
+#endif
 
     int           _paramsCount            = 0;
     int           _minimumQuality         = -1;
