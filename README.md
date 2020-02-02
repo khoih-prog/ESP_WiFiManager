@@ -325,6 +325,12 @@ Sometimes, the library will only work if you update the `ESP32 / ESP8266` core t
 
 If you connect to the created configuration Access Point but the configuration portal does not show up, just open a browser and type in the IP of the web portal, by default `192.168.4.1`.
 
+### Releases 1.0.6-beta
+
+#### New in v1.0.6-beta
+
+- Add NTP data
+
 ### Releases 1.0.5
 
 #### New in v1.0.5

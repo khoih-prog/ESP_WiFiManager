@@ -750,14 +750,16 @@ void ESP_WiFiManager::setBreakAfterConfig(boolean shouldBreak)
 
 void ESP_WiFiManager::reportStatus(String &page)
 {
+  page += FPSTR(HTTP_SCRIPT_NTP_MSG);
+
 	if (WiFi_SSID() != "")
   {
-	  page += F("Configured to connect to access point <strong>");
+	  page += F("Configured to connect to access point <b>");
 	  page += WiFi_SSID();
 	  
 		if (WiFi.status()==WL_CONNECTED)
 		{
-			page += F(" and currently connected</strong> on IP <a href=\"http://");
+			page += F(" and currently connected</b> on IP <a href=\"http://");
 			page += WiFi.localIP().toString();
 			page += F("/\">");
 			page += WiFi.localIP().toString();
@@ -765,7 +767,7 @@ void ESP_WiFiManager::reportStatus(String &page)
 		}
 		else 
 		{
-			page += F(" but not currently connected</strong> to network.");
+			page += F(" but not currently connected</b> to network.");
 		}
   }
   else 
@@ -795,6 +797,7 @@ void ESP_WiFiManager::handleRoot()
   String page = FPSTR(HTTP_HEAD_START);
   page.replace("{v}", "Options");
   page += FPSTR(HTTP_SCRIPT);
+  page += FPSTR(HTTP_SCRIPT_NTP);
   page += FPSTR(HTTP_STYLE);
   page += _customHeadElement;
   page += FPSTR(HTTP_HEAD_END);
@@ -841,6 +844,7 @@ void ESP_WiFiManager::handleWifi()
   String page = FPSTR(HTTP_HEAD_START);
   page.replace("{v}", "Config ESP");
   page += FPSTR(HTTP_SCRIPT);
+  page += FPSTR(HTTP_SCRIPT_NTP);
   page += FPSTR(HTTP_STYLE);
   page += _customHeadElement;
   page += FPSTR(HTTP_HEAD_END);
@@ -1009,7 +1013,7 @@ void ESP_WiFiManager::handleWifi()
 void ESP_WiFiManager::handleWifiSave() 
 {
   DEBUG_WM(F("WiFi save"));
-
+  
   //SAVE/connect here
   _ssid = server->arg("s").c_str();
   _pass = server->arg("p").c_str();
@@ -1079,6 +1083,7 @@ void ESP_WiFiManager::handleWifiSave()
   String page = FPSTR(HTTP_HEAD_START);
   page.replace("{v}", "Credentials Saved");
   page += FPSTR(HTTP_SCRIPT);
+  page += FPSTR(HTTP_SCRIPT_NTP);
   page += FPSTR(HTTP_STYLE);
   page += _customHeadElement;
   page += FPSTR(HTTP_HEAD_END);
@@ -1107,16 +1112,17 @@ void ESP_WiFiManager::handleServerClose()
     String page = FPSTR(HTTP_HEAD_START);
     page.replace("{v}", "Close Server");
     page += FPSTR(HTTP_SCRIPT);
+    page += FPSTR(HTTP_SCRIPT_NTP);
     page += FPSTR(HTTP_STYLE);
     page += _customHeadElement;
     page += FPSTR(HTTP_HEAD_END);
     page += F("<div class=\"msg\">");
-    page += F("My network is <strong>");
+    page += F("My network is <b>");
     page += WiFi_SSID();
-    page += F("</strong><br>");
-    page += F("My IP address is <strong>");
+    page += F("</b><br>");
+    page += F("My IP address is <b>");
     page += WiFi.localIP().toString();
-    page += F("</strong><br><br>");
+    page += F("</b><br><br>");
     page += F("Configuration server closed...<br><br>");
     //page += F("Push button on device to restart configuration server!");
     page += FPSTR(HTTP_END);
@@ -1143,6 +1149,7 @@ void ESP_WiFiManager::handleInfo()
   String page = FPSTR(HTTP_HEAD_START);
   page.replace("{v}", "Info");
   page += FPSTR(HTTP_SCRIPT);
+  page += FPSTR(HTTP_SCRIPT_NTP);
   page += FPSTR(HTTP_STYLE);
   page += _customHeadElement;
   page += FPSTR(HTTP_HEAD_END);
@@ -1333,6 +1340,7 @@ void ESP_WiFiManager::handleReset()
   String page = FPSTR(HTTP_HEAD_START);
   page.replace("{v}", "WiFi Information");
   page += FPSTR(HTTP_SCRIPT);
+  page += FPSTR(HTTP_SCRIPT_NTP);
   page += FPSTR(HTTP_STYLE);
   page += _customHeadElement;
   page += FPSTR(HTTP_HEAD_END);
