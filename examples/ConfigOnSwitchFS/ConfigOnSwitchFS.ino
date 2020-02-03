@@ -577,7 +577,7 @@ bool writeConfigFile()
   }
 
 #if (ARDUINOJSON_VERSION_MAJOR >= 6)
-    serializeJson(json, Serial);
+    serializeJsonPretty(json, Serial);
     // Write data to file and close it
     serializeJson(json, f);
 #else
