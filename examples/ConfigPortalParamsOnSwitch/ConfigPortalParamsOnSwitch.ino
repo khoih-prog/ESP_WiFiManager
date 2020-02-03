@@ -22,6 +22,7 @@
  *  1.0.2   K Hoang      19/12/2019 Fix bug that keeps ConfigPortal in endless loop if Portal/Router SSID or Password is NULL.
  *  1.0.4   K Hoang      07/01/2020 Use ESP_WiFiManager setHostname feature
  *  1.0.5   K Hoang       15/01/2020 Add configurable DNS feature. Thanks to @Amorphous of https://community.blynk.cc
+ *  1.0.6   K Hoang      03/02/2020 Add support for ArduinoJson version 6.0.0+ ( tested with v6.14.1 )
  *****************************************************************************************************************************/
 /****************************************************************************************************************************
  * This example will open a configuration portal when a predetermined button is pressed
@@ -39,6 +40,7 @@
 //For ESP32, To use ESP32 Dev Module, QIO, Flash 4MB/80MHz, Upload 921600
 
 #include <FS.h>
+// Now support ArduinoJson 6.0.0+ ( tested with v6.14.1 )
 #include <ArduinoJson.h>      // get it from https://arduinojson.org/ or install via Arduino library manager
 
 //Ported to ESP32
@@ -463,18 +465,29 @@ bool readConfigFile()
     f.close();
     // Using dynamic JSON buffer which is not the recommended memory model, but anyway
     // See https://github.com/bblanchon/ArduinoJson/wiki/Memory%20model
+
+#if (ARDUINOJSON_VERSION_MAJOR >= 6)
+    DynamicJsonDocument json(1024);
+    auto deserializeError = deserializeJson(json, buf.get());
+    if ( ! deserializeError )
+    {
+      Serial.println("JSON parseObject() failed");
+      return false;
+    }
+    serializeJson(json, Serial);
+#else
     DynamicJsonBuffer jsonBuffer;
     // Parse JSON string
     JsonObject& json = jsonBuffer.parseObject(buf.get());
-    
     // Test if parsing succeeds.
-    if (!json.success()) 
+    if (!json.success())
     {
       Serial.println("JSON parseObject() failed");
       return false;
     }
     json.printTo(Serial);
-
+#endif
+    
     // Parse all config file parameters, override 
     // local config variables with parsed values
     if (json.containsKey(PortalSSID_Label)) 
@@ -494,8 +507,14 @@ bool readConfigFile()
 bool writeConfigFile() 
 {
   Serial.println("Saving config file");
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& json = jsonBuffer.createObject();
+
+#if (ARDUINOJSON_VERSION_MAJOR >= 6)
+    DynamicJsonDocument json(1024);
+#else
+    DynamicJsonBuffer jsonBuffer;
+    JsonObject& json = jsonBuffer.createObject();
+#endif
+  
 
   // JSONify local configuration parameters
   json[PortalSSID_Label]      = PortalSSID;
@@ -510,9 +529,16 @@ bool writeConfigFile()
     return false;
   }
 
-  json.prettyPrintTo(Serial);
-  // Write data to file and close it
-  json.printTo(f);
+#if (ARDUINOJSON_VERSION_MAJOR >= 6)
+    serializeJson(json, Serial);
+    // Write data to file and close it
+    serializeJson(json, f);
+#else
+    json.prettyPrintTo(Serial);
+    // Write data to file and close it
+    json.printTo(f);
+#endif
+
   f.close();
 
   Serial.println("\nConfig file was successfully saved");
