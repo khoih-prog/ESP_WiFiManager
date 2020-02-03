@@ -505,7 +505,7 @@ bool readConfigFile()
 #if (ARDUINOJSON_VERSION_MAJOR >= 6)
     DynamicJsonDocument json(1024);
     auto deserializeError = deserializeJson(json, buf.get());
-    if ( ! deserializeError )
+    if ( deserializeError )
     {
       Serial.println("JSON parseObject() failed");
       return false;
