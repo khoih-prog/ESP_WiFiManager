@@ -109,8 +109,8 @@ Also see examples:
 1. [ConfigOnSwitch](examples/ConfigOnSwitch)
 2. [ConfigOnSwitchFS](examples/ConfigOnSwitchFS)
 3. [ConfigOnStartup](examples/ConfigOnStartup) 
-4. [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) 
-5. [ConfigPortalParamsOnSwitch](examples/ConfigPortalParamsOnSwitch)
+4. [ConfigOnDoubleReset](examples/ConfigOnDoubleReset)  (now support ArduinoJson 6.0.0+ as well as 5.13.5-)
+5. [ConfigPortalParamsOnSwitch](examples/ConfigPortalParamsOnSwitch)  (now support ArduinoJson 6.0.0+ as well as 5.13.5-)
 6. [ESP_FSWebServer](examples/ESP_FSWebServer)
 
 ## So, how it works?
@@ -330,6 +330,7 @@ If you connect to the created configuration Access Point but the configuration p
 #### New in v1.0.6-beta
 
 - Add NTP data
+- Add support to ArduinoJson 6.0.0+ as well as 5.13.5- to examples
 
 ### Releases 1.0.5
 
