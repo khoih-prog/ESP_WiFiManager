@@ -15,7 +15,7 @@ It's using a web configuration portal, served from the `ESP32 / ESP8266`, and op
 The configuration portal is captive, so it will present the configuration dialogue regardless of the web address selected, excluding https requests.
 
 This works with 
-1. The `ESP8266` Arduino platform with a recent stable release [`ESP8266 Core 2.6.2 or newer`] (https://github.com/esp8266/Arduino)
+1. The `ESP8266` Arduino platform with a recent stable release [`ESP8266 Core 2.6.3 or newer`] (https://github.com/esp8266/Arduino)
 2. The `ESP32` Arduino platform with a recent stable release [`ESP32 Core 1.0.4 or newer`] (https://github.com/espressif/arduino-esp32)
 
 
