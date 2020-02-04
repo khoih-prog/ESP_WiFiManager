@@ -15,7 +15,7 @@
  * 
  * Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
  * Licensed under MIT license
- * Version: 1.0.3
+ * Version: 1.0.6
  *
  * Version Modified By   Date      Comments
  * ------- -----------  ---------- -----------
@@ -25,6 +25,7 @@
  *  1.0.3   K Hoang      05/01/2020 Option not displaying AvailablePages in Info page. Enhance README.md. Modify examples
  *  1.0.4   K Hoang	     07/01/2020 Add RFC952 setHostname feature.
  *  1.0.5   K Hoang	     15/01/2020 Add configurable DNS feature. Thanks to @Amorphous of https://community.blynk.cc
+ *  1.0.6   K Hoang      03/02/2020 Add support for ArduinoJson version 6.0.0+ ( tested with v6.14.1 )
  *****************************************************************************************************************************/
 
 #ifndef ESP_WiFiManager_h
@@ -166,6 +167,8 @@ class ESP_WiFiManager
 
     // get the AP name of the config portal, so it can be used in the callback
     String        getConfigPortalSSID();
+    // get the AP password of the config portal, so it can be used in the callback
+    String        getConfigPortalPW();
 
     void          resetSettings();
 

@@ -13,14 +13,15 @@
  * 
  * Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
  * Licensed under MIT license
- * Version: 1.0.4
+ * Version: 1.0.6
  *
  * Version Modified By   Date      Comments
  * ------- -----------  ---------- -----------
  *  1.0.0   K Hoang      07/10/2019 Initial coding
  *  1.0.1   K Hoang      13/12/2019 Fix bug. Add features. Add support for ESP32
  *  1.0.4   K Hoang      07/01/2020 Use ESP_WiFiManager setHostname feature
- *  1.0.5   K Hoang       15/01/2020 Add configurable DNS feature. Thanks to @Amorphous of https://community.blynk.cc
+ *  1.0.5   K Hoang      15/01/2020 Add configurable DNS feature. Thanks to @Amorphous of https://community.blynk.cc
+ *  1.0.6   K Hoang      03/02/2020 Add support for ArduinoJson version 6.0.0+ ( tested with v6.14.1 )
  *****************************************************************************************************************************/
 /****************************************************************************************************************************
  * This example will open a configuration portal when the reset button is pressed twice. 

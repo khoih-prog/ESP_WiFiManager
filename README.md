@@ -106,12 +106,16 @@ Once WiFi network information is saved in the `ESP32 / ESP8266`, it will try to 
 
 
 Also see examples: 
-1. [ConfigOnSwitch](examples/ConfigOnSwitch)
-2. [ConfigOnSwitchFS](examples/ConfigOnSwitchFS)
-3. [ConfigOnStartup](examples/ConfigOnStartup) 
-4. [ConfigOnDoubleReset](examples/ConfigOnDoubleReset)  (now support ArduinoJson 6.0.0+ as well as 5.13.5-)
-5. [ConfigPortalParamsOnSwitch](examples/ConfigPortalParamsOnSwitch)  (now support ArduinoJson 6.0.0+ as well as 5.13.5-)
-6. [ESP_FSWebServer](examples/ESP_FSWebServer)
+ 1. [ConfigOnSwitch](examples/ConfigOnSwitch)
+ 2. [ConfigOnSwitchFS](examples/ConfigOnSwitchFS)
+ 3. [ConfigOnStartup](examples/ConfigOnStartup) 
+ 4. [ConfigOnDoubleReset](examples/ConfigOnDoubleReset)  (now support ArduinoJson 6.0.0+ as well as 5.13.5-)
+ 5. [ConfigPortalParamsOnSwitch](examples/ConfigPortalParamsOnSwitch)  (now support ArduinoJson 6.0.0+ as well as 5.13.5-)
+ 6. [ESP_FSWebServer](examples/ESP_FSWebServer)
+ 7. [AutoConnect](examples/AutoConnect)
+ 8. [AutoConnectWithFeedback](examples/AutoConnectWithFeedback)
+ 9. [AutoConnectWithFeedbackLED](examples/AutoConnectWithFeedbackLED)
+10. [AutoConnectWithFSParameters](examples/AutoConnectWithFSParameters)
 
 ## So, how it works?
 In `Configuration Portal Mode`, it starts an access point called `ESP_XXXXXX`. Connect to it using the `configurable password` you can define in the code. For example, `your_password` (see examples):
@@ -324,6 +328,13 @@ If you get compilation errors, more often than not, you may need to install a ne
 Sometimes, the library will only work if you update the `ESP32 / ESP8266` core to the latest version because I am using some newly added function.
 
 If you connect to the created configuration Access Point but the configuration portal does not show up, just open a browser and type in the IP of the web portal, by default `192.168.4.1`.
+
+### Releases 1.0.6
+
+#### New in v1.0.6
+
+- Add function getConfigPortalPW()
+- Add 4 new complicated examples compatible with ArduinoJson 6.0.0+ :[AutoConnect](examples/AutoConnect), [AutoConnectWithFeedback](examples/AutoConnectWithFeedback), [AutoConnectWithFeedbackLED](examples/AutoConnectWithFeedbackLED) and [AutoConnectWithFSParameters](examples/AutoConnectWithFSParameters)
 
 ### Releases 1.0.6-beta
 

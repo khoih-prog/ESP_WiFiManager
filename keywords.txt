@@ -22,6 +22,7 @@ getCustomHTML KEYWORD2
 autoConnect	KEYWORD2
 startConfigPortal KEYWORD2
 getConfigPortalSSID KEYWORD2
+getConfigPortalPW KEYWORD2
 resetSettings	KEYWORD2
 setConfigPortalTimeout	KEYWORD2
 setTimeout  KEYWORD2
