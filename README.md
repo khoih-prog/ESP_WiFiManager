@@ -4,8 +4,8 @@
 
 This library is based on, modified, bug-fixed and improved from:
 
-1. [`Tzapu WiFiManager`] (https://github.com/tzapu/WiFiManager)
-2. [`Ken Taylor WiFiManager`] (https://github.com/kentaylor/WiFiManager)
+1. [`Tzapu WiFiManager`](https://github.com/tzapu/WiFiManager)
+2. [`Ken Taylor WiFiManager`](https://github.com/kentaylor/WiFiManager)
 
 to add support to `ESP32` besides `ESP8266`.
 
@@ -15,8 +15,8 @@ It's using a web configuration portal, served from the `ESP32 / ESP8266`, and op
 The configuration portal is captive, so it will present the configuration dialogue regardless of the web address selected, excluding https requests.
 
 This works with 
-1. The `ESP8266` Arduino platform with a recent stable release [`ESP8266 Core 2.6.3 or newer`] (https://github.com/esp8266/Arduino)
-2. The `ESP32` Arduino platform with a recent stable release [`ESP32 Core 1.0.4 or newer`] (https://github.com/espressif/arduino-esp32)
+1. The `ESP8266` Arduino platform with a recent stable release [`ESP8266 Core 2.6.3 or newer`](https://github.com/esp8266/Arduino)
+2. The `ESP32` Arduino platform with a recent stable release [`ESP32 Core 1.0.4 or newer`](https://github.com/espressif/arduino-esp32)
 
 
 ## How It Works
@@ -370,7 +370,7 @@ If you connect to the created configuration Access Point but the configuration p
 - Forked, modified, bug-fixed and improved from these versions of WiFiManager.
 
 See [Tzapu's version](https://github.com/tzapu/WiFiManager) for previous release information.
-See [KenTaylor's version]( https://github.com/kentaylor/WiFiManager) for previous release information.
+See [KenTaylor's version](https://github.com/kentaylor/WiFiManager) for previous release information.
 
 #### New in v1.0.2
 
