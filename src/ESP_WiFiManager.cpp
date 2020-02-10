@@ -30,7 +30,7 @@
 
 #include "ESP_WiFiManager.h"
 
-#define DEBUG_WIFIMGR			false		//true
+#define DEBUG_WIFIMGR			false
 
 ESP_WMParameter::ESP_WMParameter(const char *custom) 
 {
@@ -189,13 +189,6 @@ ESP_WiFiManager::ESP_WiFiManager(const char *iHostname)
 	setHostname();
 
 	networkIndices = NULL;
-
-	//Do a network scan before setting up an access point so as not to close WiFiNetwork while scanning.
-	numberOfNetworks = scanWifiNetworks(&networkIndices);
-
-	#if DEBUG_WIFIMGR
-		Serial.printf("ESP_WiFiManager::ESP_WiFiManager : networkIndices = %08X, networkIndicesptr = %08X\n", networkIndices, &networkIndices);
-	#endif
 }
 
 ESP_WiFiManager::~ESP_WiFiManager() 
@@ -855,6 +848,9 @@ void ESP_WiFiManager::handleWifi()
   page += _customHeadElement;
   page += FPSTR(HTTP_HEAD_END);
   page += F("<h2>Configuration</h2>");
+  
+  //  KH, New, v1.0.6+
+  numberOfNetworks = scanWifiNetworks(&networkIndices);
   
   //Print list of WiFi networks that were found in earlier scan
   if (numberOfNetworks == 0) 
