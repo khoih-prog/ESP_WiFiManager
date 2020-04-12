@@ -1,27 +1,28 @@
 /****************************************************************************************************************************
- *  ConfigOnSwitchFS.ino
- *  For ESP8266 / ESP32 boards
- *
- *  ESP_WiFiManager is a library for the ESP8266/ESP32 platform (https://github.com/esp8266/Arduino) to enable easy
- *  configuration and reconfiguration of WiFi credentials using a Captive Portal. Inspired by:
- *  http://www.esp8266.com/viewtopic.php?f=29&t=2520
- *  https://github.com/chriscook8/esp-arduino-apboot
- *  https://github.com/esp8266/Arduino/blob/master/libraries/DNSServer/examples/CaptivePortalAdvanced/
- *
- *  Forked from Tzapu https://github.com/tzapu/WiFiManager
- *  and from Ken Taylor https://github.com/kentaylor
- *
- *  Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
- *  Licensed under MIT license
- *  Version: 1.0.6
- *
- *  Version Modified By   Date      Comments
- *  ------- -----------  ---------- -----------
- *   1.0.0   K Hoang      07/10/2019 Initial coding
- *   1.0.1   K Hoang      13/12/2019 Fix bug. Add features. Add support for ESP32
- *   1.0.4   K Hoang      07/01/2020 Use ESP_WiFiManager setHostname feature
- *   1.0.5   K Hoang      15/01/2020 Add configurable DNS feature. Thanks to @Amorphous of https://community.blynk.cc
- *   1.0.6   K Hoang      03/02/2020 Add support for ArduinoJson version 6.0.0+ ( tested with v6.14.1 )
+    ConfigOnSwitchFS.ino
+    For ESP8266 / ESP32 boards
+
+    ESP_WiFiManager is a library for the ESP8266/ESP32 platform (https://github.com/esp8266/Arduino) to enable easy
+    configuration and reconfiguration of WiFi credentials using a Captive Portal. Inspired by:
+    http://www.esp8266.com/viewtopic.php?f=29&t=2520
+    https://github.com/chriscook8/esp-arduino-apboot
+    https://github.com/esp8266/Arduino/blob/master/libraries/DNSServer/examples/CaptivePortalAdvanced/
+
+    Forked from Tzapu https://github.com/tzapu/WiFiManager
+    and from Ken Taylor https://github.com/kentaylor
+
+    Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
+    Licensed under MIT license
+    Version: 1.0.6
+
+    Version Modified By   Date      Comments
+    ------- -----------  ---------- -----------
+    1.0.0   K Hoang      07/10/2019 Initial coding
+    1.0.1   K Hoang      13/12/2019 Fix bug. Add features. Add support for ESP32
+    1.0.2   K Hoang      19/12/2019 Fix bug that keeps ConfigPortal in endless loop if Portal/Router SSID or Password is NULL.
+    1.0.4   K Hoang      07/01/2020 Use ESP_WiFiManager setHostname feature
+    1.0.5   K Hoang      15/01/2020 Add configurable DNS feature. Thanks to @Amorphous of https://community.blynk.cc
+    1.0.6   K Hoang      03/02/2020 Add support for ArduinoJson version 6.0.0+ ( tested with v6.14.1 )
  *****************************************************************************************************************************/
 /****************************************************************************************************************************
    This example will open a configuration portal when the reset button is pressed twice.
@@ -493,7 +494,7 @@ bool readConfigFile()
     // we could open the file
     size_t size = f.size();
     // Allocate a buffer to store contents of the file.
-    std::unique_ptr<char[]> buf(new char[size]);
+    std::unique_ptr<char[]> buf(new char[size + 1]);
 
     // Read and store file contents in buf
     f.readBytes(buf.get(), size);
@@ -555,10 +556,10 @@ bool writeConfigFile()
   Serial.println("Saving config file");
 
 #if (ARDUINOJSON_VERSION_MAJOR >= 6)
-    DynamicJsonDocument json(1024);
+  DynamicJsonDocument json(1024);
 #else
-    DynamicJsonBuffer jsonBuffer;
-    JsonObject& json = jsonBuffer.createObject();
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject& json = jsonBuffer.createObject();
 #endif
 
   // JSONify local configuration parameters
@@ -577,13 +578,13 @@ bool writeConfigFile()
   }
 
 #if (ARDUINOJSON_VERSION_MAJOR >= 6)
-    serializeJsonPretty(json, Serial);
-    // Write data to file and close it
-    serializeJson(json, f);
+  serializeJsonPretty(json, Serial);
+  // Write data to file and close it
+  serializeJson(json, f);
 #else
-    json.prettyPrintTo(Serial);
-    // Write data to file and close it
-    json.printTo(f);
+  json.prettyPrintTo(Serial);
+  // Write data to file and close it
+  json.printTo(f);
 #endif
 
   f.close();
