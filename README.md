@@ -2,6 +2,11 @@
 
 [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_WiFiManager.svg?)](https://www.ardu-badge.com/ESP_WiFiManager)
 
+### Releases 1.0.6
+
+1. Add function getConfigPortalPW()
+2. Add 4 new complicated examples compatible with ArduinoJson 6.0.0+ :[AutoConnect](examples/AutoConnect), [AutoConnectWithFeedback](examples/AutoConnectWithFeedback), [AutoConnectWithFeedbackLED](examples/AutoConnectWithFeedbackLED) and [AutoConnectWithFSParameters](examples/AutoConnectWithFSParameters)
+
 This library is based on, modified, bug-fixed and improved from:
 
 1. [`Tzapu WiFiManager`](https://github.com/tzapu/WiFiManager)
@@ -14,10 +19,11 @@ It's using a web configuration portal, served from the `ESP32 / ESP8266`, and op
 
 The configuration portal is captive, so it will present the configuration dialogue regardless of the web address selected, excluding https requests.
 
-This works with 
-1. The `ESP8266` Arduino platform with a recent stable release [`ESP8266 Core 2.6.3 or newer`](https://github.com/esp8266/Arduino)
-2. The `ESP32` Arduino platform with a recent stable release [`ESP32 Core 1.0.4 or newer`](https://github.com/espressif/arduino-esp32)
-
+## Prerequisite
+ 1. [`Arduino IDE 1.8.12 or later` for Arduino](https://www.arduino.cc/en/Main/Software)
+ 2. `Arduino AVR core 1.8.2 or later` for Arduino (Use Arduino Board Manager)
+ 3. [`ESP8266 Core 2.6.3 or newer`](https://github.com/esp8266/Arduino) for ESP8266-based boards.
+ 4. [`ESP32 Core 1.0.4 or newer`](https://github.com/espressif/arduino-esp32) for ESP32-based boards
 
 ## How It Works
 
@@ -33,16 +39,20 @@ This works with
 
 ## Quick Start
 
+The suggested way to install is to:
+
 ### Installing
 
-The easiest way is to use Arduino Library Manager. Search for ESP_WiFiManager, then select / install the latest version.
+#### Use Arduino Library Manager
+The best and easiest way is to use `Arduino Library Manager`. Search for `ESP_WiFiManager`, then select / install the latest version. You can also use this link [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_WiFiManager.svg?)](https://www.ardu-badge.com/ESP_WiFiManager) for more detailed instructions.
 
-####  Compatibility
-Github version `1.0.2` currently works with :
-1. release `2.6.3` or newer of the [ESP8266 core for Arduino](https://github.com/esp8266/Arduino)
-2. release `1.0.4` or newer of the [ESP32 core for Arduino](https://github.com/espressif/arduino-esp32)
+#### Manual Install
 
-- Checkout [library](https://github.com/khoih-prog/ESP_WiFiManager) to your Arduino libraries folder. Must be [https://github.com/khoih-prog/ESP_WiFiManager](https://github.com/khoih-prog/ESP_WiFiManager) version.
+1. Navigate to [ESP_WiFiManager](https://github.com/khoih-prog/ESP_WiFiManager) page.
+2. Download the latest release `ESP_WiFiManager-master.zip`.
+3. Extract the zip file to `ESP_WiFiManager-master` directory 
+4. Copy whole 
+  - `ESP_WiFiManager-master/src` folder to Arduino libraries' directory such as `~/Arduino/libraries/`.
 
 ### Using
 - Include in your sketch
@@ -367,7 +377,7 @@ If you connect to the created configuration Access Point but the configuration p
 
 ### Releases 1.0.2
 
-- Forked, modified, bug-fixed and improved from these versions of WiFiManager.
+- Based on, modified, bug-fixed and improved from these versions of WiFiManager.
 
 See [Tzapu's version](https://github.com/tzapu/WiFiManager) for previous release information.
 See [KenTaylor's version](https://github.com/kentaylor/WiFiManager) for previous release information.
@@ -378,9 +388,10 @@ See [KenTaylor's version](https://github.com/kentaylor/WiFiManager) for previous
 - Add example ConfigPortalParamsOnSwitch to enable ConfigPortal credentials to be reconfigurable using ConfigPortal.
 
 ### Contributions and thanks
-1. Forked from [Tzapu](https://github.com/tzapu/WiFiManager) and [KenTaylor's version]( https://github.com/kentaylor/WiFiManager)
+1. Based on and modified from [Tzapu](https://github.com/tzapu/WiFiManager) and [KenTaylor's version]( https://github.com/kentaylor/WiFiManager)
 2. Thanks to [Amorphous](https://community.blynk.cc/t/esp-wifimanager-for-esp32-and-esp8266/42257/13) for the static DNS feature and code, included in v1.0.5
 3. Thanks to [CrispinP](https://github.com/CrispinP) for idea to add HostName (v1.0.4) and request to reduce the unnecessary waiting time in ESP_WiFiManager constructor (v1.0.6+).
+4. Thanks to [OttoKlaasen](https://github.com/OttoKlaasen) for reporting [Having issue to read the SPIFF file](https://github.com/khoih-prog/ESP_WiFiManager/issues/14) bug.
 
 ### Contributing
 
