@@ -2,6 +2,16 @@
 
 [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_WiFiManager.svg?)](https://www.ardu-badge.com/ESP_WiFiManager)
 
+### Releases 1.0.7
+
+1. Use `just-in-time` scanWiFiNetworks() to reduce connection time necessary for battery-operated DeepSleep application. Thanks to [CrispinP](https://github.com/CrispinP) for identifying, requesting and testing. See [Starting WiFIManger is very slow (2000ms)](https://github.com/khoih-prog/ESP_WiFiManager/issues/6)
+2. Fix bug relating SPIFFS in examples :
+ - [ConfigOnSwitchFS](examples/ConfigOnSwitchFS)
+ - [ConfigPortalParamsOnSwitch](examples/ConfigPortalParamsOnSwitch)  (now support ArduinoJson 6.0.0+ as well as 5.13.5-)
+ - [AutoConnectWithFSParameters](examples/AutoConnectWithFSParameters)
+ See [Having issue to read the SPIFF file](https://github.com/khoih-prog/ESP_WiFiManager/issues/14), Thanks to [OttoKlaasen](https://github.com/OttoKlaasen) to report.
+3. Fix [README](README.md). See [Accessing manager after connection](https://github.com/khoih-prog/ESP_WiFiManager/issues/15) 
+
 ### Releases 1.0.6
 
 1. Add function getConfigPortalPW()
@@ -14,10 +24,8 @@ This library is based on, modified, bug-fixed and improved from:
 
 to add support to `ESP32` besides `ESP8266`.
 
-This is an `ESP32 / ESP8266` WiFi Connection manager with fallback web configuration portal.
-It's using a web configuration portal, served from the `ESP32 / ESP8266`, and operating as an access point.
-
-The configuration portal is captive, so it will present the configuration dialogue regardless of the web address selected, excluding https requests.
+This is an `ESP32 / ESP8266` WiFi Connection manager with fallback web ConfigPortal.
+It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating as an access point.
 
 ## Prerequisite
  1. [`Arduino IDE 1.8.12 or later` for Arduino](https://www.arduino.cc/en/Main/Software)
@@ -28,14 +36,18 @@ The configuration portal is captive, so it will present the configuration dialog
 ## How It Works
 
 - The [ConfigOnSwitch](examples/ConfigOnSwitch) example shows how it works and should be used as the basis for a sketch that uses this library.
-- The concept of ConfigOnSwitch is that a new `ESP32 / ESP8266` will start a WiFi configuration portal when powered up and save the configuration data in non volatile memory. Thereafter, the configuration portal will only be started again if a button is pushed on the `ESP32 / ESP8266` module.
-- Using any WiFi enabled device with a browser (computer, phone, tablet) connect to the newly created Access Point and type in any http address.
-- Because of the Captive Portal and the DNS server you will either get a 'Join to network' type of popup or get any domain you try to access redirected to the configuration portal.
-- All http web addresses will be redirected to wifi.urremote.com which will be at IP address `192.168.4.1` . This address is also a valid internet address where the user will see advice that they are connected to the wrong network.
-- Choose one of the access points scanned, enter password, click save.
-- ESP will try to connect. If successful, the IP address on the new network will be displayed in the configuration portal. 
-- The configuration portal will now be visible on two networks, these being it's own network and the network to which it has connected.  On it's own network it will have two IP addresses, the original `192.168.4.1` and the same IP address it has on the network to which it connected.
-- Selecting "close configuration portal" will shutdown the web server, shutdown the `ESP32 / ESP8266` WiFi network and return control to the following sketch code.
+- The concept of ConfigOnSwitch is that a new `ESP32 / ESP8266` will start a WiFi ConfigPortal when powered up and save the configuration data in non volatile memory. Thereafter, the ConfigPortal will only be started again if a button is pushed on the `ESP32 / ESP8266` module.
+- Using any WiFi enabled device with a browser (computer, phone, tablet) connect to the newly created Access Point (AP) using configurable SSID and Password (specified in sketch)
+
+```cpp
+// SSID and PW for Config Portal
+String ssid = "ESP_" + String(ESP_getChipId(), HEX);
+const char* password = "your_password";
+``` 
+then connect WebBrower to configurable ConfigPortal IP address, default is 192.168.4.1
+
+- Choose one of the access points scanned, enter password, click ***Save***.
+- ESP will restart, then try to connect to the WiFi netwotk using STA-only mode, ***without running the ConfigPortal WebServer and WiFi AP***. See [Accessing manager after connection](https://github.com/khoih-prog/ESP_WiFiManager/issues/15).
 
 ## Quick Start
 
@@ -109,8 +121,14 @@ then later call
 ESP_wifiManager.startConfigPortal()
 ```
 
-While in AP mode, connect to it using its `SSID` (ESP_XXXXXX) / `Password` ("your_password"), then open a browser to the gateway IP, default `192.168.4.1`, configure wifi then save. The WiFi connection information will be saved in non volatile memory. It will then reboot and autoconnect.
+While in AP mode, connect to it using its `SSID` (ESP_XXXXXX) / `Password` ("your_password"), then open a browser to the AP IP, default `192.168.4.1`, configure wifi then save. The WiFi connection information will be saved in non volatile memory. It will then reboot and autoconnect.
 
+You can also change the AP IP by using this call
+
+```cpp
+//set custom ip for portal
+ESP_wifiManager.setAPStaticIPConfig(IPAddress(10,0,1,1), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
+```
 
 Once WiFi network information is saved in the `ESP32 / ESP8266`, it will try to autoconnect to WiFi every time it is started, without requiring any function calls in the sketch.
 
@@ -128,7 +146,7 @@ Also see examples:
 10. [AutoConnectWithFSParameters](examples/AutoConnectWithFSParameters)
 
 ## So, how it works?
-In `Configuration Portal Mode`, it starts an access point called `ESP_XXXXXX`. Connect to it using the `configurable password` you can define in the code. For example, `your_password` (see examples):
+In `ConfigPortal Mode`, it starts an access point called `ESP_XXXXXX`. Connect to it using the `configurable password` you can define in the code. For example, `your_password` (see examples):
 
 ```cpp
 // SSID and PW for Config Portal
@@ -159,14 +177,14 @@ Select `Configuration` to enter this page where you can select an AP and specify
     <img src="https://github.com/khoih-prog/ESP_WiFiManager/blob/master/Images/Configuration.png">
 </p>
 
-Enter your credentials, then click `Save`. The WiFi Credentials will be saved and the board reboots to connect to the selected WiFi AP.
+Enter your credentials, then click ***Save***. The WiFi Credentials will be saved and the board reboots to connect to the selected WiFi AP.
 
-If you're already connected to a listed WiFi AP and don't want to change anything, just select `Exit Portal` from the `Main` page to reboot the board and connect to the previously-stored AP. The WiFi Credentials are still intact.
+If you're already connected to a listed WiFi AP and don't want to change anything, just select ***Exit Portal*** from the `Main` page to reboot the board and connect to the previously-stored AP. The WiFi Credentials are still intact.
 
 ## Documentation
 
 #### Password protect the configuration Access Point
-You can password protect the configuration access point.  Simply add an SSID as the first parameter and the password as a second parameter to `startConfigPortal`. See the above examples.
+You can password protect the ConfigPortal AP.  Simply add an SSID as the first parameter and the password as a second parameter to `startConfigPortal`. See the above examples.
 A short password seems to have unpredictable results so use one that's around 8 characters or more in length.
 The guidelines are that a wifi password must consist of 8 to 63 ASCII-encoded characters in the range of 32 to 126 (decimal)
 
@@ -195,7 +213,7 @@ void saveConfigCallback () {
 }
 ```
 
-#### Configuration Portal Timeout
+#### ConfigPortal Timeout
 If you need to set a timeout so the `ESP32 / ESP8266` doesn't hang waiting to be configured for ever. 
 ```cpp
 ESP_wifiManager.setConfigPortalTimeout(60);
@@ -205,17 +223,17 @@ unless you're accessing the Config Portal. In this case, the `startConfigPortal`
 the Config Portal.
 
 
-#### On Demand Configuration Portal
+#### On Demand ConfigPortal
 
 Example usage
 
 ```cpp
 void loop() 
 {
-  // is configuration portal requested?
+  // is ConfigPortal requested?
   if ((digitalRead(TRIGGER_PIN) == LOW) || (digitalRead(TRIGGER_PIN2) == LOW)) 
   {
-    Serial.println("\nConfiguration portal requested.");
+    Serial.println("\nConfigPortal requested.");
     digitalWrite(PIN_LED, LED_ON); // turn the LED on by making the voltage LOW to tell us we are in configuration mode.
     
 		//Local intialization. Once its business is done, there is no need to keep it around
@@ -231,7 +249,7 @@ void loop()
 		  
     //Check if there is stored WiFi router/password credentials.
     //If not found, device will remain in configuration mode until switched off via webserver.
-    Serial.print("Opening configuration portal. ");
+    Serial.print("Opening ConfigPortal. ");
     Router_SSID = ESP_wifiManager.WiFi_SSID();
     if (Router_SSID != "")
     {
@@ -264,7 +282,7 @@ void loop()
 See  [ConfigOnSwitch](examples/ConfigOnSwitch) example for a more complex version.
 
 #### Custom Parameters
-Many applications need configuration parameters like `MQTT host and port`, [Blynk](http://www.blynk.cc) or [emoncms](http://emoncms.org) tokens, etc. While it is possible to use `ESP_WiFiManager` to collect additional parameters it is better to read these parameters from a web service once `ESP_WiFiManager` has been used to connect to the internet. This makes `ESP_WiFiManager` simple to code and use, parameters can be edited on a regular web server and can be changed remotely after deployment. A web service that can provide these parameters is at [configure.urremote.com](http://configure.urremote.com/).
+Many applications need configuration parameters like `MQTT host and port`, [Blynk](http://www.blynk.cc) or [emoncms](http://emoncms.org) tokens, etc. While it is possible to use `ESP_WiFiManager` to collect additional parameters it is better to read these parameters from a web service once `ESP_WiFiManager` has been used to connect to the internet.
 
 To capture other parameters with `ESP_WiFiManager` is a lot more involved than all the other features and requires adding custom HTML to your form. If you want to do it with `ESP_WiFiManager` see the example [ConfigOnSwitchFS](examples/ConfigOnSwitchFS)
 
@@ -285,10 +303,10 @@ ESP_wifiManager.setSTAStaticIPConfig(IPAddress(192,168,0,99), IPAddress(192,168,
 ```
 
 #### Custom HTML, CSS, Javascript
-There are various ways in which you can inject custom HTML, CSS or Javascript into the configuration portal.
+There are various ways in which you can inject custom HTML, CSS or Javascript into the ConfigPortal.
 The options are:
 - inject custom head element
-You can use this to any html bit to the head of the configuration portal. If you add a `<style>` element, bare in mind it overwrites the included css, not replaces.
+You can use this to any html bit to the head of the ConfigPortal. If you add a `<style>` element, bare in mind it overwrites the included css, not replaces.
 
 ```cpp
 ESP_wifiManager.setCustomHeadElement("<style>html{filter: invert(100%); -webkit-filter: invert(100%);}</style>");
@@ -337,8 +355,18 @@ If you get compilation errors, more often than not, you may need to install a ne
 
 Sometimes, the library will only work if you update the `ESP32 / ESP8266` core to the latest version because I am using some newly added function.
 
-If you connect to the created configuration Access Point but the configuration portal does not show up, just open a browser and type in the IP of the web portal, by default `192.168.4.1`.
+If you connect to the created configuration Access Point but the ConfigPortal does not show up, just open a browser and type in the IP of the web portal, by default `192.168.4.1`.
 
+### Releases 1.0.7
+
+1. Use `just-in-time` scanWiFiNetworks() to reduce connection time necessary for battery-operated DeepSleep application. Thanks to [CrispinP](https://github.com/CrispinP) for identifying, requesting and testing. See [Starting WiFIManger is very slow (2000ms)](https://github.com/khoih-prog/ESP_WiFiManager/issues/6)
+2. Fix bug relating SPIFFS in examples :
+ - [ConfigOnSwitchFS](examples/ConfigOnSwitchFS)
+ - [ConfigPortalParamsOnSwitch](examples/ConfigPortalParamsOnSwitch)  (now support ArduinoJson 6.0.0+ as well as 5.13.5-)
+ - [AutoConnectWithFSParameters](examples/AutoConnectWithFSParameters)
+ See [Having issue to read the SPIFF file](https://github.com/khoih-prog/ESP_WiFiManager/issues/14), Thanks to [OttoKlaasen](https://github.com/OttoKlaasen) to report.
+ 3. Fix [README](README.md). See [Accessing manager after connection](https://github.com/khoih-prog/ESP_WiFiManager/issues/15)
+ 
 ### Releases 1.0.6
 
 #### New in v1.0.6
@@ -390,8 +418,8 @@ See [KenTaylor's version](https://github.com/kentaylor/WiFiManager) for previous
 ### Contributions and thanks
 1. Based on and modified from [Tzapu](https://github.com/tzapu/WiFiManager) and [KenTaylor's version]( https://github.com/kentaylor/WiFiManager)
 2. Thanks to [Amorphous](https://community.blynk.cc/t/esp-wifimanager-for-esp32-and-esp8266/42257/13) for the static DNS feature and code, included in v1.0.5
-3. Thanks to [CrispinP](https://github.com/CrispinP) for idea to add HostName (v1.0.4) and request to reduce the unnecessary waiting time in ESP_WiFiManager constructor (v1.0.6+).
-4. Thanks to [OttoKlaasen](https://github.com/OttoKlaasen) for reporting [Having issue to read the SPIFF file](https://github.com/khoih-prog/ESP_WiFiManager/issues/14) bug.
+3. Thanks to [CrispinP](https://github.com/CrispinP) for idea to add HostName (v1.0.4) and request to reduce the unnecessary waiting time in ESP_WiFiManager constructor (v1.0.6+). See [Starting WiFIManger is very slow (2000ms)](https://github.com/khoih-prog/ESP_WiFiManager/issues/6)
+4. Thanks to [OttoKlaasen](https://github.com/OttoKlaasen) for reporting [Having issue to read the SPIFF file](https://github.com/khoih-prog/ESP_WiFiManager/issues/14) bug in examples.
 
 ### Contributing
 

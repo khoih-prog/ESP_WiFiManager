@@ -1,7 +1,7 @@
 {
   "name": "ESP_WifiManager",
   "keywords": "wifi, wi-fi",
-  "description": "ESP32, ESP8266 WiFi Connection manager with fallback web configuration portal",
+  "description": "ESP32, ESP8266 WiFi Connection manager with fallback web ConfigPortal",
   "repository":
   {
     "type": "git",
@@ -9,5 +9,5 @@
   },
   "frameworks": "arduino",
   "platforms": "espressif",
-  "version": "1.0.6"
+  "version": "1.0.7"
 }

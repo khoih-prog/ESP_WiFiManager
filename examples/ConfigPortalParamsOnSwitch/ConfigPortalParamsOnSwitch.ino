@@ -13,16 +13,18 @@
 
    Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
    Licensed under MIT license
-   Version: 1.0.6
+   Version: 1.0.7
 
    Version Modified By   Date      Comments
    ------- -----------  ---------- -----------
     1.0.0   K Hoang      07/10/2019 Initial coding
     1.0.1   K Hoang      13/12/2019 Fix bug. Add features. Add support for ESP32
-    1.0.2   K Hoang      19/12/2019 Fix bug that keeps ConfigPortal in endless loop if Portal/Router SSID or Password is NULL.
-    1.0.4   K Hoang      07/01/2020 Use ESP_WiFiManager setHostname feature
+    1.0.2   K Hoang      19/12/2019 Fix bug thatkeeps ConfigPortal in endless loop if Portal/Router SSID or Password is NULL.
+    1.0.3   K Hoang      05/01/2020 Option not displaying AvailablePages in Info page. Enhance README.md. Modify examples
+    1.0.4   K Hoang      07/01/2020 Add RFC952 setHostname feature.
     1.0.5   K Hoang      15/01/2020 Add configurable DNS feature. Thanks to @Amorphous of https://community.blynk.cc
     1.0.6   K Hoang      03/02/2020 Add support for ArduinoJson version 6.0.0+ ( tested with v6.14.1 )
+    1.0.7   K Hoang      13/04/2020 Reduce start time, fix SPIFFS bug in examples, update README.md
  *****************************************************************************************************************************/
 /****************************************************************************************************************************
    This example will open a configuration portal when a predetermined button is pressed

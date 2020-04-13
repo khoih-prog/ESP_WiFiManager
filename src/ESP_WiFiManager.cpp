@@ -1,31 +1,31 @@
 /****************************************************************************************************************************
- * ESP_WiFiManager.cpp
- * For ESP8266 / ESP32 boards
- *
- * ESP_WiFiManager is a library for the ESP8266/Arduino platform
- * (https://github.com/esp8266/Arduino) to enable easy
- * configuration and reconfiguration of WiFi credentials using a Captive Portal
- * inspired by:
- * http://www.esp8266.com/viewtopic.php?f=29&t=2520
- * https://github.com/chriscook8/esp-arduino-apboot
- * https://github.com/esp8266/Arduino/blob/master/libraries/DNSServer/examples/CaptivePortalAdvanced/
- *
- * Forked from Tzapu https://github.com/tzapu/WiFiManager
- * and from Ken Taylor https://github.com/kentaylor
- *
- * Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
- * Licensed under MIT license
- * Version: 1.0.6
- *
- * Version Modified By   Date      Comments
- * ------- -----------  ---------- -----------
- *  1.0.0   K Hoang      07/10/2019 Initial coding
- *  1.0.1   K Hoang      13/12/2019 Fix bug. Add features. Add support for ESP32
- *  1.0.2   K Hoang      19/12/2019 Fix bug that keeps ConfigPortal in endless loop if Portal/Router SSID or Password is NULL.
- *  1.0.3   K Hoang	 05/01/2020 Option not displaying AvailablePages in Info page.
- *  1.0.4   K Hoang	 07/01/2020 Add RFC952 setHostname feature.
- *  1.0.5   K Hoang	 15/01/2020 Add configurable DNS feature. Thanks to @Amorphous of https://community.blynk.cc
- *  1.0.6   K Hoang      03/02/2020 Add support for ArduinoJson version 6.0.0+ ( tested with v6.14.1 )
+   ESP_WiFiManager.cpp
+   For ESP8266 / ESP32 boards
+
+   ESP_WiFiManager is a library for the ESP8266/Arduino platform
+   (https://github.com/esp8266/Arduino) to enable easy
+   configuration and reconfiguration of WiFi credentials using a Captive Portal
+   inspired by:
+   http://www.esp8266.com/viewtopic.php?f=29&t=2520
+   https://github.com/chriscook8/esp-arduino-apboot
+   https://github.com/esp8266/Arduino/blob/master/libraries/DNSServer/examples/CaptivePortalAdvanced/
+
+   Forked from Tzapu https://github.com/tzapu/WiFiManager
+   and from Ken Taylor https://github.com/kentaylor
+
+   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
+   Licensed under MIT license
+   Version: 1.0.6
+
+   Version Modified By   Date      Comments
+   ------- -----------  ---------- -----------
+    1.0.0   K Hoang      07/10/2019 Initial coding
+    1.0.1   K Hoang      13/12/2019 Fix bug. Add features. Add support for ESP32
+    1.0.2   K Hoang      19/12/2019 Fix bug that keeps ConfigPortal in endless loop if Portal/Router SSID or Password is NULL.
+    1.0.3   K Hoang	 05/01/2020 Option not displaying AvailablePages in Info page.
+    1.0.4   K Hoang	 07/01/2020 Add RFC952 setHostname feature.
+    1.0.5   K Hoang	 15/01/2020 Add configurable DNS feature. Thanks to @Amorphous of https://community.blynk.cc
+    1.0.6   K Hoang      03/02/2020 Add support for ArduinoJson version 6.0.0+ ( tested with v6.14.1 )
  *****************************************************************************************************************************/
 
 #include "ESP_WiFiManager.h"
@@ -116,17 +116,17 @@ const char* ESP_WMParameter::getCustomHTML()
 }
 
 /**
- * [getParameters description]
- * @access public
- */
+   [getParameters description]
+   @access public
+*/
 ESP_WMParameter** ESP_WiFiManager::getParameters() {
   return _params;
 }
 
 /**
- * [getParametersCount description]
- * @access public
- */
+   [getParametersCount description]
+   @access public
+*/
 int ESP_WiFiManager::getParametersCount() {
   return _paramsCount;
 }
@@ -196,7 +196,7 @@ ESP_WiFiManager::~ESP_WiFiManager()
 #if USE_DYNAMIC_PARAMS
   if (_params != NULL)
   {
-#if DEBUG_WIFIMGR  
+#if DEBUG_WIFIMGR
     DEBUG_WM(F("freeing allocated params!"));
 #endif
 
@@ -270,8 +270,8 @@ void ESP_WiFiManager::setupConfigPortal()
   stopConfigPortal = false; //Signal not to close config portal
 
   /*This library assumes autoconnect is set to 1. It usually is
-  but just in case check the setting and turn on autoconnect if it is off.
-  Some useful discussion at https://github.com/esp8266/Arduino/issues/1615*/
+    but just in case check the setting and turn on autoconnect if it is off.
+    Some useful discussion at https://github.com/esp8266/Arduino/issues/1615*/
   if (WiFi.getAutoConnect() == 0)
     WiFi.setAutoConnect(1);
 
@@ -281,7 +281,7 @@ void ESP_WiFiManager::setupConfigPortal()
   server.reset(new ESP8266WebServer(80));
 #else		//ESP32
   server.reset(new WebServer(80));
-#endif  
+#endif
 
   /* Setup the DNS server redirecting all the domains to the apIP */
   if (dnsServer)
@@ -354,10 +354,10 @@ boolean ESP_WiFiManager::autoConnect()
 }
 
 /* This is not very useful as there has been an assumption that device has to be
-told to connect but Wifi already does it's best to connect in background. Calling this
-method will block until WiFi connects. Sketch can avoid
-blocking call then use (WiFi.status()==WL_CONNECTED) test to see if connected yet.
-See some discussion at https://github.com/tzapu/WiFiManager/issues/68
+  told to connect but Wifi already does it's best to connect in background. Calling this
+  method will block until WiFi connects. Sketch can avoid
+  blocking call then use (WiFi.status()==WL_CONNECTED) test to see if connected yet.
+  See some discussion at https://github.com/tzapu/WiFiManager/issues/68
 */
 boolean ESP_WiFiManager::autoConnect(char const *apName, char const *apPassword)
 {
@@ -405,13 +405,13 @@ boolean  ESP_WiFiManager::startConfigPortal(char const *apName, char const *apPa
   //setup AP
   int connRes = WiFi.waitForConnectResult();
 
-#if DEBUG_WIFIMGR   
+#if DEBUG_WIFIMGR
   DEBUG_WM("WiFi.waitForConnectResult Done");
 #endif
 
   if (connRes == WL_CONNECTED)
   {
-#if DEBUG_WIFIMGR    
+#if DEBUG_WIFIMGR
     DEBUG_WM("SET AP_STA");
 #endif
     WiFi.mode(WIFI_AP_STA); //Dual mode works fine if it is connected to WiFi
@@ -443,7 +443,7 @@ boolean  ESP_WiFiManager::startConfigPortal(char const *apName, char const *apPa
 
   bool TimedOut = true;
 
-#if DEBUG_WIFIMGR   
+#if DEBUG_WIFIMGR
   DEBUG_WM("ESP_WiFiManager::startConfigPortal : Enter loop");
 #endif
 
@@ -510,7 +510,7 @@ boolean  ESP_WiFiManager::startConfigPortal(char const *apName, char const *apPa
     WiFi.begin();
     int connRes = waitForConnectResult();
 
-#if DEBUG_WIFIMGR  
+#if DEBUG_WIFIMGR
     DEBUG_WM("Timed out connection result: ");
     DEBUG_WM(getStatus(connRes));
 #endif
@@ -553,7 +553,7 @@ int ESP_WiFiManager::connectWifi(String ssid, String pass)
 
       DEBUG_WM(WiFi.localIP());
     }
-#else		
+#else
     // check if we've got static_ip settings, if we do, use those.
     if (_sta_static_ip)
     {
@@ -600,14 +600,14 @@ uint8_t ESP_WiFiManager::waitForConnectResult()
 {
   if (_connectTimeout == 0)
   {
-#if DEBUG_WIFIMGR  
+#if DEBUG_WIFIMGR
     unsigned long startedAt = millis();
     DEBUG_WM(F("After waiting..."));
 #endif
 
     int connRes = WiFi.waitForConnectResult();
 
-#if DEBUG_WIFIMGR  
+#if DEBUG_WIFIMGR
     float waited = (millis() - startedAt);
     DEBUG_WM(waited / 1000);
     DEBUG_WM(F("seconds"));
@@ -650,7 +650,7 @@ void ESP_WiFiManager::startWPS()
 #else		//ESP32
   // TODO
   DEBUG_WM("ESP32 WPS TODO");
-#endif  
+#endif
 }
 
 //Convenient for debugging but wasteful of program space.
@@ -659,18 +659,18 @@ const char* ESP_WiFiManager::getStatus(int status)
 {
   switch (status)
   {
-  case WL_IDLE_STATUS:
-    return "WL_IDLE_STATUS";
-  case WL_NO_SSID_AVAIL:
-    return "WL_NO_SSID_AVAIL";
-  case WL_CONNECTED:
-    return "WL_CONNECTED";
-  case WL_CONNECT_FAILED:
-    return "WL_CONNECT_FAILED";
-  case WL_DISCONNECTED:
-    return "WL_DISCONNECTED";
-  default:
-    return "UNKNOWN";
+    case WL_IDLE_STATUS:
+      return "WL_IDLE_STATUS";
+    case WL_NO_SSID_AVAIL:
+      return "WL_NO_SSID_AVAIL";
+    case WL_CONNECTED:
+      return "WL_CONNECTED";
+    case WL_CONNECT_FAILED:
+      return "WL_CONNECT_FAILED";
+    case WL_DISCONNECTED:
+      return "WL_DISCONNECTED";
+    default:
+      return "UNKNOWN";
   }
 }
 
@@ -733,7 +733,7 @@ void ESP_WiFiManager::setSTAStaticIPConfig(IPAddress ip, IPAddress gw, IPAddress
   _sta_static_gw = gw;
   _sta_static_sn = sn;
   _sta_static_dns1 = dns_address_1; //***** Added argument *****
-  _sta_static_dns2 = dns_address_2; //***** Added argument *****  
+  _sta_static_dns2 = dns_address_2; //***** Added argument *****
 }
 #endif
 
@@ -781,7 +781,7 @@ void ESP_WiFiManager::handleRoot()
   DEBUG_WM(F("Handle root"));
 
   // Disable _configPortalTimeout when someone accessing Portal to give some time to config
-  _configPortalTimeout = 0;		//KH 
+  _configPortalTimeout = 0;		//KH
 
   if (captivePortal())
   {
@@ -835,7 +835,7 @@ void ESP_WiFiManager::handleWifi()
   DEBUG_WM(F("Handle WiFi"));
 
   // Disable _configPortalTimeout when someone accessing Portal to give some time to config
-  _configPortalTimeout = 0;		//KH 
+  _configPortalTimeout = 0;		//KH
 
   server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   server->sendHeader("Pragma", "no-cache");
@@ -880,7 +880,7 @@ void ESP_WiFiManager::handleWifi()
       if (WiFi.encryptionType(networkIndices[i]) != ENC_TYPE_NONE)
 #else		//ESP32
       if (WiFi.encryptionType(networkIndices[i]) != WIFI_AUTH_OPEN)
-#endif        
+#endif
       {
         item.replace("{i}", "l");
       }
@@ -911,18 +911,18 @@ void ESP_WiFiManager::handleWifi()
     String pitem;
     switch (_params[i]->getLabelPlacement())
     {
-    case WFM_LABEL_BEFORE:
-      pitem = FPSTR(HTTP_FORM_LABEL);
-      pitem += FPSTR(HTTP_FORM_PARAM);
-      break;
-    case WFM_LABEL_AFTER:
-      pitem = FPSTR(HTTP_FORM_PARAM);
-      pitem += FPSTR(HTTP_FORM_LABEL);
-      break;
-    default:
-      // WFM_NO_LABEL
-      pitem = FPSTR(HTTP_FORM_PARAM);
-      break;
+      case WFM_LABEL_BEFORE:
+        pitem = FPSTR(HTTP_FORM_LABEL);
+        pitem += FPSTR(HTTP_FORM_PARAM);
+        break;
+      case WFM_LABEL_AFTER:
+        pitem = FPSTR(HTTP_FORM_PARAM);
+        pitem += FPSTR(HTTP_FORM_LABEL);
+        break;
+      default:
+        // WFM_NO_LABEL
+        pitem = FPSTR(HTTP_FORM_PARAM);
+        break;
     }
 
     if (_params[i]->getID() != NULL)
@@ -975,7 +975,7 @@ void ESP_WiFiManager::handleWifi()
     item.replace("{l}", "15");
     item.replace("{v}", _sta_static_sn.toString());
 
-#if USE_CONFIGURABLE_DNS    
+#if USE_CONFIGURABLE_DNS
     //***** Added for DNS address options *****
     page += item;
 
@@ -994,7 +994,7 @@ void ESP_WiFiManager::handleWifi()
     item.replace("{p}", "DNS Address 2");
     item.replace("{l}", "15");
     item.replace("{v}", _sta_static_dns2.toString());
-    //***** End added for DNS address options *****    
+    //***** End added for DNS address options *****
 #endif
 
     page += item;
@@ -1100,7 +1100,7 @@ void ESP_WiFiManager::handleWifiSave()
 
   connect = true; //signal ready to connect/reset
 
-    // Restore when Press Save WiFi
+  // Restore when Press Save WiFi
   _configPortalTimeout = DEFAULT_PORTAL_TIMEOUT;
 }
 
@@ -1142,9 +1142,9 @@ void ESP_WiFiManager::handleInfo()
   DEBUG_WM(F("Info"));
 
   // Disable _configPortalTimeout when someone accessing Portal to give some time to config
-  _configPortalTimeout = 0;		//KH 
+  _configPortalTimeout = 0;		//KH
 
-//DEBUG_WM(F("Info"));
+  //DEBUG_WM(F("Info"));
   server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   server->sendHeader("Pragma", "no-cache");
   server->sendHeader("Expires", "-1");
@@ -1261,7 +1261,7 @@ void ESP_WiFiManager::handleScan()
   DEBUG_WM(F("Scan"));
 
   // Disable _configPortalTimeout when someone accessing Portal to give some time to config
-  _configPortalTimeout = 0;		//KH 
+  _configPortalTimeout = 0;		//KH
 
   DEBUG_WM(F("State - json"));
   server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -1305,7 +1305,7 @@ void ESP_WiFiManager::handleScan()
     if (WiFi.encryptionType(indices[i]) != ENC_TYPE_NONE)
 #else		//ESP32
     if (WiFi.encryptionType(indices[i]) != WIFI_AUTH_OPEN)
-#endif 
+#endif
     {
       item.replace("{i}", "true");
     }
@@ -1392,10 +1392,10 @@ void ESP_WiFiManager::handleNotFound()
 }
 
 /**
- * HTTPD redirector
- * Redirect to captive portal if we got a request for another domain.
- * Return true in that case so the page handler do not try to handle the request again.
- */
+   HTTPD redirector
+   Redirect to captive portal if we got a request for another domain.
+   Return true in that case so the page handler do not try to handle the request again.
+*/
 boolean ESP_WiFiManager::captivePortal()
 {
   if (!isIp(server->hostHeader()))
@@ -1442,7 +1442,7 @@ int ESP_WiFiManager::scanWifiNetworks(int **indicesptr)
 
   int n = WiFi.scanNetworks();
 
-#if DEBUG_WIFIMGR    
+#if DEBUG_WIFIMGR
   Serial.printf("ESP_WiFiManager::scanWifiNetworks : Scan done, no scanned Networks = %d\n", n);
 #endif
 
@@ -1454,7 +1454,7 @@ int ESP_WiFiManager::scanWifiNetworks(int **indicesptr)
   if (n <= 0)
   {
     DEBUG_WM(F("No networks found"));
-    return(0);
+    return (0);
   }
   else
   {
@@ -1466,7 +1466,7 @@ int ESP_WiFiManager::scanWifiNetworks(int **indicesptr)
     {
       DEBUG_WM(F("ERROR: Out of memory"));
       *indicesptr = NULL;
-      return(0);
+      return (0);
     }
 
     *indicesptr = indices;
@@ -1537,7 +1537,7 @@ int ESP_WiFiManager::scanWifiNetworks(int **indicesptr)
       }
     }
 
-#if DEBUG_WIFIMGR		
+#if DEBUG_WIFIMGR
     for (int i = 0; i < n; i++)
     {
       if (indices[i] == -1)
@@ -1611,7 +1611,7 @@ String ESP_WiFiManager::toStringIp(IPAddress ip)
 }
 
 #ifdef ESP32
-// We can't use WiFi.SSID() in ESP32 as it's only valid after connected. 
+// We can't use WiFi.SSID() in ESP32 as it's only valid after connected.
 // SSID and Password stored in ESP32 wifi_ap_record_t and wifi_config_t are also cleared in reboot
 // Have to create a new function to store in EEPROM/SPIFFS for this purpose
 
