@@ -5,12 +5,12 @@
    ESP_WiFiManager is a library for the ESP8266/ESP32 platform (https://github.com/esp8266/Arduino) to enable easy
    configuration and reconfiguration of WiFi credentials using a Captive Portal.
 
-   Forked from Tzapu https://github.com/tzapu/WiFiManager
+   Modified from Tzapu https://github.com/tzapu/WiFiManager
    and from Ken Taylor https://github.com/kentaylor
 
    Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
    Licensed under MIT license
-   Version: 1.0.7
+   Version: 1.0.8
 
    Version Modified By   Date      Comments
    ------- -----------  ---------- -----------
@@ -21,35 +21,51 @@
     1.0.4   K Hoang      07/01/2020 Add RFC952 setHostname feature.
     1.0.5   K Hoang      15/01/2020 Add configurable DNS feature. Thanks to @Amorphous of https://community.blynk.cc
     1.0.6   K Hoang      03/02/2020 Add support for ArduinoJson version 6.0.0+ ( tested with v6.14.1 )
-    1.0.7   K Hoang      13/04/2020 Reduce start time, fix SPIFFS bug in examples, update README.md
+    1.0.7   K Hoang      14/04/2020 Use just-in-time scanWiFiNetworks(). Fix bug relating SPIFFS in examples
+    1.0.8   K Hoang      10/06/2020 Fix STAstaticIP issue. Restructure code. Add LittleFS support for ESP8266 core 2.7.1+
  *****************************************************************************************************************************/
+#if !( defined(ESP8266) ||  defined(ESP32) )
+  #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
+#endif
 
+#include <FS.h>
+  
 //Ported to ESP32
 #ifdef ESP32
-#include <FS.h>
-#include "SPIFFS.h"
-#include <esp_wifi.h>
-#include <WiFi.h>
-#include <WiFiClient.h>
+  #include "SPIFFS.h"
+  #include <esp_wifi.h>
+  #include <WiFi.h>
+  #include <WiFiClient.h>
+  
+  #define ESP_getChipId()   ((uint32_t)ESP.getEfuseMac())
+  
+  #define LED_BUILTIN       2
+  #define LED_ON            HIGH
+  #define LED_OFF           LOW
 
-#define ESP_getChipId()   ((uint32_t)ESP.getEfuseMac())
-
-#define LED_BUILTIN       2
-#define LED_ON            HIGH
-#define LED_OFF           LOW
+  #define FileFS            SPIFFS
 
 #else
-#include <FS.h>                   //this needs to be first, or it all crashes and burns...
 
-#include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
-//needed for library
-#include <DNSServer.h>
-#include <ESP8266WebServer.h>
+  #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
+  //needed for library
+  #include <DNSServer.h>
+  #include <ESP8266WebServer.h>
+  
+  #define ESP_getChipId()   (ESP.getChipId())
+  
+  #define LED_ON            LOW
+  #define LED_OFF           HIGH
 
-#define ESP_getChipId()   (ESP.getChipId())
+  #define USE_LITTLEFS      true
 
-#define LED_ON      LOW
-#define LED_OFF     HIGH
+  #if USE_LITTLEFS
+    #define FileFS          LittleFS
+  #else
+    #define FileFS          SPIFFS
+  #endif
+
+  #include <LittleFS.h>
 #endif
 
 // Pin D2 mapped to pin GPIO2/ADC12 of ESP32, or GPIO2/TXD1 of NodeMCU control on-board LED
@@ -69,6 +85,12 @@ String Router_Pass;
 // SSID and PW for Config Portal
 String AP_SSID;
 String AP_PASS;
+
+IPAddress stationIP   = IPAddress(192, 168, 2, 114);
+IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
+IPAddress netMask     = IPAddress(255, 255, 255, 0);
+IPAddress dns1IP      = gatewayIP;
+IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
 
 //define your default values here, if there are different values in configFileName (config.json), they are overwritten.
 #define BLYNK_SERVER_LEN                64
@@ -95,23 +117,23 @@ void saveConfigCallback(void)
   shouldSaveConfig = true;
 }
 
-bool loadSPIFFSConfigFile(void)
+bool loadFileFSConfigFile(void)
 {
   //clean FS, for testing
-  //SPIFFS.format();
+  //FileFS.format();
 
   //read configuration from FS json
   Serial.println("Mounting FS...");
 
-  if (SPIFFS.begin())
+  if (FileFS.begin())
   {
     Serial.println("Mounted file system");
 
-    if (SPIFFS.exists(configFileName))
+    if (FileFS.exists(configFileName))
     {
       //file exists, reading and loading
       Serial.println("Reading config file");
-      File configFile = SPIFFS.open(configFileName, "r");
+      File configFile = FileFS.open(configFileName, "r");
 
       if (configFile)
       {
@@ -203,7 +225,7 @@ bool loadSPIFFSConfigFile(void)
   return true;
 }
 
-bool saveSPIFFSConfigFile(void)
+bool saveFileFSConfigFile(void)
 {
   Serial.println("Saving config");
 
@@ -221,7 +243,7 @@ bool saveSPIFFSConfigFile(void)
   json["mqtt_server"] = mqtt_server;
   json["mqtt_port"]   = mqtt_port;
 
-  File configFile = SPIFFS.open(configFileName, "w");
+  File configFile = FileFS.open(configFileName, "w");
 
   if (!configFile)
   {
@@ -302,7 +324,7 @@ void setup()
   Serial.begin(115200);
   Serial.println("\nStarting AutoConnectWithFSParams");
 
-  loadSPIFFSConfigFile();
+  loadFileFSConfigFile();
 
   // The extra parameters to be configured (can be either global or just in the setup)
   // After connecting, parameter.getValue() will get you the configured value
@@ -344,12 +366,11 @@ void setup()
 
   ESP_wifiManager.setMinimumSignalQuality(-1);
   // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5+
-  ESP_wifiManager.setSTAStaticIPConfig(IPAddress(192, 168, 2, 114), IPAddress(192, 168, 2, 1), IPAddress(255, 255, 255, 0),
-                                       IPAddress(192, 168, 2, 1), IPAddress(8, 8, 8, 8));
+  ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
 
   // We can't use WiFi.SSID() in ESP32 as it's only valid after connected.
   // SSID and Password stored in ESP32 wifi_ap_record_t and wifi_config_t are also cleared in reboot
-  // Have to create a new function to store in EEPROM/SPIFFS for this purpose
+  // Have to create a new function to store in EEPROM/SPIFFS/LittleFS for this purpose
   Router_SSID = ESP_wifiManager.WiFi_SSID();
   Router_Pass = ESP_wifiManager.WiFi_Pass();
 
@@ -403,7 +424,7 @@ void setup()
   //save the custom parameters to FS
   if (shouldSaveConfig)
   {
-    saveSPIFFSConfigFile();
+    saveFileFSConfigFile();
   }
 
   Serial.println("local ip");

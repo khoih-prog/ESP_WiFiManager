@@ -8,12 +8,12 @@
     https://github.com/chriscook8/esp-arduino-apboot
     https://github.com/esp8266/Arduino/blob/master/libraries/DNSServer/examples/CaptivePortalAdvanced/
 
-    Forked from Tzapu https://github.com/tzapu/WiFiManager
+    Modified from Tzapu https://github.com/tzapu/WiFiManager
     and from Ken Taylor https://github.com/kentaylor
 
     Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
     Licensed under MIT license
-    Version: 1.0.7
+    Version: 1.0.8
 
    Version Modified By   Date      Comments
    ------- -----------  ---------- -----------
@@ -21,10 +21,11 @@
     1.0.1   K Hoang      13/12/2019 Fix bug. Add features. Add support for ESP32
     1.0.2   K Hoang      19/12/2019 Fix bug thatkeeps ConfigPortal in endless loop if Portal/Router SSID or Password is NULL.
     1.0.3   K Hoang      05/01/2020 Option not displaying AvailablePages in Info page. Enhance README.md. Modify examples
-    1.0.4   K Hoang      07/01/2020 Add RFC952 setHostname feature.
+    1.0.4   K Hoang       07/01/2020 Add RFC952 setHostname feature.
     1.0.5   K Hoang      15/01/2020 Add configurable DNS feature. Thanks to @Amorphous of https://community.blynk.cc
     1.0.6   K Hoang      03/02/2020 Add support for ArduinoJson version 6.0.0+ ( tested with v6.14.1 )
-    1.0.7   K Hoang      13/04/2020 Reduce start time, fix SPIFFS bug in examples, update README.md
+    1.0.7   K Hoang      14/04/2020 Use just-in-time scanWiFiNetworks(). Fix bug relating SPIFFS in examples
+    1.0.8   K Hoang      10/06/2020 Fix STAstaticIP issue. Restructure code. Add LittleFS support for ESP8266 core 2.7.1+
  *****************************************************************************************************************************/
 /****************************************************************************************************************************
    This example will open a configuration portal when the reset button is pressed twice.
@@ -60,33 +61,50 @@
    the WiFi network credentials will be sent from the browser over an encrypted connection and
    can not be read by observers.
  *****************************************************************************************************************************/
-//For ESP32, To use ESP32 Dev Module, QIO, Flash 4MB/80MHz, Upload 921600
+
+#if !( defined(ESP8266) ||  defined(ESP32) )
+  #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
+#endif
 
 #include <FS.h>
 // Now support ArduinoJson 6.0.0+ ( tested with v6.14.1 )
 #include <ArduinoJson.h>      // get it from https://arduinojson.org/ or install via Arduino library manager
 
 //Ported to ESP32
+//For ESP32, To use ESP32 Dev Module, QIO, Flash 4MB/80MHz, Upload 921600
 #ifdef ESP32
-#include "SPIFFS.h"
-#include <esp_wifi.h>
-#include <WiFi.h>
-#include <WiFiClient.h>
+  #include "SPIFFS.h"
+  #include <esp_wifi.h>
+  #include <WiFi.h>
+  #include <WiFiClient.h>
+  
+  #define ESP_getChipId()   ((uint32_t)ESP.getEfuseMac())
+  
+  #define LED_ON      HIGH
+  #define LED_OFF     LOW
 
-#define ESP_getChipId()   ((uint32_t)ESP.getEfuseMac())
-
-#define LED_ON      HIGH
-#define LED_OFF     LOW
+  #define FileFS      SPIFFS
 #else
-#include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
-//needed for library
-#include <DNSServer.h>
-#include <ESP8266WebServer.h>
+  #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
+  //needed for library
+  #include <DNSServer.h>
+  #include <ESP8266WebServer.h>
+  
+  #define ESP_getChipId()   (ESP.getChipId())
+  
+  #define LED_ON      LOW
+  #define LED_OFF     HIGH
 
-#define ESP_getChipId()   (ESP.getChipId())
+  #define USE_LITTLEFS      true
 
-#define LED_ON      LOW
-#define LED_OFF     HIGH
+  #if USE_LITTLEFS
+    #define FileFS    LittleFS
+  #else
+    #define FileFS    SPIFFS
+  #endif
+
+  #include <LittleFS.h>
+
 #endif
 
 // SSID and PW for Config Portal
@@ -243,6 +261,12 @@ bool sensorDht22 = true;
 bool readConfigFile();
 bool writeConfigFile();
 
+IPAddress stationIP   = IPAddress(192, 168, 2, 114);
+IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
+IPAddress netMask     = IPAddress(255, 255, 255, 0);
+IPAddress dns1IP      = gatewayIP;
+IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
+
 void heartBeatPrint(void)
 {
   static int num = 1;
@@ -290,8 +314,13 @@ void setup()
   pinMode(TRIGGER_PIN2, INPUT_PULLUP);
 
   // Mount the filesystem
-  bool result = SPIFFS.begin();
-  Serial.println("SPIFFS opened: " + result);
+  bool result = FileFS.begin();
+
+  #if USE_LITTLEFS
+    Serial.println("LittleFS opened: " + result);
+  #else
+    Serial.println("SPIFFS opened: " + result);
+  #endif
 
   if (!readConfigFile())
   {
@@ -308,8 +337,7 @@ void setup()
 
   ESP_wifiManager.setMinimumSignalQuality(-1);
   // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
-  ESP_wifiManager.setSTAStaticIPConfig(IPAddress(192, 168, 2, 114), IPAddress(192, 168, 2, 1), IPAddress(255, 255, 255, 0),
-                                       IPAddress(192, 168, 2, 1), IPAddress(8, 8, 8, 8));
+  ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
 
   // We can't use WiFi.SSID() in ESP32as it's only valid after connected.
   // SSID and Password stored in ESP32 wifi_ap_record_t and wifi_config_t are also cleared in reboot
@@ -354,6 +382,9 @@ void setup()
     Serial.print("Connecting to ");
     Serial.println(Router_SSID);
 
+    WiFi.config(stationIP, gatewayIP, netMask);
+    //WiFi.config(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
+    
     WiFi.begin(Router_SSID.c_str(), Router_Pass.c_str());
 
     int i = 0;
@@ -484,7 +515,7 @@ void loop()
 bool readConfigFile()
 {
   // this opens the config file in read-mode
-  File f = SPIFFS.open(CONFIG_FILE, "r");
+  File f = FileFS.open(CONFIG_FILE, "r");
 
   if (!f)
   {
@@ -571,7 +602,7 @@ bool writeConfigFile()
   json[PinSCL_Label] = pinScl;
 
   // Open file for writing
-  File f = SPIFFS.open(CONFIG_FILE, "w");
+  File f = FileFS.open(CONFIG_FILE, "w");
 
   if (!f)
   {

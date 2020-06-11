@@ -6,6 +6,12 @@
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#Contributing)
 [![GitHub issues](https://img.shields.io/github/issues/khoih-prog/ESP_WiFiManager.svg)](http://github.com/khoih-prog/ESP_WiFiManager/issues)
 
+### Releases 1.0.8
+
+1. Fix setSTAStaticIPConfig issue. See [Static Station IP doesn't work](https://github.com/khoih-prog/ESP_WiFiManager/issues/17)
+2. Add LittleFS support for ESP8266 core 2.7.1+ in examples to replace deprecated SPIFFS.
+3. Restructure code.
+
 ### Releases 1.0.7
 
 1. Use `just-in-time` scanWiFiNetworks() to reduce connection time necessary for battery-operated DeepSleep application. Thanks to [CrispinP](https://github.com/CrispinP) for identifying, requesting and testing. See [Starting WiFIManger is very slow (2000ms)](https://github.com/khoih-prog/ESP_WiFiManager/issues/6)
@@ -21,6 +27,8 @@
 1. Add function getConfigPortalPW()
 2. Add 4 new complicated examples compatible with ArduinoJson 6.0.0+ :[AutoConnect](examples/AutoConnect), [AutoConnectWithFeedback](examples/AutoConnectWithFeedback), [AutoConnectWithFeedbackLED](examples/AutoConnectWithFeedbackLED) and [AutoConnectWithFSParameters](examples/AutoConnectWithFSParameters)
 
+---
+
 This library is based on, modified, bug-fixed and improved from:
 
 1. [`Tzapu WiFiManager`](https://github.com/tzapu/WiFiManager)
@@ -31,11 +39,12 @@ to add support to `ESP32` besides `ESP8266`.
 This is an `ESP32 / ESP8266` WiFi Connection manager with fallback web ConfigPortal.
 It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating as an access point.
 
+---
+
 ## Prerequisite
  1. [`Arduino IDE 1.8.12 or later` for Arduino](https://www.arduino.cc/en/Main/Software)
- 2. `Arduino AVR core 1.8.2 or later` for Arduino (Use Arduino Board Manager)
- 3. [`ESP8266 Core 2.6.3 or newer`](https://github.com/esp8266/Arduino) for ESP8266-based boards.
- 4. [`ESP32 Core 1.0.4 or newer`](https://github.com/espressif/arduino-esp32) for ESP32-based boards
+ 2. [`ESP8266 Core 2.7.1 or newer`](https://github.com/esp8266/Arduino) for ESP8266-based boards.
+ 3. [`ESP32 Core 1.0.4 or newer`](https://github.com/espressif/arduino-esp32) for ESP32-based boards
 
 ## How It Works
 
@@ -48,7 +57,7 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
 String ssid = "ESP_" + String(ESP_getChipId(), HEX);
 const char* password = "your_password";
 ``` 
-then connect WebBrower to configurable ConfigPortal IP address, default is 192.168.4.1
+then connect WebBrowser to configurable ConfigPortal IP address, default is 192.168.4.1
 
 - Choose one of the access points scanned, enter password, click ***Save***.
 - ESP will restart, then try to connect to the WiFi netwotk using STA-only mode, ***without running the ConfigPortal WebServer and WiFi AP***. See [Accessing manager after connection](https://github.com/khoih-prog/ESP_WiFiManager/issues/15).
@@ -69,6 +78,8 @@ The best and easiest way is to use `Arduino Library Manager`. Search for `ESP_Wi
 3. Extract the zip file to `ESP_WiFiManager-master` directory 
 4. Copy whole 
   - `ESP_WiFiManager-master/src` folder to Arduino libraries' directory such as `~/Arduino/libraries/`.
+
+---
 
 ### Using
 - Include in your sketch
@@ -144,10 +155,13 @@ Also see examples:
  4. [ConfigOnDoubleReset](examples/ConfigOnDoubleReset)  (now support ArduinoJson 6.0.0+ as well as 5.13.5-)
  5. [ConfigPortalParamsOnSwitch](examples/ConfigPortalParamsOnSwitch)  (now support ArduinoJson 6.0.0+ as well as 5.13.5-)
  6. [ESP_FSWebServer](examples/ESP_FSWebServer)
- 7. [AutoConnect](examples/AutoConnect)
- 8. [AutoConnectWithFeedback](examples/AutoConnectWithFeedback)
- 9. [AutoConnectWithFeedbackLED](examples/AutoConnectWithFeedbackLED)
-10. [AutoConnectWithFSParameters](examples/AutoConnectWithFSParameters)
+ 7. [ESP32_FSWebServer](examples/ESP32_FSWebServer)
+ 8. [AutoConnect](examples/AutoConnect)
+ 9. [AutoConnectWithFeedback](examples/AutoConnectWithFeedback)
+10. [AutoConnectWithFeedbackLED](examples/AutoConnectWithFeedbackLED)
+11. [AutoConnectWithFSParameters](examples/AutoConnectWithFSParameters)
+
+---
 
 ## So, how it works?
 In `ConfigPortal Mode`, it starts an access point called `ESP_XXXXXX`. Connect to it using the `configurable password` you can define in the code. For example, `your_password` (see examples):
@@ -184,6 +198,8 @@ Select `Configuration` to enter this page where you can select an AP and specify
 Enter your credentials, then click ***Save***. The WiFi Credentials will be saved and the board reboots to connect to the selected WiFi AP.
 
 If you're already connected to a listed WiFi AP and don't want to change anything, just select ***Exit Portal*** from the `Main` page to reboot the board and connect to the previously-stored AP. The WiFi Credentials are still intact.
+
+---
 
 ## Documentation
 
@@ -361,6 +377,14 @@ Sometimes, the library will only work if you update the `ESP32 / ESP8266` core t
 
 If you connect to the created configuration Access Point but the ConfigPortal does not show up, just open a browser and type in the IP of the web portal, by default `192.168.4.1`.
 
+---
+
+### Releases 1.0.8
+
+1. Fix setSTAStaticIPConfig issue. See [Static Station IP doesn't work](https://github.com/khoih-prog/ESP_WiFiManager/issues/17)
+2. Add LittleFS support for ESP8266 core 2.7.1+ in examples to replace deprecated SPIFFS.
+3. Restructure code.
+
 ### Releases 1.0.7
 
 1. Use `just-in-time` scanWiFiNetworks() to reduce connection time necessary for battery-operated DeepSleep application. Thanks to [CrispinP](https://github.com/CrispinP) for identifying, requesting and testing. See [Starting WiFIManger is very slow (2000ms)](https://github.com/khoih-prog/ESP_WiFiManager/issues/6)
@@ -419,11 +443,15 @@ See [KenTaylor's version](https://github.com/kentaylor/WiFiManager) for previous
 - Fix bug that keeps ConfigPortal in endless loop if Portal/Router SSID or Password is NULL.
 - Add example ConfigPortalParamsOnSwitch to enable ConfigPortal credentials to be reconfigurable using ConfigPortal.
 
+---
+
 ### Contributions and thanks
+
 1. Based on and modified from [Tzapu](https://github.com/tzapu/WiFiManager) and [KenTaylor's version]( https://github.com/kentaylor/WiFiManager)
 2. Thanks to [Amorphous](https://community.blynk.cc/t/esp-wifimanager-for-esp32-and-esp8266/42257/13) for the static DNS feature and code, included in v1.0.5
 3. Thanks to [CrispinP](https://github.com/CrispinP) for idea to add HostName (v1.0.4) and request to reduce the unnecessary waiting time in ESP_WiFiManager constructor (v1.0.6+). See [Starting WiFIManger is very slow (2000ms)](https://github.com/khoih-prog/ESP_WiFiManager/issues/6)
 4. Thanks to [OttoKlaasen](https://github.com/OttoKlaasen) for reporting [Having issue to read the SPIFF file](https://github.com/khoih-prog/ESP_WiFiManager/issues/14) bug in examples.
+5. Thanks to [Giuseppe](https://github.com/Gius-8) for reporting [Static Station IP doesn't work](https://github.com/khoih-prog/ESP_WiFiManager/issues/17) bug.
 
 ### Contributing
 

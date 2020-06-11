@@ -8,12 +8,12 @@
    https://github.com/chriscook8/esp-arduino-apboot
    https://github.com/esp8266/Arduino/blob/master/libraries/DNSServer/examples/CaptivePortalAdvanced/
 
-   Forked from Tzapu https://github.com/tzapu/WiFiManager
+   Modified from Tzapu https://github.com/tzapu/WiFiManager
    and from Ken Taylor https://github.com/kentaylor
 
    Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
    Licensed under MIT license
-   Version: 1.0.7
+   Version: 1.0.8
 
    Version Modified By   Date      Comments
    ------- -----------  ---------- -----------
@@ -25,6 +25,7 @@
     1.0.5   K Hoang      15/01/2020 Add configurable DNS feature. Thanks to @Amorphous of https://community.blynk.cc
     1.0.6   K Hoang      03/02/2020 Add support for ArduinoJson version 6.0.0+ ( tested with v6.14.1 )
     1.0.7   K Hoang      13/04/2020 Reduce start time, fix SPIFFS bug in examples, update README.md
+    1.0.8   K Hoang      10/06/2020 Fix STAstaticIP issue. Restructure code. Add LittleFS support for ESP8266 core 2.7.1+
  *****************************************************************************************************************************/
 /****************************************************************************************************************************
    This example will open a configuration portal for 60 seconds when first powered up if the boards has stored WiFi Credentials.
@@ -41,28 +42,35 @@
    can not be read by observers.
  *****************************************************************************************************************************/
 
+#if !( defined(ESP8266) || defined(ESP32) )
+  #error This code is intended to run only on the ESP8266 and ESP32 boards ! Please check your Tools->Board setting.
+#endif
+
+// Use from 0 to 4. Higher nimber, more debugging messages and memory usage.
+#define _WIFIMGR_LOGLEVEL_    4
+
 //For ESP32, To use ESP32 Dev Module, QIO, Flash 4MB/80MHz, Upload 921600
 
 //Ported to ESP32
 #ifdef ESP32
-#include <esp_wifi.h>
-#include <WiFi.h>
-#include <WiFiClient.h>
-
-#define ESP_getChipId()   ((uint32_t)ESP.getEfuseMac())
-
-#define LED_ON      HIGH
-#define LED_OFF     LOW
+  #include <esp_wifi.h>
+  #include <WiFi.h>
+  #include <WiFiClient.h>
+  
+  #define ESP_getChipId()   ((uint32_t)ESP.getEfuseMac())
+  
+  #define LED_ON      HIGH
+  #define LED_OFF     LOW
 #else
-#include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
-//needed for library
-#include <DNSServer.h>
-#include <ESP8266WebServer.h>
-
-#define ESP_getChipId()   (ESP.getChipId())
-
-#define LED_ON      LOW
-#define LED_OFF     HIGH
+  #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
+  //needed for library
+  #include <DNSServer.h>
+  #include <ESP8266WebServer.h>
+  
+  #define ESP_getChipId()   (ESP.getChipId())
+  
+  #define LED_ON      LOW
+  #define LED_OFF     HIGH
 #endif
 
 // SSID and PW for Config Portal
@@ -72,6 +80,12 @@ const char* password = "your_password";
 // SSID and PW for your Router
 String Router_SSID;
 String Router_Pass;
+
+IPAddress stationIP   = IPAddress(192, 168, 2, 114);
+IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
+IPAddress netMask     = IPAddress(255, 255, 255, 0);
+IPAddress dns1IP      = gatewayIP;
+IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
 
 // Use false if you don't like to display Available Pages in Information Page of Config Portal
 // Comment out or use true to display Available Pages in Information Page of Config Portal
@@ -137,8 +151,7 @@ void setup()
 
   ESP_wifiManager.setMinimumSignalQuality(-1);
   // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
-  ESP_wifiManager.setSTAStaticIPConfig(IPAddress(192, 168, 2, 114), IPAddress(192, 168, 2, 1), IPAddress(255, 255, 255, 0),
-                                       IPAddress(192, 168, 2, 1), IPAddress(8, 8, 8, 8));
+  ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
 
   // We can't use WiFi.SSID() in ESP32as it's only valid after connected.
   // SSID and Password stored in ESP32 wifi_ap_record_t and wifi_config_t are also cleared in reboot
@@ -191,6 +204,9 @@ void setup()
     Serial.print("Connecting to ");
     Serial.println(Router_SSID);
 
+    WiFi.config(stationIP, gatewayIP, netMask);
+    //WiFi.config(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
+    
     WiFi.begin(Router_SSID.c_str(), Router_Pass.c_str());
 #endif
 
