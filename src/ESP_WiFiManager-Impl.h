@@ -688,7 +688,13 @@ String ESP_WiFiManager::getConfigPortalPW()
 void ESP_WiFiManager::resetSettings()
 {
   LOGINFO(F("Previous settings invalidated"));
+  
+#ifdef ESP8266  
   WiFi.disconnect(true);
+#else
+  WiFi.disconnect(true, true);
+#endif
+
   delay(200);
   return;
 }
