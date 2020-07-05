@@ -1,5 +1,5 @@
 /****************************************************************************************************************************
-   ESP_WiFiManager-Impl.h
+   ESP_WiFiManager.cpp
    For ESP8266 / ESP32 boards
 
    ESP_WiFiManager is a library for the ESP8266/Arduino platform
@@ -32,6 +32,8 @@
 
 #ifndef ESP_WiFiManager_Impl_h
 #define ESP_WiFiManager_Impl_h
+
+#include "ESP_WiFiManager.h"
 
 ESP_WMParameter::ESP_WMParameter(const char *custom)
 {
