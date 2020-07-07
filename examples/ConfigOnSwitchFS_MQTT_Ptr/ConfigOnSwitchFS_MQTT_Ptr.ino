@@ -292,7 +292,7 @@ void heartBeatPrint(void)
 
 void publishMQTT(void)
 {
-    MQTT_connect_wifi();
+    MQTT_connect();
 
     if (Temperature->publish(some_number)) 
     {
@@ -314,7 +314,11 @@ void check_status()
   // Print hearbeat every HEARTBEAT_INTERVAL (10) seconds.
   if ((millis() > checkstatus_timeout) || (checkstatus_timeout == 0))
   {
-    publishMQTT();
+    if (WiFi.status() == WL_CONNECTED)
+    {
+      publishMQTT();
+    }
+      
     heartBeatPrint();
     checkstatus_timeout = millis() + HEARTBEAT_INTERVAL;
   }
@@ -747,7 +751,7 @@ void newConfigData()
   Serial.println();
 }
 
-void MQTT_connect_wifi() 
+void MQTT_connect() 
 {
   int8_t ret;
 
