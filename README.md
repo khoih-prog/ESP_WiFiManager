@@ -6,6 +6,8 @@
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#Contributing)
 [![GitHub issues](https://img.shields.io/github/issues/khoih-prog/ESP_WiFiManager.svg)](http://github.com/khoih-prog/ESP_WiFiManager/issues)
 
+---
+
 ### Releases 1.0.8
 
 1. Fix setSTAStaticIPConfig issue. See [Static Station IP doesn't work](https://github.com/khoih-prog/ESP_WiFiManager/issues/17)
@@ -42,9 +44,32 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
 ---
 
 ## Prerequisite
- 1. [`Arduino IDE 1.8.12 or later` for Arduino](https://www.arduino.cc/en/Main/Software)
- 2. [`ESP8266 Core 2.7.1 or newer`](https://github.com/esp8266/Arduino) for ESP8266-based boards.
- 3. [`ESP32 Core 1.0.4 or newer`](https://github.com/espressif/arduino-esp32) for ESP32-based boards
+
+ 1. [`Arduino IDE 1.8.12+` for Arduino](https://www.arduino.cc/en/Main/Software)
+ 2. [`ESP8266 Core 2.7.3+`](https://github.com/esp8266/Arduino) for ESP8266-based boards.
+ 3. [`ESP32 Core 1.0.4+`](https://github.com/espressif/arduino-esp32) for ESP32-based boards
+
+---
+
+## Installation
+
+### Use Arduino Library Manager
+The best and easiest way is to use `Arduino Library Manager`. Search for `ESP_WiFiManager`, then select / install the latest version. You can also use this link [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_WiFiManager.svg?)](https://www.ardu-badge.com/ESP_WiFiManager) for more detailed instructions.
+
+### Manual Install
+
+1. Navigate to [ESP_WiFiManager](https://github.com/khoih-prog/ESP_WiFiManager) page.
+2. Download the latest release `ESP_WiFiManager-master.zip`.
+3. Extract the zip file to `ESP_WiFiManager-master` directory 
+4. Copy the whole `ESP_WiFiManager-master` folder to Arduino libraries' directory such as `~/Arduino/libraries/`.
+
+### VS Code & PlatformIO:
+1. Install [VS Code](https://code.visualstudio.com/)
+2. Install [PlatformIO](https://platformio.org/platformio-ide)
+3. Install **ESP_WiFiManager** library by using [Library Manager](https://docs.platformio.org/en/latest/librarymanager/). Search for ***ESP_WiFiManager*** in [Platform.io Author's Libraries](https://platformio.org/lib/search?query=author:%22Khoi%20Hoang%22)
+4. Use included [platformio.ini](examples/platformio/platformio.ini) file from examples to ensure that all dependent libraries will installed automatically.
+
+---
 
 ## How It Works
 
@@ -62,26 +87,10 @@ then connect WebBrowser to configurable ConfigPortal IP address, default is 192.
 - Choose one of the access points scanned, enter password, click ***Save***.
 - ESP will restart, then try to connect to the WiFi netwotk using STA-only mode, ***without running the ConfigPortal WebServer and WiFi AP***. See [Accessing manager after connection](https://github.com/khoih-prog/ESP_WiFiManager/issues/15).
 
-## Quick Start
-
-The suggested way to install is to:
-
-### Installing
-
-#### Use Arduino Library Manager
-The best and easiest way is to use `Arduino Library Manager`. Search for `ESP_WiFiManager`, then select / install the latest version. You can also use this link [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_WiFiManager.svg?)](https://www.ardu-badge.com/ESP_WiFiManager) for more detailed instructions.
-
-#### Manual Install
-
-1. Navigate to [ESP_WiFiManager](https://github.com/khoih-prog/ESP_WiFiManager) page.
-2. Download the latest release `ESP_WiFiManager-master.zip`.
-3. Extract the zip file to `ESP_WiFiManager-master` directory 
-4. Copy whole 
-  - `ESP_WiFiManager-master/src` folder to Arduino libraries' directory such as `~/Arduino/libraries/`.
-
 ---
 
-### Using
+### Usage
+
 - Include in your sketch
 ```cpp
 #ifdef ESP32
@@ -147,6 +156,7 @@ ESP_wifiManager.setAPStaticIPConfig(IPAddress(10,0,1,1), IPAddress(10,0,1,1), IP
 
 Once WiFi network information is saved in the `ESP32 / ESP8266`, it will try to autoconnect to WiFi every time it is started, without requiring any function calls in the sketch.
 
+---
 
 Also see examples: 
  1. [ConfigOnSwitch](examples/ConfigOnSwitch)
@@ -160,6 +170,7 @@ Also see examples:
  9. [AutoConnectWithFeedback](examples/AutoConnectWithFeedback)
 10. [AutoConnectWithFeedbackLED](examples/AutoConnectWithFeedbackLED)
 11. [AutoConnectWithFSParameters](examples/AutoConnectWithFSParameters)
+12. [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr)
 
 ---
 
@@ -299,9 +310,13 @@ void loop()
 
 }
 ```
+
 See  [ConfigOnSwitch](examples/ConfigOnSwitch) example for a more complex version.
 
+---
+
 #### Custom Parameters
+
 Many applications need configuration parameters like `MQTT host and port`, [Blynk](http://www.blynk.cc) or [emoncms](http://emoncms.org) tokens, etc. While it is possible to use `ESP_WiFiManager` to collect additional parameters it is better to read these parameters from a web service once `ESP_WiFiManager` has been used to connect to the internet.
 
 To capture other parameters with `ESP_WiFiManager` is a lot more involved than all the other features and requires adding custom HTML to your form. If you want to do it with `ESP_WiFiManager` see the example [ConfigOnSwitchFS](examples/ConfigOnSwitchFS)
@@ -362,6 +377,7 @@ Use this function to show (or hide) all networks.
 ```cpp
 ESP_wifiManager.setRemoveDuplicateAPs(false);
 ```
+---
 
 #### Debug
 Debug is enabled by default on Serial. To disable, add before `startConfigPortal()`
@@ -397,35 +413,25 @@ If you connect to the created configuration Access Point but the ConfigPortal do
  
 ### Releases 1.0.6
 
-#### New in v1.0.6
-
 - Add function getConfigPortalPW()
 - Add 4 new complicated examples compatible with ArduinoJson 6.0.0+ :[AutoConnect](examples/AutoConnect), [AutoConnectWithFeedback](examples/AutoConnectWithFeedback), [AutoConnectWithFeedbackLED](examples/AutoConnectWithFeedbackLED) and [AutoConnectWithFSParameters](examples/AutoConnectWithFSParameters)
 
 ### Releases 1.0.6-beta
-
-#### New in v1.0.6-beta
 
 - Add NTP data
 - Add support to ArduinoJson 6.0.0+ as well as 5.13.5- to examples
 
 ### Releases 1.0.5
 
-#### New in v1.0.5
-
 - Add option to specify static DNS servers, besides static IP, Gateway and Subnet Mask
 - Modify and add examples. Enhance README.md
 
 ### Releases 1.0.4
 
-#### New in v1.0.4
-
 - Add ESP_WiFiManager setHostname feature
 - Modify and add examples. Enhance README.md
 
 ### Releases 1.0.3
-
-#### New in v1.0.3
 
 - Add option not displaying AvailablePages in Info page.
 - Delete unnecessary files
@@ -445,13 +451,25 @@ See [KenTaylor's version](https://github.com/kentaylor/WiFiManager) for previous
 
 ---
 
-### Contributions and thanks
+### Contributions and Thanks
 
 1. Based on and modified from [Tzapu](https://github.com/tzapu/WiFiManager) and [KenTaylor's version]( https://github.com/kentaylor/WiFiManager)
 2. Thanks to [Amorphous](https://community.blynk.cc/t/esp-wifimanager-for-esp32-and-esp8266/42257/13) for the static DNS feature and code, included in v1.0.5
 3. Thanks to [CrispinP](https://github.com/CrispinP) for idea to add HostName (v1.0.4) and request to reduce the unnecessary waiting time in ESP_WiFiManager constructor (v1.0.6+). See [Starting WiFIManger is very slow (2000ms)](https://github.com/khoih-prog/ESP_WiFiManager/issues/6)
 4. Thanks to [OttoKlaasen](https://github.com/OttoKlaasen) for reporting [Having issue to read the SPIFF file](https://github.com/khoih-prog/ESP_WiFiManager/issues/14) bug in examples.
 5. Thanks to [Giuseppe](https://github.com/Gius-8) for reporting [Static Station IP doesn't work](https://github.com/khoih-prog/ESP_WiFiManager/issues/17) bug.
+
+
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/Tzapu"><img src="https://github.com/Tzapu.png" width="100px;" alt="Tzapu"/><br /><sub><b>⭐️ Tzapu</b></sub></a><br /></td>
+    <td align="center"><a href="https://github.com/kentaylor"><img src="https://github.com/kentaylor.png" width="100px;" alt="kentaylor"/><br /><sub><b>⭐️ kentaylor</b></sub></a><br /></td>
+    <td align="center"><a href="https://github.com/Amorphous"><img src="https://github.com/Amorphous.png" width="100px;" alt="Amorphous"/><br /><sub><b>⭐️ Amorphous</b></sub></a><br /></td>
+    <td align="center"><a href="https://github.com/CrispinP"><img src="https://github.com/CrispinP.png" width="100px;" alt="CrispinP"/><br /><sub><b>CrispinP</b></sub></a><br /></td>
+    <td align="center"><a href="https://github.com/OttoKlaasen"><img src="https://github.com/OttoKlaasen.png" width="100px;" alt="OttoKlaasen"/><br /><sub><b>OttoKlaasen</b></sub></a><br /></td>
+    <td align="center"><a href="https://github.com/Giuseppe"><img src="https://github.com/Giuseppe.png" width="100px;" alt="Giuseppe"/><br /><sub><b>Giuseppe</b></sub></a><br /></td>
+  </tr> 
+</table>
 
 ### Contributing
 
@@ -461,7 +479,7 @@ If you want to contribute to this project:
 - Create issues and pull requests
 - Tell other people about this library
 
-### Copyright
+## Copyright
 
 Copyright 2019- Khoi Hoang
 
