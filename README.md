@@ -379,14 +379,14 @@ ESP_wifiManager.setRemoveDuplicateAPs(false);
 ```
 ---
 
-#### Debug
+### Debug
 Debug is enabled by default on Serial. To disable, add before `startConfigPortal()`
 
 ```cpp
 ESP_wifiManager.setDebugOutput(false);
 ```
 
-## Troubleshooting
+### Troubleshooting
 If you get compilation errors, more often than not, you may need to install a newer version of the `ESP32 / ESP8266` core for Arduino.
 
 Sometimes, the library will only work if you update the `ESP32 / ESP8266` core to the latest version because I am using some newly added function.
