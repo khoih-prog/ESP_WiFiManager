@@ -10,7 +10,7 @@
 
    Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
    Licensed under MIT license
-   Version: 1.0.8
+   Version: 1.0.9
 
    Version Modified By   Date      Comments
    ------- -----------  ---------- -----------
@@ -21,12 +21,17 @@
     1.0.4   K Hoang      07/01/2020 Add RFC952 setHostname feature.
     1.0.5   K Hoang      15/01/2020 Add configurable DNS feature. Thanks to @Amorphous of https://community.blynk.cc
     1.0.6   K Hoang      03/02/2020 Add support for ArduinoJson version 6.0.0+ ( tested with v6.14.1 )
-    1.0.7   K Hoang      14/04/2020 Use just-in-time scanWiFiNetworks(). Fix bug relating SPIFFS in examples
+    1.0.7   K Hoang      13/04/2020 Reduce start time, fix SPIFFS bug in examples, update README.md
     1.0.8   K Hoang      10/06/2020 Fix STAstaticIP issue. Restructure code. Add LittleFS support for ESP8266 core 2.7.1+
+    1.0.9   K Hoang      29/07/2020 Fix ESP32 STAstaticIP bug. Permit changing from DHCP <-> static IP using Config Portal.
+                                    Add, enhance examples (fix MDNS for ESP32)
  *****************************************************************************************************************************/
 #if !( defined(ESP8266) ||  defined(ESP32) )
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
+
+// Use from 0 to 4. Higher number, more debugging messages and memory usage.
+#define _WIFIMGR_LOGLEVEL_    3
 
 //Ported to ESP32
 #ifdef ESP32
@@ -50,8 +55,6 @@
 #define LED_OFF     HIGH
 #endif
 
-#include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
-
 // SSID and PW for your Router
 String Router_SSID;
 String Router_Pass;
@@ -60,11 +63,37 @@ String Router_Pass;
 String AP_SSID;
 String AP_PASS;
 
-IPAddress stationIP   = IPAddress(192, 168, 2, 114);
-IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
-IPAddress netMask     = IPAddress(255, 255, 255, 0);
+// Use true for dynamic DHCP IP, false to use static IP and  you have to change the IP accordingly to your network
+#define USE_DHCP_IP     false
+
+#if USE_DHCP_IP
+  // Use DHCP
+  IPAddress stationIP   = IPAddress(0, 0, 0, 0);
+  IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
+  IPAddress netMask     = IPAddress(255, 255, 255, 0);
+#else
+  // Use static IP
+  IPAddress stationIP   = IPAddress(192, 168, 2, 232);
+  IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
+  IPAddress netMask     = IPAddress(255, 255, 255, 0);
+#endif
+
 IPAddress dns1IP      = gatewayIP;
 IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
+
+// Use false if you don't like to display Available Pages in Information Page of Config Portal
+// Comment out or use true to display Available Pages in Information Page of Config Portal
+// Must be placed before #include <ESP_WiFiManager.h>
+#define USE_AVAILABLE_PAGES     false
+
+// Use false to disable NTP config
+#define USE_ESP_WIFIMANAGER_NTP     true
+
+// Use true to enable CloudFlare NTP service. System can hang if you don't have Internet access while accessing CloudFlare
+// See Issue #21: CloudFlare link in the default portal => https://github.com/khoih-prog/ESP_WiFiManager/issues/21
+#define USE_CLOUDFLARE_NTP          false
+
+#include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
 
 void heartBeatPrint(void)
 {
@@ -109,8 +138,9 @@ void setup()
 {
   // put your setup code here, to run once:
   Serial.begin(115200);
-
-  Serial.println("\nStarting AutoConnectWithFeedBack");
+  while (!Serial);
+  
+  Serial.println("\nStarting AutoConnectWithFeedBack on " + String(ARDUINO_BOARD));
 
   // Use this to default DHCP hostname to ESP8266-XXXXXX or ESP32-XXXXXX
   //ESP_WiFiManager ESP_wifiManager;

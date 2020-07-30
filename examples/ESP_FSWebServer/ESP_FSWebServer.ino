@@ -1,35 +1,36 @@
 /****************************************************************************************************************************
-   ESP_FSWebServer - Example WebServer with SPIFFS backend for esp8266
-   For ESP8266 boards
+    ESP_FSWebServer - Example WebServer with SPIFFS backend for esp8266
+    For ESP8266 boards
+    
+    ESP_WiFiManager is a library for the ESP8266/ESP32 platform (https://github.com/esp8266/Arduino) to enable easy
+    configuration and reconfiguration of WiFi credentials using a Captive Portal.
+    
+    Modified from Tzapu https://github.com/tzapu/WiFiManager
+    and from Ken Taylor https://github.com/kentaylor
+    
+    Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
+    Licensed under MIT license
+    
+    Example modified from https://github.com/esp8266/Arduino/blob/master/libraries/ESP8266WebServer/examples/FSBrowser/FSBrowser.ino
+    
+    Copyright (c) 2015 Hristo Gochkov. All rights reserved.
+    This file is part of the ESP8266WebServer library for Arduino environment.
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+    
+    Version: 1.0.9
 
-   ESP_WiFiManager is a library for the ESP8266/ESP32 platform (https://github.com/esp8266/Arduino) to enable easy
-   configuration and reconfiguration of WiFi credentials using a Captive Portal.
-
-   Modified from Tzapu https://github.com/tzapu/WiFiManager
-   and from Ken Taylor https://github.com/kentaylor
-
-   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
-   Licensed under MIT license
-   Version: 1.0.8
-
-   Example modified from https://github.com/esp8266/Arduino/blob/master/libraries/ESP8266WebServer/examples/FSBrowser/FSBrowser.ino
-
-   Copyright (c) 2015 Hristo Gochkov. All rights reserved.
-   This file is part of the ESP8266WebServer library for Arduino environment.
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-   Version Modified By   Date      Comments
-   ------- -----------  ---------- -----------
+    Version Modified By   Date      Comments
+    ------- -----------  ---------- -----------
     1.0.0   K Hoang      07/10/2019 Initial coding
     1.0.1   K Hoang      13/12/2019 Fix bug. Add features. Add support for ESP32
     1.0.2   K Hoang      19/12/2019 Fix bug thatkeeps ConfigPortal in endless loop if Portal/Router SSID or Password is NULL.
@@ -39,6 +40,8 @@
     1.0.6   K Hoang      03/02/2020 Add support for ArduinoJson version 6.0.0+ ( tested with v6.14.1 )
     1.0.7   K Hoang      13/04/2020 Reduce start time, fix SPIFFS bug in examples, update README.md
     1.0.8   K Hoang      10/06/2020 Fix STAstaticIP issue. Restructure code. Add LittleFS support for ESP8266 core 2.7.1+
+    1.0.9   K Hoang      29/07/2020 Fix ESP32 STAstaticIP bug. Permit changing from DHCP <-> static IP using Config Portal.
+                                    Add, enhance examples (fix MDNS for ESP32)
  *****************************************************************************************************************************/
 /*****************************************************************************************************************************
    How To Use:
@@ -51,6 +54,9 @@
 #if !defined(ESP8266)
   #error This code is intended to run on the ESP8266 platform! Please check your Tools->Board setting.
 #endif
+
+// Use from 0 to 4. Higher number, more debugging messages and memory usage.
+#define _WIFIMGR_LOGLEVEL_    3
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
@@ -80,9 +86,21 @@ const char* password = "your_password";
 String Router_SSID;
 String Router_Pass;
 
-IPAddress stationIP   = IPAddress(192, 168, 2, 224);
-IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
-IPAddress netMask     = IPAddress(255, 255, 255, 0);
+// Use true for dynamic DHCP IP, false to use static IP and  you have to change the IP accordingly to your network
+#define USE_DHCP_IP     false
+
+#if USE_DHCP_IP
+  // Use DHCP
+  IPAddress stationIP   = IPAddress(0, 0, 0, 0);
+  IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
+  IPAddress netMask     = IPAddress(255, 255, 255, 0);
+#else
+  // Use static IP
+  IPAddress stationIP   = IPAddress(192, 168, 2, 166);
+  IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
+  IPAddress netMask     = IPAddress(255, 255, 255, 0);
+#endif
+
 IPAddress dns1IP      = gatewayIP;
 IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
 
@@ -90,6 +108,13 @@ IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
 // Comment out or use true to display Available Pages in Information Page of Config Portal
 // Must be placed before #include <ESP_WiFiManager.h>
 #define USE_AVAILABLE_PAGES     false
+
+// Use false to disable NTP config
+#define USE_ESP_WIFIMANAGER_NTP     true
+
+// Use true to enable CloudFlare NTP service. System can hang if you don't have Internet access while accessing CloudFlare
+// See Issue #21: CloudFlare link in the default portal => https://github.com/khoih-prog/ESP_WiFiManager/issues/21
+#define USE_CLOUDFLARE_NTP          false
 
 #include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
 
@@ -345,8 +370,11 @@ void handleFileList()
 void setup(void) 
 {
   DBG_OUTPUT_PORT.begin(115200);
-  DBG_OUTPUT_PORT.print("\n");
-  DBG_OUTPUT_PORT.setDebugOutput(true);
+  while (!DBG_OUTPUT_PORT);
+  
+  DBG_OUTPUT_PORT.println("\nStarting ESP_FSWebServer on " + String(ARDUINO_BOARD));
+
+  DBG_OUTPUT_PORT.setDebugOutput(false);
   
   filesystem->begin();
   {
@@ -430,12 +458,6 @@ void setup(void)
   DBG_OUTPUT_PORT.print("Connected! IP address: ");
   DBG_OUTPUT_PORT.println(WiFi.localIP());
 
-  MDNS.begin(host);
-  DBG_OUTPUT_PORT.print("Open http://");
-  DBG_OUTPUT_PORT.print(host);
-  DBG_OUTPUT_PORT.println(".local/edit to see the file browser");
-
-
   //SERVER INIT
   //list directory
   server.on("/list", HTTP_GET, handleFileList);
@@ -485,8 +507,14 @@ void setup(void)
   });
   
   server.begin();
-  DBG_OUTPUT_PORT.println("HTTP server started");
+  
+  DBG_OUTPUT_PORT.print("HTTP server started @ ");
+  DBG_OUTPUT_PORT.println(WiFi.localIP());
 
+  MDNS.begin(host);
+  DBG_OUTPUT_PORT.print("Open http://");
+  DBG_OUTPUT_PORT.print(host);
+  DBG_OUTPUT_PORT.println(".local/edit to see the file browser");
 }
 
 void loop(void) 

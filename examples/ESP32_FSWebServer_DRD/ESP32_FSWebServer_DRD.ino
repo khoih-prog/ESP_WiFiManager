@@ -1,5 +1,5 @@
 /****************************************************************************************************************************
-   ESP32_FSWebServer - Example WebServer with SPIFFS backend for esp8266
+   ESP32_FSWebServer_DRD - Example WebServer with SPIFFS backend for esp32 with DoubleResetDetect feature
    For ESP32 boards
 
    ESP_WiFiManager is a library for the ESP8266/ESP32 platform (https://github.com/esp8266/Arduino) to enable easy
@@ -10,7 +10,7 @@
 
    Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
    Licensed under MIT license
-
+ 
    Example modified from https://github.com/esp8266/Arduino/blob/master/libraries/ESP8266WebServer/examples/FSBrowser/FSBrowser.ino
 
    Copyright (c) 2015 Hristo Gochkov. All rights reserved.
@@ -63,6 +63,28 @@
 #include <WebServer.h>
 #include <ESPmDNS.h>
 
+// These defines must be put before #include <ESP_DoubleResetDetector.h>
+// to select where to store DoubleResetDetector's variable.
+// For ESP32, You must select one to be true (EEPROM or SPIFFS)
+// Otherwise, library will use default EEPROM storage
+#define ESP_DRD_USE_EEPROM      false
+#define ESP_DRD_USE_SPIFFS      true
+
+#define DOUBLERESETDETECTOR_DEBUG       true  //false
+
+#include <ESP_DoubleResetDetector.h>      //https://github.com/khoih-prog/ESP_DoubleResetDetector
+
+// Number of seconds after reset during which a
+// subseqent reset will be considered a double reset.
+#define DRD_TIMEOUT 10
+
+// RTC Memory Address for the DoubleResetDetector to use
+#define DRD_ADDRESS 0
+
+//DoubleResetDetector drd(DRD_TIMEOUT, DRD_ADDRESS);
+DoubleResetDetector* drd;
+//////
+
 // You only need to format the filesystem once
 //#define FORMAT_FILESYSTEM true
 #define FORMAT_FILESYSTEM false
@@ -89,6 +111,9 @@ const char* password = "your_password";
 // SSID and PW for your Router
 String Router_SSID;
 String Router_Pass;
+
+// Indicates whether ESP has WiFi credentials saved from previous session, or double reset detected
+bool initialConfig = false;
 
 // Use true for dynamic DHCP IP, false to use static IP and  you have to change the IP accordingly to your network
 #define USE_DHCP_IP     false
@@ -121,6 +146,7 @@ IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
 #define USE_CLOUDFLARE_NTP          false
 
 #include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
+
 const char* host = "esp32-fs-browser";
 
 #define HTTP_PORT     80
@@ -381,9 +407,11 @@ void setup(void)
   DBG_OUTPUT_PORT.begin(115200);
   while (!DBG_OUTPUT_PORT);
   
-  DBG_OUTPUT_PORT.println("\nStarting ESP32_FSWebServer on " + String(ARDUINO_BOARD));
+  DBG_OUTPUT_PORT.println("\nStarting ESP32_FSWebServer_DRD with DoubleResetDetect on " + String(ARDUINO_BOARD));
 
   DBG_OUTPUT_PORT.setDebugOutput(false);
+
+  drd = new DoubleResetDetector(DRD_TIMEOUT, DRD_ADDRESS);
 
   if (FORMAT_FILESYSTEM) 
     FILESYSTEM.format();
@@ -392,12 +420,15 @@ void setup(void)
   {
     File root = FILESYSTEM.open("/");
     File file = root.openNextFile();
-    while (file) {
+    
+    while (file) 
+    {
       String fileName = file.name();
       size_t fileSize = file.size();
       DBG_OUTPUT_PORT.printf("FS File: %s, size: %s\n", fileName.c_str(), formatBytes(fileSize).c_str());
       file = root.openNextFile();
     }
+    
     DBG_OUTPUT_PORT.printf("\n");
   }
 
@@ -407,7 +438,7 @@ void setup(void)
   // Use this to default DHCP hostname to ESP8266-XXXXXX or ESP32-XXXXXX
   //ESP_WiFiManager ESP_wifiManager;
   // Use this to personalize DHCP hostname (RFC952 conformed)
-  ESP_WiFiManager ESP_wifiManager("ESP32-FSWebServer");
+  ESP_WiFiManager ESP_wifiManager("ESP32-FSWebServer_DRD");
 
   //set custom ip for portal
   ESP_wifiManager.setAPStaticIPConfig(IPAddress(192, 168, 100, 1), IPAddress(192, 168, 100, 1), IPAddress(255, 255, 255, 0));
@@ -428,15 +459,35 @@ void setup(void)
   // SSID to uppercase
   ssid.toUpperCase();
 
-  if (Router_SSID == "")
+  if (Router_SSID != "")
   {
-    DBG_OUTPUT_PORT.println("We haven't got any access point credentials, so get them now");
+    ESP_wifiManager.setConfigPortalTimeout(120); //If no access point name has been previously entered disable timeout.
+    Serial.println("Got stored Credentials. Timeout 120s for Config Portal");
+  }
+  else
+  {
+    Serial.println("Open Config Portal without Timeout: No stored Credentials.");
+    initialConfig = true;
+  }
 
+  if (drd->detectDoubleReset())
+  {
+    // DRD, disable timeout.
+    ESP_wifiManager.setConfigPortalTimeout(0);
+    
+    DBG_OUTPUT_PORT.println("Open Config Portal without Timeout: Double Reset Detected");
+    initialConfig = true;
+  }
+
+  if (initialConfig)
+  {
     // Starts an access point
     if (!ESP_wifiManager.startConfigPortal((const char *) ssid.c_str(), password))
       DBG_OUTPUT_PORT.println("Not connected to WiFi but continuing anyway.");
     else
+    {
       DBG_OUTPUT_PORT.println("WiFi connected...yeey :)");
+    }
   }
 
 #define WIFI_CONNECT_TIMEOUT        30000L
@@ -445,25 +496,28 @@ void setup(void)
 
   startedAt = millis();
 
-  while ( (WiFi.status() != WL_CONNECTED) && (millis() - startedAt < WIFI_CONNECT_TIMEOUT ) )
+  if (!initialConfig)
   {
-    WiFi.mode(WIFI_STA);
-    WiFi.persistent (true);
-
-    // We start by connecting to a WiFi network
-    DBG_OUTPUT_PORT.print("Connecting to ");
-    DBG_OUTPUT_PORT.println(Router_SSID);
-
-    WiFi.config(stationIP, gatewayIP, netMask);
-    //WiFi.config(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
-    
-    WiFi.begin(Router_SSID.c_str(), Router_Pass.c_str());
-
-    int i = 0;
-    
-    while ((!WiFi.status() || WiFi.status() >= WL_DISCONNECTED) && i++ < WHILE_LOOP_STEPS)
+    while ( (WiFi.status() != WL_CONNECTED) && (millis() - startedAt < WIFI_CONNECT_TIMEOUT ) )
     {
-      delay(WHILE_LOOP_DELAY);
+      WiFi.mode(WIFI_STA);
+      WiFi.persistent (true);
+  
+      // We start by connecting to a WiFi network
+      DBG_OUTPUT_PORT.print("Connecting to ");
+      DBG_OUTPUT_PORT.println(Router_SSID);
+  
+      //WiFi.config(stationIP, gatewayIP, netMask);
+      WiFi.config(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
+      
+      WiFi.begin(Router_SSID.c_str(), Router_Pass.c_str());
+  
+      int i = 0;
+      
+      while ((!WiFi.status() || WiFi.status() >= WL_DISCONNECTED) && i++ < WHILE_LOOP_STEPS)
+      {
+        delay(WHILE_LOOP_DELAY);
+      }
     }
   }
 
@@ -535,5 +589,11 @@ void setup(void)
 
 void loop(void) 
 {
+  // Call the double reset detector loop method every so often,
+  // so that it can recognise when the timeout expires.
+  // You can also call drd.stop() when you wish to no longer
+  // consider the next reset as a double reset.
+  drd->loop();
+  
   server.handleClient();
 }

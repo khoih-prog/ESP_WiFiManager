@@ -13,19 +13,21 @@
 
     Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
     Licensed under MIT license
-    Version: 1.0.8
+    Version: 1.0.9
 
-   Version Modified By   Date      Comments
-   ------- -----------  ---------- -----------
+    Version Modified By   Date      Comments
+    ------- -----------  ---------- -----------
     1.0.0   K Hoang      07/10/2019 Initial coding
     1.0.1   K Hoang      13/12/2019 Fix bug. Add features. Add support for ESP32
     1.0.2   K Hoang      19/12/2019 Fix bug thatkeeps ConfigPortal in endless loop if Portal/Router SSID or Password is NULL.
     1.0.3   K Hoang      05/01/2020 Option not displaying AvailablePages in Info page. Enhance README.md. Modify examples
-    1.0.4   K Hoang       07/01/2020 Add RFC952 setHostname feature.
+    1.0.4   K Hoang      07/01/2020 Add RFC952 setHostname feature.
     1.0.5   K Hoang      15/01/2020 Add configurable DNS feature. Thanks to @Amorphous of https://community.blynk.cc
     1.0.6   K Hoang      03/02/2020 Add support for ArduinoJson version 6.0.0+ ( tested with v6.14.1 )
-    1.0.7   K Hoang      14/04/2020 Use just-in-time scanWiFiNetworks(). Fix bug relating SPIFFS in examples
+    1.0.7   K Hoang      13/04/2020 Reduce start time, fix SPIFFS bug in examples, update README.md
     1.0.8   K Hoang      10/06/2020 Fix STAstaticIP issue. Restructure code. Add LittleFS support for ESP8266 core 2.7.1+
+    1.0.9   K Hoang      29/07/2020 Fix ESP32 STAstaticIP bug. Permit changing from DHCP <-> static IP using Config Portal.
+                                    Add, enhance examples (fix MDNS for ESP32)
  *****************************************************************************************************************************/
 /****************************************************************************************************************************
    This example will open a configuration portal when the reset button is pressed twice.
@@ -65,6 +67,9 @@
 #if !( defined(ESP8266) ||  defined(ESP32) )
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
+
+// Use from 0 to 4. Higher number, more debugging messages and memory usage.
+#define _WIFIMGR_LOGLEVEL_    3
 
 #include <FS.h>
 // Now support ArduinoJson 6.0.0+ ( tested with v6.14.1 )
@@ -106,21 +111,6 @@
   #include <LittleFS.h>
 
 #endif
-
-// SSID and PW for Config Portal
-String ssid = "ESP_" + String(ESP_getChipId(), HEX);
-const char* password = "your_password";
-
-// SSID and PW for your Router
-String Router_SSID;
-String Router_Pass;
-
-// Use false if you don't like to display Available Pages in Information Page of Config Portal
-// Comment out or use true to display Available Pages in Information Page of Config Portal
-// Must be placed before #include <ESP_WiFiManager.h>
-#define USE_AVAILABLE_PAGES     false
-
-#include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
 
 #ifdef ESP32
 
@@ -244,9 +234,6 @@ const char* CONFIG_FILE = "/ConfigSW.json";
 
 // Variables
 
-// Indicates whether ESP has WiFi credentials saved from previous session
-bool initialConfig = false;
-
 // Default configuration values
 char thingspeakApiKey[17] = "";
 bool sensorDht22 = true;
@@ -261,11 +248,48 @@ bool sensorDht22 = true;
 bool readConfigFile();
 bool writeConfigFile();
 
-IPAddress stationIP   = IPAddress(192, 168, 2, 114);
-IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
-IPAddress netMask     = IPAddress(255, 255, 255, 0);
+// Indicates whether ESP has WiFi credentials saved from previous session
+bool initialConfig = false;
+
+// SSID and PW for Config Portal
+String ssid = "ESP_" + String(ESP_getChipId(), HEX);
+const char* password = "your_password";
+
+// SSID and PW for your Router
+String Router_SSID;
+String Router_Pass;
+
+// Use true for dynamic DHCP IP, false to use static IP and  you have to change the IP accordingly to your network
+#define USE_DHCP_IP     false
+
+#if USE_DHCP_IP
+  // Use DHCP
+  IPAddress stationIP   = IPAddress(0, 0, 0, 0);
+  IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
+  IPAddress netMask     = IPAddress(255, 255, 255, 0);
+#else
+  // Use static IP
+  IPAddress stationIP   = IPAddress(192, 168, 2, 232);
+  IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
+  IPAddress netMask     = IPAddress(255, 255, 255, 0);
+#endif
+
 IPAddress dns1IP      = gatewayIP;
 IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
+
+// Use false if you don't like to display Available Pages in Information Page of Config Portal
+// Comment out or use true to display Available Pages in Information Page of Config Portal
+// Must be placed before #include <ESP_WiFiManager.h>
+#define USE_AVAILABLE_PAGES     false
+
+// Use false to disable NTP config
+#define USE_ESP_WIFIMANAGER_NTP     true
+
+// Use true to enable CloudFlare NTP service. System can hang if you don't have Internet access while accessing CloudFlare
+// See Issue #21: CloudFlare link in the default portal => https://github.com/khoih-prog/ESP_WiFiManager/issues/21
+#define USE_CLOUDFLARE_NTP          false
+
+#include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
 
 void heartBeatPrint(void)
 {
@@ -305,7 +329,9 @@ void setup()
 {
   // Put your setup code here, to run once
   Serial.begin(115200);
-  Serial.println("\nStarting");
+  while (!Serial);
+
+  Serial.println("\nStarting ConfigOnSwichFS on " + String(ARDUINO_BOARD));
 
   // Initialize the LED digital pin as an output.
   pinMode(PIN_LED, OUTPUT);
@@ -336,6 +362,10 @@ void setup()
   ESP_WiFiManager ESP_wifiManager("ConfigOnSwichFS");
 
   ESP_wifiManager.setMinimumSignalQuality(-1);
+
+  //set custom ip for portal
+  //ESP_wifiManager.setAPStaticIPConfig(IPAddress(192, 168, 100, 1), IPAddress(192, 168, 100, 1), IPAddress(255, 255, 255, 0));
+    
   // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
   ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
 
@@ -479,9 +509,17 @@ void loop()
     // Sets timeout in seconds until configuration portal gets turned off.
     // If not specified device will remain in configuration mode until
     // switched off via webserver or device is restarted.
-    // ESP_wifiManager.setConfigPortalTimeout(600);
+    // ESP_wifiManager.setConfigPortalTimeout(120);
 
-    // It starts an access point
+    ESP_wifiManager.setMinimumSignalQuality(-1);
+
+    //set custom ip for portal
+    //ESP_wifiManager.setAPStaticIPConfig(IPAddress(192, 168, 100, 1), IPAddress(192, 168, 100, 1), IPAddress(255, 255, 255, 0));
+    
+    // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
+    ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
+
+    // Start an access point
     // and goes into a blocking loop awaiting configuration.
     // Once the user leaves the portal with the exit button
     // processing will continue
@@ -493,6 +531,8 @@ void loop()
     {
       // If you get here you have connected to the WiFi
       Serial.println("Connected...yeey :)");
+      Serial.print("Local IP: ");
+      Serial.println(WiFi.localIP());
     }
 
     // Getting posted form values and overriding local variables parameters

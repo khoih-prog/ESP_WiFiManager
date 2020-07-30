@@ -8,6 +8,13 @@
 
 ---
 
+### Releases 1.0.9
+
+1. Fix ESP32 STAstaticIP bug. 
+2. Enable changing from DHCP <-> static IP using Config Portal.
+3. Enable NTP configuration from sketch (USE_ESP_WIFIMANAGER_NTP, USE_CLOUDFLARE_NTP). See Issue #21: [CloudFlare link in the default portal](https://github.com/khoih-prog/ESP_WiFiManager/issues/21).
+4. Add, enhance examples (fix MDNS for ESP32 examples, add DRD feature).
+
 ### Releases 1.0.8
 
 1. Fix setSTAStaticIPConfig issue. See [Static Station IP doesn't work](https://github.com/khoih-prog/ESP_WiFiManager/issues/17)
@@ -165,12 +172,14 @@ Also see examples:
  4. [ConfigOnDoubleReset](examples/ConfigOnDoubleReset)  (now support ArduinoJson 6.0.0+ as well as 5.13.5-)
  5. [ConfigPortalParamsOnSwitch](examples/ConfigPortalParamsOnSwitch)  (now support ArduinoJson 6.0.0+ as well as 5.13.5-)
  6. [ESP_FSWebServer](examples/ESP_FSWebServer)
- 7. [ESP32_FSWebServer](examples/ESP32_FSWebServer)
- 8. [AutoConnect](examples/AutoConnect)
- 9. [AutoConnectWithFeedback](examples/AutoConnectWithFeedback)
-10. [AutoConnectWithFeedbackLED](examples/AutoConnectWithFeedbackLED)
-11. [AutoConnectWithFSParameters](examples/AutoConnectWithFSParameters)
-12. [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr)
+ 7. [ESP_FSWebServer_DRD](examples/ESP_FSWebServer_DRD)
+ 8. [ESP32_FSWebServer](examples/ESP32_FSWebServer)
+ 9. [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD)
+10. [AutoConnect](examples/AutoConnect)
+11. [AutoConnectWithFeedback](examples/AutoConnectWithFeedback)
+12. [AutoConnectWithFeedbackLED](examples/AutoConnectWithFeedbackLED)
+13. [AutoConnectWithFSParameters](examples/AutoConnectWithFSParameters)
+14. [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr)
 
 ---
 
@@ -247,9 +256,9 @@ void saveConfigCallback () {
 #### ConfigPortal Timeout
 If you need to set a timeout so the `ESP32 / ESP8266` doesn't hang waiting to be configured for ever. 
 ```cpp
-ESP_wifiManager.setConfigPortalTimeout(60);
+ESP_wifiManager.setConfigPortalTimeout(120);
 ```
-which will wait 1 minutes (60 seconds). When the time passes, the startConfigPortal function will return and continue the sketch, 
+which will wait 2 minutes (120 seconds). When the time passes, the startConfigPortal function will return and continue the sketch, 
 unless you're accessing the Config Portal. In this case, the `startConfigPortal` function will stay until you save config data or exit 
 the Config Portal.
 
@@ -274,6 +283,10 @@ void loop()
     ESP_WiFiManager ESP_wifiManager("Personalized-HostName");
 		
 	  ESP_wifiManager.setMinimumSignalQuality(-1);
+	  
+	  //set custom ip for portal
+    ESP_wifiManager.setAPStaticIPConfig(IPAddress(192, 168, 100, 1), IPAddress(192, 168, 100, 1), IPAddress(255, 255, 255, 0));
+    
 	  // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
 	  ESP_wifiManager.setSTAStaticIPConfig(IPAddress(192,168,2,114), IPAddress(192,168,2,1), IPAddress(255,255,255,0), 
                                         IPAddress(192,168,2,1), IPAddress(8,8,8,8));
@@ -386,6 +399,14 @@ Debug is enabled by default on Serial. To disable, add before `startConfigPortal
 ESP_wifiManager.setDebugOutput(false);
 ```
 
+You can also change the debugging level from 0 to 4
+
+```cpp
+// Use from 0 to 4. Higher number, more debugging messages and memory usage.
+#define _WIFIMGR_LOGLEVEL_    3
+```
+---
+
 ### Troubleshooting
 If you get compilation errors, more often than not, you may need to install a newer version of the `ESP32 / ESP8266` core for Arduino.
 
@@ -394,6 +415,13 @@ Sometimes, the library will only work if you update the `ESP32 / ESP8266` core t
 If you connect to the created configuration Access Point but the ConfigPortal does not show up, just open a browser and type in the IP of the web portal, by default `192.168.4.1`.
 
 ---
+
+### Releases 1.0.9
+
+1. Fix ESP32 STAstaticIP bug. 
+2. Enable changing from DHCP <-> static IP using Config Portal.
+3. Enable NTP configuration from sketch (USE_ESP_WIFIMANAGER_NTP, USE_CLOUDFLARE_NTP). See Issue #21: [CloudFlare link in the default portal](https://github.com/khoih-prog/ESP_WiFiManager/issues/21).
+4. Add, enhance examples (fix MDNS for ESP32 examples, add DRD feature).
 
 ### Releases 1.0.8
 
@@ -478,6 +506,8 @@ If you want to contribute to this project:
 - Ask for enhancements
 - Create issues and pull requests
 - Tell other people about this library
+
+---
 
 ## Copyright
 

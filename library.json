@@ -1,6 +1,6 @@
 {
   "name": "ESP_WifiManager",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "keywords": "wifi, WiFiManager, esp8266, esp32",
   "description": "ESP32, ESP8266 WiFi Connection manager with fallback web ConfigPortal",
   "authors":

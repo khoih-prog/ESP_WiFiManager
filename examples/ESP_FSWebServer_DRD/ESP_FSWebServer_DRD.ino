@@ -1,36 +1,36 @@
 /****************************************************************************************************************************
-   ESP32_FSWebServer - Example WebServer with SPIFFS backend for esp8266
-   For ESP32 boards
+    ESP_FSWebServer_DRD - Example WebServer with SPIFFS backend for esp8266 with DoubleResetDetect feature
+    For ESP8266 boards
+    
+    ESP_WiFiManager is a library for the ESP8266/ESP32 platform (https://github.com/esp8266/Arduino) to enable easy
+    configuration and reconfiguration of WiFi credentials using a Captive Portal.
+    
+    Modified from Tzapu https://github.com/tzapu/WiFiManager
+    and from Ken Taylor https://github.com/kentaylor
+    
+    Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
+    Licensed under MIT license
+    
+    Example modified from https://github.com/esp8266/Arduino/blob/master/libraries/ESP8266WebServer/examples/FSBrowser/FSBrowser.ino
+    
+    Copyright (c) 2015 Hristo Gochkov. All rights reserved.
+    This file is part of the ESP8266WebServer library for Arduino environment.
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+    
+    Version: 1.0.9
 
-   ESP_WiFiManager is a library for the ESP8266/ESP32 platform (https://github.com/esp8266/Arduino) to enable easy
-   configuration and reconfiguration of WiFi credentials using a Captive Portal.
-
-   Modified from Tzapu https://github.com/tzapu/WiFiManager
-   and from Ken Taylor https://github.com/kentaylor
-
-   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
-   Licensed under MIT license
-
-   Example modified from https://github.com/esp8266/Arduino/blob/master/libraries/ESP8266WebServer/examples/FSBrowser/FSBrowser.ino
-
-   Copyright (c) 2015 Hristo Gochkov. All rights reserved.
-   This file is part of the ESP8266WebServer library for Arduino environment.
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-   Version: 1.0.9
-
-   Version Modified By   Date      Comments
-   ------- -----------  ---------- -----------
+    Version Modified By   Date      Comments
+    ------- -----------  ---------- -----------
     1.0.0   K Hoang      07/10/2019 Initial coding
     1.0.1   K Hoang      13/12/2019 Fix bug. Add features. Add support for ESP32
     1.0.2   K Hoang      19/12/2019 Fix bug thatkeeps ConfigPortal in endless loop if Portal/Router SSID or Password is NULL.
@@ -45,50 +45,74 @@
  *****************************************************************************************************************************/
 /*****************************************************************************************************************************
    How To Use:
-   1) Upload the contents of the data folder with MkSPIFFS Tool ("ESP32 Sketch Data Upload" in Tools menu in Arduino IDE)
+   1) Upload the contents of the data folder with MkSPIFFS Tool ("ESP8266 Sketch Data Upload" in Tools menu in Arduino IDE)
    2) or you can upload the contents of a folder if you CD in that folder and run the following command:
-      for file in `\ls -A1`; do curl -F "file=@$PWD/$file" esp32-fs-browser.local/edit; done
-   3) access the sample web page at http://esp32-fs-browser.local
-   4) edit the page by going to http://esp32-fs-browser.local/edit
+      for file in `\ls -A1`; do curl -F "file=@$PWD/$file" esp8266fs.local/edit; done
+   3) access the sample web page at http://esp8266fs.local
+   4) edit the page by going to http://esp8266fs.local/edit
 *****************************************************************************************************************************/
-#if !defined(ESP32)
-  #error This code is intended to run on the ESP32 platform! Please check your Tools->Board setting.
+#if !defined(ESP8266)
+  #error This code is intended to run on the ESP8266 platform! Please check your Tools->Board setting.
 #endif
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
 
-#include <WiFi.h>
+#include <ESP8266WiFi.h>
 #include <WiFiClient.h>
-#include <WebServer.h>
-#include <ESPmDNS.h>
+#include <DNSServer.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266mDNS.h>
+#include <FS.h>
 
-// You only need to format the filesystem once
-//#define FORMAT_FILESYSTEM true
-#define FORMAT_FILESYSTEM false
+// For DRD
+// These defines must be put before #include <ESP_DoubleResetDetector.h>
+// to select where to store DoubleResetDetector's variable.
+// For ESP8266, You must select one to be true (RTC, EEPROM, SPIFFS or LITTLEFS)
+// Otherwise, library will use default EEPROM storage
+#define ESP_DRD_USE_LITTLEFS    true
+#define ESP_DRD_USE_SPIFFS      false  
+#define ESP_DRD_USE_EEPROM      false
+#define ESP8266_DRD_USE_RTC     false   //true
+  
+#define DOUBLERESETDETECTOR_DEBUG       true  //false
 
-#define USE_SPIFFS      true
+#include <ESP_DoubleResetDetector.h>      //https://github.com/khoih-prog/ESP_DoubleResetDetector
 
-#if USE_SPIFFS
-  #include <SPIFFS.h>
-  FS* filesystem = &SPIFFS;
-  #define FILESYSTEM    SPIFFS
+// Number of seconds after reset during which a
+// subseqent reset will be considered a double reset.
+#define DRD_TIMEOUT 10
+
+// RTC Memory Address for the DoubleResetDetector to use
+#define DRD_ADDRESS 0
+
+//DoubleResetDetector drd(DRD_TIMEOUT, DRD_ADDRESS);
+DoubleResetDetector* drd;
+
+#define USE_LITTLEFS      true
+
+#if USE_LITTLEFS
+  #include <LittleFS.h>
+  FS* filesystem = &LittleFS;
 #else
-  // Use FFat
-  #include <FFat.h>
-  FS* filesystem = &FFat;
-  #define FILESYSTEM    FFat
+  FS* filesystem = &SPIFFS;
 #endif
 
 #define DBG_OUTPUT_PORT Serial
 
+#define ESP_getChipId()   (ESP.getChipId())
+
 // SSID and PW for Config Portal
-String ssid = "ESP_" + String((uint32_t)ESP.getEfuseMac(), HEX);
-const char* password = "your_password";
+String ssid         = "ESP_" + String(ESP_getChipId(), HEX);
+//String ssid         = "your_ssid";
+const char* password  = "your_password";
 
 // SSID and PW for your Router
 String Router_SSID;
 String Router_Pass;
+
+// Indicates whether ESP has WiFi credentials saved from previous session, or double reset detected
+bool initialConfig = false;
 
 // Use true for dynamic DHCP IP, false to use static IP and  you have to change the IP accordingly to your network
 #define USE_DHCP_IP     false
@@ -100,7 +124,7 @@ String Router_Pass;
   IPAddress netMask     = IPAddress(255, 255, 255, 0);
 #else
   // Use static IP
-  IPAddress stationIP   = IPAddress(192, 168, 2, 232);
+  IPAddress stationIP   = IPAddress(192, 168, 2, 166);
   IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
   IPAddress netMask     = IPAddress(255, 255, 255, 0);
 #endif
@@ -121,11 +145,10 @@ IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
 #define USE_CLOUDFLARE_NTP          false
 
 #include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
-const char* host = "esp32-fs-browser";
 
-#define HTTP_PORT     80
+const char* host = "esp8266fs";
 
-WebServer server(HTTP_PORT);
+ESP8266WebServer server(80);
 
 //holds the current upload
 File fsUploadFile;
@@ -242,7 +265,6 @@ void handleFileUpload()
   {
     return;
   }
-  
   HTTPUpload& upload = server.upload();
   
   if (upload.status == UPLOAD_FILE_START) 
@@ -343,60 +365,60 @@ void handleFileList()
 
   String path = server.arg("dir");
   DBG_OUTPUT_PORT.println("handleFileList: " + path);
-  
-  File root = FILESYSTEM.open(path);
-  path = String();
+  Dir dir = filesystem->openDir(path);
+  path.clear();
 
   String output = "[";
-  
-  if (root.isDirectory()) 
+  while (dir.next()) 
   {
-    File file = root.openNextFile();
-    
-    while (file) 
+    File entry = dir.openFile("r");
+    if (output != "[") 
     {
-      if (output != "[") 
-      {
-        output += ',';
-      }
-      
-      output += "{\"type\":\"";
-      output += (file.isDirectory()) ? "dir" : "file";
-      output += "\",\"name\":\"";
-      output += String(file.name()).substring(1);
-      output += "\"}";
-      file = root.openNextFile();
+      output += ',';
     }
+    bool isDir = false;
+    output += "{\"type\":\"";
+    output += (isDir) ? "dir" : "file";
+    output += "\",\"name\":\"";
+    
+    if (entry.name()[0] == '/') 
+    {
+      output += &(entry.name()[1]);
+    } 
+    else 
+    {
+      output += entry.name();
+    }
+    output += "\"}";
+    entry.close();
   }
-  
+
   output += "]";
-
-  DBG_OUTPUT_PORT.println("handleFileList: " + output);
-
   server.send(200, "text/json", output);
 }
 
-void setup(void)
+void setup(void) 
 {
   DBG_OUTPUT_PORT.begin(115200);
   while (!DBG_OUTPUT_PORT);
   
-  DBG_OUTPUT_PORT.println("\nStarting ESP32_FSWebServer on " + String(ARDUINO_BOARD));
-
+  DBG_OUTPUT_PORT.println("\nStarting ESP_FSWebServer_DRD with DoubleResetDetect on " + String(ARDUINO_BOARD));
   DBG_OUTPUT_PORT.setDebugOutput(false);
 
-  if (FORMAT_FILESYSTEM) 
-    FILESYSTEM.format();
-
-  FILESYSTEM.begin();
+  drd = new DoubleResetDetector(DRD_TIMEOUT, DRD_ADDRESS);
+  
+  filesystem->begin();
   {
-    File root = FILESYSTEM.open("/");
-    File file = root.openNextFile();
-    while (file) {
-      String fileName = file.name();
-      size_t fileSize = file.size();
+    // Uncomment to format FS. Remember to uncomment after done
+    //filesystem->format();
+    Dir dir = filesystem->openDir("/");
+    DBG_OUTPUT_PORT.println("Opening / directory");
+    
+    while (dir.next()) 
+    {
+      String fileName = dir.fileName();
+      size_t fileSize = dir.fileSize();
       DBG_OUTPUT_PORT.printf("FS File: %s, size: %s\n", fileName.c_str(), formatBytes(fileSize).c_str());
-      file = root.openNextFile();
     }
     DBG_OUTPUT_PORT.printf("\n");
   }
@@ -407,10 +429,7 @@ void setup(void)
   // Use this to default DHCP hostname to ESP8266-XXXXXX or ESP32-XXXXXX
   //ESP_WiFiManager ESP_wifiManager;
   // Use this to personalize DHCP hostname (RFC952 conformed)
-  ESP_WiFiManager ESP_wifiManager("ESP32-FSWebServer");
-
-  //set custom ip for portal
-  ESP_wifiManager.setAPStaticIPConfig(IPAddress(192, 168, 100, 1), IPAddress(192, 168, 100, 1), IPAddress(255, 255, 255, 0));
+  ESP_WiFiManager ESP_wifiManager("ESP-FSWebServer_DRD");
 
   ESP_wifiManager.setMinimumSignalQuality(-1);
   // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
@@ -428,10 +447,28 @@ void setup(void)
   // SSID to uppercase
   ssid.toUpperCase();
 
-  if (Router_SSID == "")
+  if (Router_SSID != "")
   {
-    DBG_OUTPUT_PORT.println("We haven't got any access point credentials, so get them now");
+    ESP_wifiManager.setConfigPortalTimeout(60); //If no access point name has been previously entered disable timeout.
+    Serial.println("Got stored Credentials. Timeout 60s for Config Portal");
+  }
+  else
+  {
+    Serial.println("Open Config Portal without Timeout: No stored Credentials.");
+    initialConfig = true;
+  }
 
+  if (drd->detectDoubleReset())
+  {
+    // DRD, disable timeout.
+    ESP_wifiManager.setConfigPortalTimeout(0);
+    
+    DBG_OUTPUT_PORT.println("Open Config Portal without Timeout: Double Reset Detected");
+    initialConfig = true;
+  }
+
+  if (initialConfig)
+  {
     // Starts an access point
     if (!ESP_wifiManager.startConfigPortal((const char *) ssid.c_str(), password))
       DBG_OUTPUT_PORT.println("Not connected to WiFi but continuing anyway.");
@@ -460,7 +497,6 @@ void setup(void)
     WiFi.begin(Router_SSID.c_str(), Router_Pass.c_str());
 
     int i = 0;
-    
     while ((!WiFi.status() || WiFi.status() >= WL_DISCONNECTED) && i++ < WHILE_LOOP_STEPS)
     {
       delay(WHILE_LOOP_DELAY);
@@ -510,24 +546,21 @@ void setup(void)
   //get heap status, analog input value and all GPIO statuses in one json call
   server.on("/all", HTTP_GET, []() 
   {
-    String json = "{";
+    String json('{');
     json += "\"heap\":" + String(ESP.getFreeHeap());
     json += ", \"analog\":" + String(analogRead(A0));
-    json += ", \"gpio\":" + String((uint32_t)(0));
+    json += ", \"gpio\":" + String((uint32_t)(((GPI | GPO) & 0xFFFF) | ((GP16I & 0x01) << 16)));
     json += "}";
     server.send(200, "text/json", json);
-    json = String();
+    json.clear();
   });
-
+  
   server.begin();
   
   DBG_OUTPUT_PORT.print("HTTP server started @ ");
   DBG_OUTPUT_PORT.println(WiFi.localIP());
 
   MDNS.begin(host);
-  // Add service to MDNS-SD
-  MDNS.addService("http", "tcp", HTTP_PORT);
-
   DBG_OUTPUT_PORT.print("Open http://");
   DBG_OUTPUT_PORT.print(host);
   DBG_OUTPUT_PORT.println(".local/edit to see the file browser");
@@ -535,5 +568,12 @@ void setup(void)
 
 void loop(void) 
 {
+  // Call the double reset detector loop method every so often,
+  // so that it can recognise when the timeout expires.
+  // You can also call drd.stop() when you wish to no longer
+  // consider the next reset as a double reset.
+  drd->loop();
+  
   server.handleClient();
+  MDNS.update();
 }

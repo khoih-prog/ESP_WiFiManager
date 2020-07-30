@@ -15,7 +15,7 @@
 
    Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
    Licensed under MIT license
-   Version: 1.0.8
+   Version: 1.0.9
 
    Version Modified By   Date      Comments
    ------- -----------  ---------- -----------
@@ -23,11 +23,13 @@
     1.0.1   K Hoang      13/12/2019 Fix bug. Add features. Add support for ESP32
     1.0.2   K Hoang      19/12/2019 Fix bug thatkeeps ConfigPortal in endless loop if Portal/Router SSID or Password is NULL.
     1.0.3   K Hoang      05/01/2020 Option not displaying AvailablePages in Info page. Enhance README.md. Modify examples
-    1.0.4   K Hoang	     07/01/2020 Add RFC952 setHostname feature.
-    1.0.5   K Hoang	     15/01/2020 Add configurable DNS feature. Thanks to @Amorphous of https://community.blynk.cc
+    1.0.4   K Hoang      07/01/2020 Add RFC952 setHostname feature.
+    1.0.5   K Hoang      15/01/2020 Add configurable DNS feature. Thanks to @Amorphous of https://community.blynk.cc
     1.0.6   K Hoang      03/02/2020 Add support for ArduinoJson version 6.0.0+ ( tested with v6.14.1 )
-    1.0.7   K Hoang      14/04/2020 Use just-in-time scanWiFiNetworks(). Fix bug relating SPIFFS in examples
+    1.0.7   K Hoang      13/04/2020 Reduce start time, fix SPIFFS bug in examples, update README.md
     1.0.8   K Hoang      10/06/2020 Fix STAstaticIP issue. Restructure code. Add LittleFS support for ESP8266 core 2.7.1+
+    1.0.9   K Hoang      29/07/2020 Fix ESP32 STAstaticIP bug. Permit changing from DHCP <-> static IP using Config Portal.
+                                    Add, enhance examples (fix MDNS for ESP32)
  *****************************************************************************************************************************/
 
 #ifndef ESP_WiFiManager_Impl_h
@@ -516,7 +518,7 @@ boolean  ESP_WiFiManager::startConfigPortal(char const *apName, char const *apPa
 }
 
 void ESP_WiFiManager::setWifiStaticIP(void)
-{
+{ 
 #if USE_CONFIGURABLE_DNS
   if (_sta_static_ip)
   {
@@ -543,7 +545,7 @@ void ESP_WiFiManager::setWifiStaticIP(void)
     }
     //***** End added section for DNS config option *****
 
-    LOGINFO(WiFi.localIP());
+    LOGINFO1(F("setWifiStaticIP IP ="), WiFi.localIP());
   }
   else
   {
@@ -569,7 +571,9 @@ int ESP_WiFiManager::connectWifi(String ssid, String pass)
   {
     resetSettings();
 
+#ifdef ESP8266
     setWifiStaticIP();
+#endif
 
     //fix for auto connect racing issue
     if (WiFi.status() == WL_CONNECTED)
@@ -581,6 +585,11 @@ int ESP_WiFiManager::connectWifi(String ssid, String pass)
     WiFi.mode(WIFI_AP_STA); //It will start in station mode if it was previously in AP mode.
 
     setHostname();
+    
+    // KH, Fix ESP32 staticIP after exiting CP, from v1.0.9
+#ifdef ESP32
+    setWifiStaticIP();
+#endif
 
     WiFi.begin(ssid.c_str(), pass.c_str());   // Start Wifi with new values.
   }
@@ -959,9 +968,14 @@ void ESP_WiFiManager::handleWifi()
     page += "<br/>";
   }
 
-  if (_sta_static_ip)
+  LOGDEBUG1(F("Static IP ="), _sta_static_ip.toString());
+  
+  // KH, Comment out in v1.0.9 to permit changing from DHCP to static IP, or vice versa
+  // and add staticIP label in CP
+  //if (_sta_static_ip)
   {
-    String item = FPSTR(HTTP_FORM_PARAM);
+    String item = FPSTR(HTTP_FORM_LABEL);
+    item += FPSTR(HTTP_FORM_PARAM);
     item.replace("{i}", "ip");
     item.replace("{n}", "ip");
     item.replace("{p}", "Static IP");
@@ -970,43 +984,47 @@ void ESP_WiFiManager::handleWifi()
 
     page += item;
 
-    item = FPSTR(HTTP_FORM_PARAM);
+    item = FPSTR(HTTP_FORM_LABEL);
+    item += FPSTR(HTTP_FORM_PARAM);
     item.replace("{i}", "gw");
     item.replace("{n}", "gw");
-    item.replace("{p}", "Static Gateway");
+    item.replace("{p}", "Gateway IP");
     item.replace("{l}", "15");
     item.replace("{v}", _sta_static_gw.toString());
 
     page += item;
 
-    item = FPSTR(HTTP_FORM_PARAM);
+    item = FPSTR(HTTP_FORM_LABEL);
+    item += FPSTR(HTTP_FORM_PARAM);
     item.replace("{i}", "sn");
     item.replace("{n}", "sn");
     item.replace("{p}", "Subnet");
     item.replace("{l}", "15");
     item.replace("{v}", _sta_static_sn.toString());
 
-#if USE_CONFIGURABLE_DNS
+  #if USE_CONFIGURABLE_DNS
     //***** Added for DNS address options *****
     page += item;
 
-    item = FPSTR(HTTP_FORM_PARAM);
+    item = FPSTR(HTTP_FORM_LABEL);
+    item += FPSTR(HTTP_FORM_PARAM);
     item.replace("{i}", "dns1");
     item.replace("{n}", "dns1");
-    item.replace("{p}", "DNS Address 1");
+    item.replace("{p}", "DNS1 IP");
     item.replace("{l}", "15");
     item.replace("{v}", _sta_static_dns1.toString());
 
     page += item;
 
-    item = FPSTR(HTTP_FORM_PARAM);
+    item = FPSTR(HTTP_FORM_LABEL);
+    item += FPSTR(HTTP_FORM_PARAM);
     item.replace("{i}", "dns2");
     item.replace("{n}", "dns2");
-    item.replace("{p}", "DNS Address 2");
+    item.replace("{p}", "DNS2 IP");
     item.replace("{l}", "15");
     item.replace("{v}", _sta_static_dns2.toString());
     //***** End added for DNS address options *****
-#endif
+  #endif
 
     page += item;
 
@@ -1049,45 +1067,44 @@ void ESP_WiFiManager::handleWifiSave()
 
   if (server->arg("ip") != "")
   {
-    LOGDEBUG1(F("Static IP ="), server->arg("ip"));
-
-    //_sta_static_ip.fromString(server->arg("ip"));
     String ip = server->arg("ip");
     optionalIPFromString(&_sta_static_ip, ip.c_str());
+    
+    LOGDEBUG1(F("New Static IP ="), _sta_static_ip.toString());
   }
 
   if (server->arg("gw") != "")
   {
-    LOGDEBUG1(F("Static Gateway ="), server->arg("gw"));
-
     String gw = server->arg("gw");
     optionalIPFromString(&_sta_static_gw, gw.c_str());
+    
+    LOGDEBUG1(F("New Static Gateway ="), _sta_static_gw.toString());
   }
 
   if (server->arg("sn") != "")
   {
-    LOGDEBUG1(F("Static Netmask ="), server->arg("sn"));
-
     String sn = server->arg("sn");
     optionalIPFromString(&_sta_static_sn, sn.c_str());
+    
+    LOGDEBUG1(F("New Static Netmask ="), _sta_static_sn.toString());
   }
 
 #if USE_CONFIGURABLE_DNS
   //*****  Added for DNS Options *****
   if (server->arg("dns1") != "")
   {
-    LOGDEBUG1(F("Static DNS1 ="), server->arg("dns1"));
-
     String dns1 = server->arg("dns1");
     optionalIPFromString(&_sta_static_dns1, dns1.c_str());
+    
+    LOGDEBUG1(F("New Static DNS1 ="), _sta_static_dns1.toString());
   }
 
   if (server->arg("dns2") != "")
   {
-    LOGDEBUG1(F("Static DNS2 ="), server->arg("dns2"));
-
     String dns2 = server->arg("dns2");
     optionalIPFromString(&_sta_static_dns2, dns2.c_str());
+    
+    LOGDEBUG1(F("New Static DNS2 ="), _sta_static_dns2.toString());
   }
   //*****  End added for DNS Options *****
 #endif
