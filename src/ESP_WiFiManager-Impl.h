@@ -15,7 +15,7 @@
 
    Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
    Licensed under MIT license
-   Version: 1.0.9
+   Version: 1.0.10
 
    Version Modified By   Date      Comments
    ------- -----------  ---------- -----------
@@ -30,10 +30,12 @@
     1.0.8   K Hoang      10/06/2020 Fix STAstaticIP issue. Restructure code. Add LittleFS support for ESP8266 core 2.7.1+
     1.0.9   K Hoang      29/07/2020 Fix ESP32 STAstaticIP bug. Permit changing from DHCP <-> static IP using Config Portal.
                                     Add, enhance examples (fix MDNS for ESP32)
+    1.0.10  K Hoang      08/08/2020 Add more features to Config Portal. Use random WiFi AP channel to avoid conflict.
  *****************************************************************************************************************************/
 
 #ifndef ESP_WiFiManager_Impl_h
 #define ESP_WiFiManager_Impl_h
+
 
 ESP_WMParameter::ESP_WMParameter(const char *custom)
 {
@@ -304,6 +306,29 @@ void ESP_WiFiManager::setupConfigPortal()
     }
     LOGWARN1(F("AP PWD ="), _apPassword);
   }
+  
+  
+  // KH, new from v1.0.10 to enable dynamic/random channel
+  static int channel;
+  // Use random channel if  _WiFiAPChannel == 0
+  if (_WiFiAPChannel == 0)
+    channel = (_configPortalStart % MAX_WIFI_CHANNEL) + 1;
+  else
+    channel = _WiFiAPChannel;
+  
+  if (_apPassword != NULL)
+  {
+    LOGWARN1(F("AP Channel ="), channel);
+    
+    //WiFi.softAP(_apName, _apPassword);//password option
+    WiFi.softAP(_apName, _apPassword, channel);
+  }
+  else
+  {
+    // Can't use channel here
+    WiFi.softAP(_apName);
+  }
+  //////
 
   //optional soft ip config
   if (_ap_static_ip)
@@ -311,15 +336,6 @@ void ESP_WiFiManager::setupConfigPortal()
     LOGWARN(F("Custom AP IP/GW/Subnet"));
     
     WiFi.softAPConfig(_ap_static_ip, _ap_static_gw, _ap_static_sn);
-  }
-
-  if (_apPassword != NULL)
-  {
-    WiFi.softAP(_apName, _apPassword);//password option
-  }
-  else
-  {
-    WiFi.softAP(_apName);
   }
 
   delay(500); // Without delay I've seen the IP address blank
@@ -565,11 +581,13 @@ void ESP_WiFiManager::setWifiStaticIP(void)
 
 int ESP_WiFiManager::connectWifi(String ssid, String pass)
 {
-  LOGWARN(F("Connecting wifi with new parameters"));
-
-  if (ssid != "")
-  {
-    resetSettings();
+  //KH, from v1.0.10.
+  // Add option if didn't input/update SSID/PW => Use the previous saved Credentials. \
+  // But update the Static/DHCP options if changed.
+  if ( (ssid != "") || ( (ssid == "") && (WiFi_SSID() != "") ) )
+  {   
+    if (ssid != "")
+      resetSettings();
 
 #ifdef ESP8266
     setWifiStaticIP();
@@ -591,7 +609,20 @@ int ESP_WiFiManager::connectWifi(String ssid, String pass)
     setWifiStaticIP();
 #endif
 
-    WiFi.begin(ssid.c_str(), pass.c_str());   // Start Wifi with new values.
+    if (ssid != "")
+    {
+      // Start Wifi with new values.
+      LOGWARN(F("Connect to new WiFi using new IP parameters"));
+      
+      WiFi.begin(ssid.c_str(), pass.c_str());
+    }
+    else
+    {
+      // Start Wifi with old values.
+      LOGWARN(F("Connect to previous WiFi using new IP parameters"));
+      
+      WiFi.begin();
+    }
   }
   else if (WiFi_SSID() == "")
   {
@@ -728,6 +759,21 @@ void ESP_WiFiManager::setDebugOutput(boolean debug)
   _debug = debug;
 }
 
+// KH, new from v1.0.10 to enable dynamic/random channel
+int ESP_WiFiManager::setConfigPortalChannel(int channel)
+{
+  // If channel < MIN_WIFI_CHANNEL - 1 or channel > MAX_WIFI_CHANNEL => channel = 1
+  // If channel == 0 => will use random channel from MIN_WIFI_CHANNEL to MAX_WIFI_CHANNEL
+  // If (MIN_WIFI_CHANNEL <= channel <= MAX_WIFI_CHANNEL) => use it
+  if ( (channel < MIN_WIFI_CHANNEL - 1) || (channel > MAX_WIFI_CHANNEL) )
+    _WiFiAPChannel = 1;
+  else if ( (channel >= MIN_WIFI_CHANNEL - 1) && (channel <= MAX_WIFI_CHANNEL) )
+    _WiFiAPChannel = channel;
+
+  return _WiFiAPChannel;
+}
+//////
+
 void ESP_WiFiManager::setAPStaticIPConfig(IPAddress ip, IPAddress gw, IPAddress sn)
 {
   LOGINFO(F("setAPStaticIPConfig"));
@@ -768,7 +814,7 @@ void ESP_WiFiManager::setBreakAfterConfig(boolean shouldBreak)
 
 void ESP_WiFiManager::reportStatus(String &page)
 {
-  page += FPSTR(HTTP_SCRIPT_NTP_MSG);
+  page += FPSTR(WM_HTTP_SCRIPT_NTP_MSG);
 
   if (WiFi_SSID() != "")
   {
@@ -812,13 +858,13 @@ void ESP_WiFiManager::handleRoot()
   server->sendHeader("Pragma", "no-cache");
   server->sendHeader("Expires", "-1");
 
-  String page = FPSTR(HTTP_HEAD_START);
+  String page = FPSTR(WM_HTTP_HEAD_START);
   page.replace("{v}", "Options");
-  page += FPSTR(HTTP_SCRIPT);
-  page += FPSTR(HTTP_SCRIPT_NTP);
-  page += FPSTR(HTTP_STYLE);
+  page += FPSTR(WM_HTTP_SCRIPT);
+  page += FPSTR(WM_HTTP_SCRIPT_NTP);
+  page += FPSTR(WM_HTTP_STYLE);
   page += _customHeadElement;
-  page += FPSTR(HTTP_HEAD_END);
+  page += FPSTR(WM_HTTP_HEAD_END);
   page += "<h2>";
   page += _apName;
 
@@ -838,11 +884,11 @@ void ESP_WiFiManager::handleRoot()
   }
 
   page += "</h2>";
-  page += FPSTR(HTTP_PORTAL_OPTIONS);
+  page += FPSTR(WM_HTTP_PORTAL_OPTIONS);
   page += F("<div class=\"msg\">");
   reportStatus(page);
   page += F("</div>");
-  page += FPSTR(HTTP_END);
+  page += FPSTR(WM_HTTP_END);
 
   server->send(200, "text/html", page);
 
@@ -859,13 +905,13 @@ void ESP_WiFiManager::handleWifi()
   server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   server->sendHeader("Pragma", "no-cache");
   server->sendHeader("Expires", "-1");
-  String page = FPSTR(HTTP_HEAD_START);
+  String page = FPSTR(WM_HTTP_HEAD_START);
   page.replace("{v}", "Config ESP");
-  page += FPSTR(HTTP_SCRIPT);
-  page += FPSTR(HTTP_SCRIPT_NTP);
-  page += FPSTR(HTTP_STYLE);
+  page += FPSTR(WM_HTTP_SCRIPT);
+  page += FPSTR(WM_HTTP_SCRIPT_NTP);
+  page += FPSTR(WM_HTTP_STYLE);
   page += _customHeadElement;
-  page += FPSTR(HTTP_HEAD_END);
+  page += FPSTR(WM_HTTP_HEAD_END);
   page += F("<h2>Configuration</h2>");
 
   //  KH, New, v1.0.6+
@@ -878,6 +924,10 @@ void ESP_WiFiManager::handleWifi()
   }
   else
   {
+    // From v1.0.10
+    page += FPSTR(WM_FLDSET_START);
+    //////
+    
     //display networks in page
     for (int i = 0; i < numberOfNetworks; i++)
     {
@@ -890,7 +940,7 @@ void ESP_WiFiManager::handleWifi()
 
       int quality = getRSSIasQuality(WiFi.RSSI(networkIndices[i]));
 
-      String item = FPSTR(HTTP_ITEM);
+      String item = FPSTR(WM_HTTP_ITEM);
       String rssiQ;
       rssiQ += quality;
       item.replace("{v}", WiFi.SSID(networkIndices[i]));
@@ -913,12 +963,18 @@ void ESP_WiFiManager::handleWifi()
       page += item;
       delay(0);
     }
+    
+    // From v1.0.10
+    page += FPSTR(WM_FLDSET_END);
+    //////
 
     page += "<br/>";
   }
 
-  page += FPSTR(HTTP_FORM_START);
+  page += FPSTR(WM_HTTP_FORM_START);
   char parLength[2];
+  
+  
 
   // add the extra parameters to the form
   for (int i = 0; i < _paramsCount; i++)
@@ -927,21 +983,30 @@ void ESP_WiFiManager::handleWifi()
     {
       break;
     }
+    
+    // From v1.0.10
+    if (i == 1)
+    {
+      page += FPSTR(WM_FLDSET_START);
+    }
+    //////
 
     String pitem;
     switch (_params[i]->getLabelPlacement())
     {
       case WFM_LABEL_BEFORE:
-        pitem = FPSTR(HTTP_FORM_LABEL);
-        pitem += FPSTR(HTTP_FORM_PARAM);
+        pitem = FPSTR(WM_HTTP_FORM_LABEL_BEFORE);
+        //pitem = FPSTR(WM_HTTP_FORM_LABEL);
+        //pitem += FPSTR(WM_HTTP_FORM_PARAM);
         break;
       case WFM_LABEL_AFTER:
-        pitem = FPSTR(HTTP_FORM_PARAM);
-        pitem += FPSTR(HTTP_FORM_LABEL);
+        pitem = FPSTR(WM_HTTP_FORM_LABEL_AFTER);
+        //pitem = FPSTR(WM_HTTP_FORM_PARAM);
+        //pitem += FPSTR(WM_HTTP_FORM_LABEL);
         break;
       default:
         // WFM_NO_LABEL
-        pitem = FPSTR(HTTP_FORM_PARAM);
+        pitem = FPSTR(WM_HTTP_FORM_PARAM);
         break;
     }
 
@@ -962,6 +1027,13 @@ void ESP_WiFiManager::handleWifi()
 
     page += pitem;
   }
+  
+  // From v1.0.10
+  if (_paramsCount > 0)
+  {
+    page += FPSTR(WM_FLDSET_END);
+  }
+  //////
 
   if (_params[0] != NULL)
   {
@@ -972,10 +1044,21 @@ void ESP_WiFiManager::handleWifi()
   
   // KH, Comment out in v1.0.9 to permit changing from DHCP to static IP, or vice versa
   // and add staticIP label in CP
-  //if (_sta_static_ip)
+  
+  // From v1.0.10 to permit disable/enable StaticIP configuration in Config Portal from sketch. Valid only if DHCP is used.
+  // You'll loose the feature of dynamically changing from DHCP to static IP, or vice versa
+  // You have to explicitly specify false to disable the feature.
+
+#if !USE_STATIC_IP_CONFIG_IN_CP
+  if (_sta_static_ip)
+#endif  
   {
-    String item = FPSTR(HTTP_FORM_LABEL);
-    item += FPSTR(HTTP_FORM_PARAM);
+    // From v1.0.10
+    page += FPSTR(WM_FLDSET_START);
+    //////
+    
+    String item = FPSTR(WM_HTTP_FORM_LABEL);
+    item += FPSTR(WM_HTTP_FORM_PARAM);
     item.replace("{i}", "ip");
     item.replace("{n}", "ip");
     item.replace("{p}", "Static IP");
@@ -984,8 +1067,8 @@ void ESP_WiFiManager::handleWifi()
 
     page += item;
 
-    item = FPSTR(HTTP_FORM_LABEL);
-    item += FPSTR(HTTP_FORM_PARAM);
+    item = FPSTR(WM_HTTP_FORM_LABEL);
+    item += FPSTR(WM_HTTP_FORM_PARAM);
     item.replace("{i}", "gw");
     item.replace("{n}", "gw");
     item.replace("{p}", "Gateway IP");
@@ -994,8 +1077,8 @@ void ESP_WiFiManager::handleWifi()
 
     page += item;
 
-    item = FPSTR(HTTP_FORM_LABEL);
-    item += FPSTR(HTTP_FORM_PARAM);
+    item = FPSTR(WM_HTTP_FORM_LABEL);
+    item += FPSTR(WM_HTTP_FORM_PARAM);
     item.replace("{i}", "sn");
     item.replace("{n}", "sn");
     item.replace("{p}", "Subnet");
@@ -1006,8 +1089,8 @@ void ESP_WiFiManager::handleWifi()
     //***** Added for DNS address options *****
     page += item;
 
-    item = FPSTR(HTTP_FORM_LABEL);
-    item += FPSTR(HTTP_FORM_PARAM);
+    item = FPSTR(WM_HTTP_FORM_LABEL);
+    item += FPSTR(WM_HTTP_FORM_PARAM);
     item.replace("{i}", "dns1");
     item.replace("{n}", "dns1");
     item.replace("{p}", "DNS1 IP");
@@ -1016,8 +1099,8 @@ void ESP_WiFiManager::handleWifi()
 
     page += item;
 
-    item = FPSTR(HTTP_FORM_LABEL);
-    item += FPSTR(HTTP_FORM_PARAM);
+    item = FPSTR(WM_HTTP_FORM_LABEL);
+    item += FPSTR(WM_HTTP_FORM_PARAM);
     item.replace("{i}", "dns2");
     item.replace("{n}", "dns2");
     item.replace("{p}", "DNS2 IP");
@@ -1027,13 +1110,17 @@ void ESP_WiFiManager::handleWifi()
   #endif
 
     page += item;
+    
+    // From v1.0.10
+    page += FPSTR(WM_FLDSET_END);
+    //////
 
     page += "<br/>";
   }
 
-  page += FPSTR(HTTP_FORM_END);
+  page += FPSTR(WM_HTTP_FORM_END);
 
-  page += FPSTR(HTTP_END);
+  page += FPSTR(WM_HTTP_END);
 
   server->send(200, "text/html", page);
 
@@ -1109,17 +1196,17 @@ void ESP_WiFiManager::handleWifiSave()
   //*****  End added for DNS Options *****
 #endif
 
-  String page = FPSTR(HTTP_HEAD_START);
+  String page = FPSTR(WM_HTTP_HEAD_START);
   page.replace("{v}", "Credentials Saved");
-  page += FPSTR(HTTP_SCRIPT);
-  page += FPSTR(HTTP_SCRIPT_NTP);
-  page += FPSTR(HTTP_STYLE);
+  page += FPSTR(WM_HTTP_SCRIPT);
+  page += FPSTR(WM_HTTP_SCRIPT_NTP);
+  page += FPSTR(WM_HTTP_STYLE);
   page += _customHeadElement;
-  page += FPSTR(HTTP_HEAD_END);
-  page += FPSTR(HTTP_SAVED);
+  page += FPSTR(WM_HTTP_HEAD_END);
+  page += FPSTR(WM_HTTP_SAVED);
   page.replace("{v}", _apName);
   page.replace("{x}", _ssid);
-  page += FPSTR(HTTP_END);
+  page += FPSTR(WM_HTTP_END);
 
   server->send(200, "text/html", page);
 
@@ -1139,23 +1226,23 @@ void ESP_WiFiManager::handleServerClose()
   server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   server->sendHeader("Pragma", "no-cache");
   server->sendHeader("Expires", "-1");
-  String page = FPSTR(HTTP_HEAD_START);
+  String page = FPSTR(WM_HTTP_HEAD_START);
   page.replace("{v}", "Close Server");
-  page += FPSTR(HTTP_SCRIPT);
-  page += FPSTR(HTTP_SCRIPT_NTP);
-  page += FPSTR(HTTP_STYLE);
+  page += FPSTR(WM_HTTP_SCRIPT);
+  page += FPSTR(WM_HTTP_SCRIPT_NTP);
+  page += FPSTR(WM_HTTP_STYLE);
   page += _customHeadElement;
-  page += FPSTR(HTTP_HEAD_END);
+  page += FPSTR(WM_HTTP_HEAD_END);
   page += F("<div class=\"msg\">");
   page += F("My network is <b>");
   page += WiFi_SSID();
   page += F("</b><br>");
-  page += F("My IP address is <b>");
+  page += F("IP address is <b>");
   page += WiFi.localIP().toString();
   page += F("</b><br><br>");
-  page += F("Configuration server closed...<br><br>");
+  page += F("Portal closed...<br><br>");
   //page += F("Push button on device to restart configuration server!");
-  page += FPSTR(HTTP_END);
+  page += FPSTR(WM_HTTP_END);
   server->send(200, "text/html", page);
   //stopConfigPortal = true; //signal ready to shutdown config portal		//KH crash if use this ???
   
@@ -1176,13 +1263,13 @@ void ESP_WiFiManager::handleInfo()
   server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   server->sendHeader("Pragma", "no-cache");
   server->sendHeader("Expires", "-1");
-  String page = FPSTR(HTTP_HEAD_START);
+  String page = FPSTR(WM_HTTP_HEAD_START);
   page.replace("{v}", "Info");
-  page += FPSTR(HTTP_SCRIPT);
-  page += FPSTR(HTTP_SCRIPT_NTP);
-  page += FPSTR(HTTP_STYLE);
+  page += FPSTR(WM_HTTP_SCRIPT);
+  page += FPSTR(WM_HTTP_SCRIPT_NTP);
+  page += FPSTR(WM_HTTP_STYLE);
   page += _customHeadElement;
-  page += FPSTR(HTTP_HEAD_END);
+  page += FPSTR(WM_HTTP_HEAD_END);
   page += F("<h2>WiFi Information</h2>");
   reportStatus(page);
   page += F("<h3>Device Data</h3>");
@@ -1239,11 +1326,11 @@ void ESP_WiFiManager::handleInfo()
   page += F("</td></tr>");
   page += F("</tbody></table>");
 
-  page += FPSTR(HTTP_AVAILABLE_PAGES);
+  page += FPSTR(WM_HTTP_AVAILABLE_PAGES);
 
   page += F("<p/>More information about ESP_WiFiManager at");
   page += F("<p/><a href=\"https://github.com/khoih-prog/ESP_WiFiManager\">https://github.com/khoih-prog/ESP_WiFiManager</a>");
-  page += FPSTR(HTTP_END);
+  page += FPSTR(WM_HTTP_END);
 
   server->send(200, "text/html", page);
 
@@ -1364,15 +1451,15 @@ void ESP_WiFiManager::handleReset()
   server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   server->sendHeader("Pragma", "no-cache");
   server->sendHeader("Expires", "-1");
-  String page = FPSTR(HTTP_HEAD_START);
+  String page = FPSTR(WM_HTTP_HEAD_START);
   page.replace("{v}", "WiFi Information");
-  page += FPSTR(HTTP_SCRIPT);
-  page += FPSTR(HTTP_SCRIPT_NTP);
-  page += FPSTR(HTTP_STYLE);
+  page += FPSTR(WM_HTTP_SCRIPT);
+  page += FPSTR(WM_HTTP_SCRIPT_NTP);
+  page += FPSTR(WM_HTTP_STYLE);
   page += _customHeadElement;
-  page += FPSTR(HTTP_HEAD_END);
+  page += FPSTR(WM_HTTP_HEAD_END);
   page += F("Resetting");
-  page += FPSTR(HTTP_END);
+  page += FPSTR(WM_HTTP_END);
   server->send(200, "text/html", page);
 
   LOGDEBUG(F("Sent reset page"));
@@ -1427,7 +1514,7 @@ boolean ESP_WiFiManager::captivePortal()
   {
     LOGDEBUG(F("Request redirected to captive portal"));
     server->sendHeader(F("Location"), (String)F("http://") + toStringIp(server->client().localIP()), true);
-    server->send(302, FPSTR(HTTP_HEAD_CT2), ""); // Empty content inhibits Content-length header so we have to close the socket ourselves.
+    server->send(302, FPSTR(WM_HTTP_HEAD_CT2), ""); // Empty content inhibits Content-length header so we have to close the socket ourselves.
     server->client().stop(); // Stop is needed because we sent no content length
     return true;
   }

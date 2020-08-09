@@ -13,7 +13,7 @@
 
    Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
    Licensed under MIT license
-   Version: 1.0.9
+   Version: 1.0.10
 
    Version Modified By   Date      Comments
    ------- -----------  ---------- -----------
@@ -28,6 +28,7 @@
     1.0.8   K Hoang      10/06/2020 Fix STAstaticIP issue. Restructure code. Add LittleFS support for ESP8266 core 2.7.1+
     1.0.9   K Hoang      29/07/2020 Fix ESP32 STAstaticIP bug. Permit changing from DHCP <-> static IP using Config Portal.
                                     Add, enhance examples (fix MDNS for ESP32)
+    1.0.10  K Hoang      08/08/2020 Add more features to Config Portal. Use random WiFi AP channel to avoid conflict.
  *****************************************************************************************************************************/
 /****************************************************************************************************************************
    This example will open a configuration portal when the reset button is pressed twice.
@@ -53,7 +54,7 @@
    To support ESP32, use ESP_DoubleResetDetector library from //https://github.com/khoih-prog/ESP_DoubleResetDetector
  *****************************************************************************************************************************/
 #if !( defined(ESP8266) ||  defined(ESP32) )
-  #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
+#error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
@@ -61,24 +62,24 @@
 
 //Ported to ESP32
 #ifdef ESP32
-  #include <esp_wifi.h>
-  #include <WiFi.h>
-  #include <WiFiClient.h>
-  
-  #define ESP_getChipId()   ((uint32_t)ESP.getEfuseMac())
-  
-  #define LED_ON      HIGH
-  #define LED_OFF     LOW
+#include <esp_wifi.h>
+#include <WiFi.h>
+#include <WiFiClient.h>
+
+#define ESP_getChipId()   ((uint32_t)ESP.getEfuseMac())
+
+#define LED_ON      HIGH
+#define LED_OFF     LOW
 #else
-  #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
-  //needed for library
-  #include <DNSServer.h>
-  #include <ESP8266WebServer.h>
-  
-  #define ESP_getChipId()   (ESP.getChipId())
-  
-  #define LED_ON      LOW
-  #define LED_OFF     HIGH
+#include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
+//needed for library
+#include <DNSServer.h>
+#include <ESP8266WebServer.h>
+
+#define ESP_getChipId()   (ESP.getChipId())
+
+#define LED_ON      LOW
+#define LED_OFF     HIGH
 #endif
 
 // These defines must be put before #include <ESP_DoubleResetDetector.h>
@@ -87,13 +88,13 @@
 // For ESP8266, You must select one to be true (RTC, EEPROM, SPIFFS or LITTLEFS)
 // Otherwise, library will use default EEPROM storage
 #ifdef ESP32
-  #define ESP_DRD_USE_EEPROM      false
-  #define ESP_DRD_USE_SPIFFS      true
+#define ESP_DRD_USE_EEPROM      false
+#define ESP_DRD_USE_SPIFFS      true
 #else //ESP8266
-  #define ESP_DRD_USE_LITTLEFS    true
-  #define ESP_DRD_USE_SPIFFS      false  
-  #define ESP_DRD_USE_EEPROM      false
-  #define ESP8266_DRD_USE_RTC     false   //true
+#define ESP_DRD_USE_LITTLEFS    true
+#define ESP_DRD_USE_SPIFFS      false
+#define ESP_DRD_USE_EEPROM      false
+#define ESP8266_DRD_USE_RTC     false   //true
 #endif
 
 #define DOUBLERESETDETECTOR_DEBUG       true  //false
@@ -124,35 +125,60 @@ String Router_Pass;
 // Indicates whether ESP has WiFi credentials saved from previous session, or double reset detected
 bool initialConfig = false;
 
-// Use true for dynamic DHCP IP, false to use static IP and  you have to change the IP accordingly to your network
-#define USE_DHCP_IP     false
-
-#if USE_DHCP_IP
-  // Use DHCP
-  IPAddress stationIP   = IPAddress(0, 0, 0, 0);
-  IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
-  IPAddress netMask     = IPAddress(255, 255, 255, 0);
-#else
-  // Use static IP
-  IPAddress stationIP   = IPAddress(192, 168, 2, 232);
-  IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
-  IPAddress netMask     = IPAddress(255, 255, 255, 0);
-#endif
-
-IPAddress dns1IP      = gatewayIP;
-IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
-
 // Use false if you don't like to display Available Pages in Information Page of Config Portal
 // Comment out or use true to display Available Pages in Information Page of Config Portal
 // Must be placed before #include <ESP_WiFiManager.h>
 #define USE_AVAILABLE_PAGES     false
 
-// Use false to disable NTP config
-#define USE_ESP_WIFIMANAGER_NTP     true
+// From v1.0.10 to permit disable/enable StaticIP configuration in Config Portal from sketch. Valid only if DHCP is used.
+// You'll loose the feature of dynamically changing from DHCP to static IP, or vice versa
+// You have to explicitly specify false to disable the feature.
+//#define USE_STATIC_IP_CONFIG_IN_CP          false
+
+// Use false to disable NTP config. Advisable when using Cellphone, Tablet to access Config Portal.
+// See Issue 23: On Android phone ConfigPortal is unresponsive (https://github.com/khoih-prog/ESP_WiFiManager/issues/23)
+#define USE_ESP_WIFIMANAGER_NTP     false
 
 // Use true to enable CloudFlare NTP service. System can hang if you don't have Internet access while accessing CloudFlare
-// See Issue #21: CloudFlare link in the default portal => https://github.com/khoih-prog/ESP_WiFiManager/issues/21
+// See Issue #21: CloudFlare link in the default portal (https://github.com/khoih-prog/ESP_WiFiManager/issues/21)
 #define USE_CLOUDFLARE_NTP          false
+
+// Use USE_DHCP_IP == true for dynamic DHCP IP, false to use static IP which you have to change accordingly to your network
+#if (defined(USE_STATIC_IP_CONFIG_IN_CP) && !USE_STATIC_IP_CONFIG_IN_CP)
+// Force DHCP to be true
+#if defined(USE_DHCP_IP)
+#undef USE_DHCP_IP
+#endif
+#define USE_DHCP_IP     true
+#else
+// You can select DHCP or Static IP here
+//#define USE_DHCP_IP     true
+#define USE_DHCP_IP     false
+#endif
+
+#if ( USE_DHCP_IP || ( defined(USE_STATIC_IP_CONFIG_IN_CP) && !USE_STATIC_IP_CONFIG_IN_CP ) )
+// Use DHCP
+#warning Using DHCP IP
+IPAddress stationIP   = IPAddress(0, 0, 0, 0);
+IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
+IPAddress netMask     = IPAddress(255, 255, 255, 0);
+#else
+// Use static IP
+#warning Using static IP
+#ifdef ESP32
+IPAddress stationIP   = IPAddress(192, 168, 2, 232);
+#else
+IPAddress stationIP   = IPAddress(192, 168, 2, 186);
+#endif
+
+IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
+IPAddress netMask     = IPAddress(255, 255, 255, 0);
+#endif
+
+#define USE_CONFIGURABLE_DNS      true
+
+IPAddress dns1IP      = gatewayIP;
+IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
 
 #include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
 
@@ -194,10 +220,10 @@ void setup()
   // put your setup code here, to run once:
   // initialize the LED digital pin as an output.
   pinMode(PIN_LED, OUTPUT);
-  
+
   Serial.begin(115200);
   while (!Serial);
-  
+
   Serial.println("\nStarting ConfigOnDoubleReset on " + String(ARDUINO_BOARD));
 
   drd = new DoubleResetDetector(DRD_TIMEOUT, DRD_ADDRESS);
@@ -212,10 +238,22 @@ void setup()
   //ESP_wifiManager.setAPStaticIPConfig(IPAddress(192, 168, 100, 1), IPAddress(192, 168, 100, 1), IPAddress(255, 255, 255, 0));
 
   ESP_wifiManager.setMinimumSignalQuality(-1);
-  
-  // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
-  ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);   
- 
+
+  // From v1.0.10 only
+  // Set config portal channel, default = 1. Use 0 => random channel from 1-13
+  ESP_wifiManager.setConfigPortalChannel(0);
+  //////
+
+#if !USE_DHCP_IP    
+  #if USE_CONFIGURABLE_DNS  
+    // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
+    ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);  
+  #else
+    // Set static IP, Gateway, Subnetmask, Use auto DNS1 and DNS2.
+    ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask);
+  #endif 
+#endif  
+
   // We can't use WiFi.SSID() in ESP32 as it's only valid after connected.
   // SSID and Password stored in ESP32 wifi_ap_record_t and wifi_config_t are also cleared in reboot
   // Have to create a new function to store in EEPROM/SPIFFS for this purpose
@@ -243,7 +281,7 @@ void setup()
   {
     // DRD, disable timeout.
     ESP_wifiManager.setConfigPortalTimeout(0);
-    
+
     Serial.println("Open Config Portal without Timeout: Double Reset Detected");
     initialConfig = true;
   }
@@ -285,7 +323,7 @@ void setup()
 
     WiFi.config(stationIP, gatewayIP, netMask);
     //WiFi.config(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
-    
+
     WiFi.begin(Router_SSID.c_str(), Router_Pass.c_str());
 
     int i = 0;

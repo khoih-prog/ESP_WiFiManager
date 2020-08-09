@@ -15,7 +15,7 @@
 
    Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
    Licensed under MIT license
-   Version: 1.0.9
+   Version: 1.0.10
 
    Version Modified By   Date      Comments
    ------- -----------  ---------- -----------
@@ -30,6 +30,7 @@
     1.0.8   K Hoang      10/06/2020 Fix STAstaticIP issue. Restructure code. Add LittleFS support for ESP8266 core 2.7.1+
     1.0.9   K Hoang      29/07/2020 Fix ESP32 STAstaticIP bug. Permit changing from DHCP <-> static IP using Config Portal.
                                     Add, enhance examples (fix MDNS for ESP32)
+    1.0.10  K Hoang      08/08/2020 Add more features to Config Portal. Use random WiFi AP channel to avoid conflict.
  *****************************************************************************************************************************/
 
 #ifndef ESP_WiFiManager_Debug_H
@@ -53,22 +54,22 @@
 #endif
 
 #define LOGERROR(x)      if(_WIFIMGR_LOGLEVEL_>0) { DBG_PORT.print("[WM] "); DBG_PORT.println(x); }
-#define LOGERROR0(x)     if(_WIFIMGR_LOGLEVEL_>0) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); }
+#define LOGERROR0(x)     if(_WIFIMGR_LOGLEVEL_>0) { DBG_PORT.print(x); }
 #define LOGERROR1(x,y)   if(_WIFIMGR_LOGLEVEL_>0) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.println(y); }
 #define LOGERROR2(x,y,z) if(_WIFIMGR_LOGLEVEL_>0) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.print(y); DBG_PORT.print(" "); DBG_PORT.println(z); }
 
 #define LOGWARN(x)       if(_WIFIMGR_LOGLEVEL_>1) { DBG_PORT.print("[WM] "); DBG_PORT.println(x); }
-#define LOGWARN0(x)      if(_WIFIMGR_LOGLEVEL_>1) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); }
+#define LOGWARN0(x)      if(_WIFIMGR_LOGLEVEL_>1) { DBG_PORT.print(x); }
 #define LOGWARN1(x,y)    if(_WIFIMGR_LOGLEVEL_>1) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.println(y); }
 #define LOGWARN2(x,y,z)  if(_WIFIMGR_LOGLEVEL_>1) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.print(y); DBG_PORT.print(" "); DBG_PORT.println(z); }
 
 #define LOGINFO(x)       if(_WIFIMGR_LOGLEVEL_>2) { DBG_PORT.print("[WM] "); DBG_PORT.println(x); }
-#define LOGINFO0(x)      if(_WIFIMGR_LOGLEVEL_>2) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); }
+#define LOGINFO0(x)      if(_WIFIMGR_LOGLEVEL_>2) { DBG_PORT.print(x); }
 #define LOGINFO1(x,y)    if(_WIFIMGR_LOGLEVEL_>2) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.println(y); }
 #define LOGINFO2(x,y,z)  if(_WIFIMGR_LOGLEVEL_>2) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.print(y); DBG_PORT.print(" "); DBG_PORT.println(z); }
 
 #define LOGDEBUG(x)      if(_WIFIMGR_LOGLEVEL_>3) { DBG_PORT.print("[WM] "); DBG_PORT.println(x); }
-#define LOGDEBUG0(x)     if(_WIFIMGR_LOGLEVEL_>3) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); }
+#define LOGDEBUG0(x)     if(_WIFIMGR_LOGLEVEL_>3) { DBG_PORT.print(x); }
 #define LOGDEBUG1(x,y)   if(_WIFIMGR_LOGLEVEL_>3) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.println(y); }
 #define LOGDEBUG2(x,y,z) if(_WIFIMGR_LOGLEVEL_>3) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.print(y); DBG_PORT.print(" "); DBG_PORT.println(z); }
 
