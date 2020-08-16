@@ -1774,6 +1774,7 @@ See [KenTaylor's version](https://github.com/kentaylor/WiFiManager) for previous
 4. Thanks to [OttoKlaasen](https://github.com/OttoKlaasen) for reporting [Having issue to read the SPIFF file](https://github.com/khoih-prog/ESP_WiFiManager/issues/14) bug in examples.
 5. Thanks to [Giuseppe](https://github.com/Gius-8) for reporting [Static Station IP doesn't work](https://github.com/khoih-prog/ESP_WiFiManager/issues/17) bug.
 6. Thanks to [AlesSt](https://github.com/AlesSt) for reporting [On Android phone ConfigPortal is unresponsive](https://github.com/khoih-prog/ESP_WiFiManager/issues/23) and request an enhancement (***HOWTO disable the static IP inputs on the config page***) leading to [ESP_WiFiManager v1.0.10](https://github.com/khoih-prog/ESP_WiFiManager/releases/tag/v1.0.10).
+7. Thanks to [wackoo-arduino](https://github.com/wackoo-arduino) foragreeing and contributing the sample code dealing with MQTT which the  [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr) is based on. See [Custom MQTT parameters using Wifi Manager](https://forum.arduino.cc/index.php?topic=692108.75).
 
 
 <table>
@@ -1784,7 +1785,10 @@ See [KenTaylor's version](https://github.com/kentaylor/WiFiManager) for previous
     <td align="center"><a href="https://github.com/CrispinP"><img src="https://github.com/CrispinP.png" width="100px;" alt="CrispinP"/><br /><sub><b>CrispinP</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/OttoKlaasen"><img src="https://github.com/OttoKlaasen.png" width="100px;" alt="OttoKlaasen"/><br /><sub><b>OttoKlaasen</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/Giuseppe"><img src="https://github.com/Giuseppe.png" width="100px;" alt="Giuseppe"/><br /><sub><b>Giuseppe</b></sub></a><br /></td>
+    </tr>
+    <tr>
     <td align="center"><a href="https://github.com/AlesSt"><img src="https://github.com/AlesSt.png" width="100px;" alt="AlesSt"/><br /><sub><b>AlesSt</b></sub></a><br /></td>
+    <td align="center"><a href="https://github.com/wackoo-arduino"><img src="https://github.com/wackoo-arduino.png" width="100px;" alt="wackoo-arduino"/><br /><sub><b>wackoo-arduino</b></sub></a><br /></td>
   </tr> 
 </table>
 
