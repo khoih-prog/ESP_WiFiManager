@@ -15,7 +15,7 @@
 
    Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
    Licensed under MIT license
-   Version: 1.0.10
+   Version: 1.0.11
 
    Version Modified By   Date      Comments
    ------- -----------  ---------- -----------
@@ -31,6 +31,7 @@
     1.0.9   K Hoang      29/07/2020 Fix ESP32 STAstaticIP bug. Permit changing from DHCP <-> static IP using Config Portal.
                                     Add, enhance examples (fix MDNS for ESP32)
     1.0.10  K Hoang      08/08/2020 Add more features to Config Portal. Use random WiFi AP channel to avoid conflict.
+    1.0.11  K Hoang      17/08/2020 Add CORS feature. Fix bug in softAP, autoConnect, resetSettings.
  *****************************************************************************************************************************/
 
 #ifndef ESP_WiFiManager_h
@@ -205,8 +206,10 @@ class ESP_WiFiManager
 
     ~ESP_WiFiManager();
 
-    boolean       autoConnect(); //Deprecated. Do not use.
-    boolean       autoConnect(char const *apName, char const *apPassword = NULL); //Deprecated. Do not use.
+    // Update feature from v1.0.11. Can use with STA staticIP now
+    boolean       autoConnect();
+    boolean       autoConnect(char const *apName, char const *apPassword = NULL);
+    //////
 
     //if you want to start the config portal
     boolean       startConfigPortal();
@@ -393,7 +396,10 @@ class ESP_WiFiManager
     // New v1.0.8
     void          setWifiStaticIP(void);
     
-    int           connectWifi(String ssid, String pass);
+    // New v1.0.11
+    int           connectWifi(String ssid = "", String pass = "");
+    //////
+    
     uint8_t       waitForConnectResult();
 
     void          handleRoot();

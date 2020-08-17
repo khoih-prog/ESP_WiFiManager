@@ -15,7 +15,7 @@
 
    Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
    Licensed under MIT license
-   Version: 1.0.10
+   Version: 1.0.11
 
    Version Modified By   Date      Comments
    ------- -----------  ---------- -----------
@@ -31,6 +31,7 @@
     1.0.9   K Hoang      29/07/2020 Fix ESP32 STAstaticIP bug. Permit changing from DHCP <-> static IP using Config Portal.
                                     Add, enhance examples (fix MDNS for ESP32)
     1.0.10  K Hoang      08/08/2020 Add more features to Config Portal. Use random WiFi AP channel to avoid conflict.
+    1.0.11  K Hoang      17/08/2020 Add CORS feature. Fix bug in softAP, autoConnect, resetSettings.
  *****************************************************************************************************************************/
 
 #ifndef ESP_WiFiManager_Impl_h
@@ -329,11 +330,19 @@ void ESP_WiFiManager::setupConfigPortal()
     WiFi.softAP(_apName);
   }
   //////
-
+  
+  // From v1.0.11
+  // Contributed by AlesSt (https://github.com/AlesSt) to solve issue softAP with custom IP sometimes not working
+  // See https://github.com/khoih-prog/ESP_WiFiManager/issues/26 and https://github.com/espressif/arduino-esp32/issues/985
+  // delay 100ms to wait for SYSTEM_EVENT_AP_START
+  delay(100);
+  //////
+  
   //optional soft ip config
   if (_ap_static_ip)
   {
-    LOGWARN(F("Custom AP IP/GW/Subnet"));
+    LOGWARN(F("Custom AP IP/GW/Subnet = "));
+    LOGWARN2(_ap_static_ip, _ap_static_gw, _ap_static_sn);
     
     WiFi.softAPConfig(_ap_static_ip, _ap_static_gw, _ap_static_sn);
   }
@@ -374,13 +383,25 @@ boolean ESP_WiFiManager::autoConnect()
   blocking call then use (WiFi.status()==WL_CONNECTED) test to see if connected yet.
   See some discussion at https://github.com/tzapu/WiFiManager/issues/68
 */
+
+// New in v1.0.11
+// To permit autoConnect() to use STA static IP or DHCP IP.
+#ifndef AUTOCONNECT_NO_INVALIDATE
+  #define AUTOCONNECT_NO_INVALIDATE true
+#endif
+
 boolean ESP_WiFiManager::autoConnect(char const *apName, char const *apPassword)
 {
-  LOGINFO(F("\nAutoConnect"));
-
-  // device will attempt to connect by itself; wait 10 secs
-  // to see if it succeeds and should it fail, fall back to AP
-  WiFi.mode(WIFI_STA);
+#if AUTOCONNECT_NO_INVALIDATE
+  LOGINFO(F("\nAutoConnect using previously saved SSID/PW, but keep previous settings"));
+  // Connect to previously saved SSID/PW, but keep previous settings
+  connectWifi();
+#else
+  LOGINFO(F("\nAutoConnect using previously saved SSID/PW, but invalidate previous settings"));
+  // Connect to previously saved SSID/PW, but invalidate previous settings
+  connectWifi(WiFi_SSID(), WiFi_Pass());  
+#endif
+ 
   unsigned long startedAt = millis();
 
   while (millis() - startedAt < 10000)
@@ -401,6 +422,7 @@ boolean ESP_WiFiManager::autoConnect(char const *apName, char const *apPassword)
 
   return startConfigPortal(apName, apPassword);
 }
+//////
 
 boolean  ESP_WiFiManager::startConfigPortal()
 {
@@ -733,6 +755,11 @@ void ESP_WiFiManager::resetSettings()
   WiFi.disconnect(true);
 #else
   WiFi.disconnect(true, true);
+  // New in v1.0.11
+  // Temporary fix for issue of not clearing WiFi SSID/PW from flash of ESP32
+  // See https://github.com/khoih-prog/ESP_WiFiManager/issues/25 and https://github.com/espressif/arduino-esp32/issues/400
+  WiFi.begin("0","0");
+  //////
 #endif
 
   delay(200);
@@ -1372,6 +1399,11 @@ void ESP_WiFiManager::handleState()
 }
 
 /** Handle the scan page */
+// Default false for using only whenever necessary to avoid security issue when using CORS (Cross-Origin Resource Sharing)
+#ifndef USING_CORS_FEATURE
+  #define USING_CORS_FEATURE     false
+#endif
+
 void ESP_WiFiManager::handleScan()
 {
   LOGDEBUG(F("Scan"));
@@ -1382,6 +1414,14 @@ void ESP_WiFiManager::handleScan()
   LOGDEBUG(F("State-Json"));
   
   server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+
+  // New in v1.0.11
+#if USING_CORS_FEATURE
+  // Contributed by AlesSt (https://github.com/AlesSt) to solve AJAX CORS protection problem of API redirects on client side
+  // See more in https://github.com/khoih-prog/ESP_WiFiManager/issues/27 and https://en.wikipedia.org/wiki/Cross-origin_resource_sharing
+  server->sendHeader("Access-Control-Allow-Origin", "*");
+#endif
+  
   server->sendHeader("Pragma", "no-cache");
   server->sendHeader("Expires", "-1");
 
@@ -1464,7 +1504,13 @@ void ESP_WiFiManager::handleReset()
 
   LOGDEBUG(F("Sent reset page"));
   delay(5000);
-  WiFi.disconnect(true); // Wipe out WiFi credentials.
+  
+  // New in v1.0.11
+  // Temporary fix for issue of not clearing WiFi SSID/PW from flash of ESP32
+  // See https://github.com/khoih-prog/ESP_WiFiManager/issues/25 and https://github.com/espressif/arduino-esp32/issues/400
+  resetSettings();
+  //WiFi.disconnect(true); // Wipe out WiFi credentials.
+  //////
 
 #ifdef ESP8266
   ESP.reset();
@@ -1738,6 +1784,7 @@ String ESP_WiFiManager::getStoredWiFiPass()
 
   wifi_config_t conf;
   esp_wifi_get_config(WIFI_IF_STA, &conf);
+  
   return String(reinterpret_cast<char*>(conf.sta.password));
 }
 #endif

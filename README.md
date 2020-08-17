@@ -8,7 +8,16 @@
 
 ---
 
-### Releases 1.0.10
+### Releases 1.0.11
+
+1. Add optional **CORS (Cross-Origin Resource Sharing)** feature. Thanks to [AlesSt](https://github.com/AlesSt). See more in [Issue #27: CORS protection fires up with AJAX](https://github.com/khoih-prog/ESP_WiFiManager/issues/27) and [Cross Origin Resource Sharing](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing). To use, you must explicitly use `#define USING_CORS_FEATURE true`
+2. Solve issue softAP with custom IP sometimes not working. Thanks to [AlesSt](https://github.com/AlesSt). See [Issue #26: softAP with custom IP not working](https://github.com/khoih-prog/ESP_WiFiManager/issues/26) and [Wifi.softAPConfig() sometimes set the wrong IP address](https://github.com/espressif/arduino-esp32/issues/985).
+3. Temporary fix for issue of not clearing WiFi SSID/PW from flash of ESP32. Thanks to [AlesSt](https://github.com/AlesSt). See more in [Issue #25: API call /r doesnt clear credentials](https://github.com/khoih-prog/ESP_WiFiManager/issues/25) and [WiFi.disconnect(true) problem](https://github.com/espressif/arduino-esp32/issues/400).
+4. Fix autoConnect() feature to permit autoConnect() to use STA static IP or DHCP IP. Remove from deprecated functi0n list.
+5. Enhance README.md with more instructions and illustrations.
+
+
+#### Releases 1.0.10
 
 1. Don't need to reinput already working SSID in Config Port to update other parameters, such as StaticIP.
 2. Disable/Enable StaticIP configuration in Config Portal from sketch. Valid only if DHCP is used.
@@ -45,6 +54,7 @@
 1. Add function getConfigPortalPW()
 2. Add 4 new complicated examples compatible with ArduinoJson 6.0.0+ :[AutoConnect](examples/AutoConnect), [AutoConnectWithFeedback](examples/AutoConnectWithFeedback), [AutoConnectWithFeedbackLED](examples/AutoConnectWithFeedbackLED) and [AutoConnectWithFSParameters](examples/AutoConnectWithFSParameters)
 
+---
 ---
 
 This library is based on, modified, bug-fixed and improved from:
@@ -196,6 +206,10 @@ String Router_Pass;
 // Use true to enable CloudFlare NTP service. System can hang if you don't have Internet access while accessing CloudFlare
 // See Issue #21: CloudFlare link in the default portal (https://github.com/khoih-prog/ESP_WiFiManager/issues/21)
 #define USE_CLOUDFLARE_NTP          false
+
+// New in v1.0.11
+#define USING_CORS_FEATURE          true
+//////
 
 // Use USE_DHCP_IP == true for dynamic DHCP IP, false to use static IP which you have to change accordingly to your network
 #if (defined(USE_STATIC_IP_CONFIG_IN_CP) && !USE_STATIC_IP_CONFIG_IN_CP)
@@ -408,6 +422,8 @@ ESP_wifiManager.setConfigPortalChannel(0);
 //////
 ```
 
+---
+
 #### 12. Using fixed AP-mode channel, for example channel 3
 
 
@@ -417,13 +433,46 @@ ESP_wifiManager.setConfigPortalChannel(0);
 ESP_wifiManager.setConfigPortalChannel(3);
 //////
 ```
+---
 
-#### 11. Setting STA-mode static IP
+#### 13. Setting STA-mode static IP
 
 
 ```cpp
 // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
 ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
+```
+---
+
+#### 14. Using AUTOCONNECT_NO_INVALIDATE feature
+
+1. Don't invalidate WiFi SSID/PW when calling autoConnect()  (default)
+
+```cpp
+#define AUTOCONNECT_NO_INVALIDATE     true
+```
+
+2. To invalidate WiFi SSID/PW when calling autoConnect()
+
+```cpp
+#define AUTOCONNECT_NO_INVALIDATE     false
+```
+---
+
+#### 15. Using CORS (Cross-Origin Resource Sharing) feature
+
+1. To use CORS feature
+
+```cpp
+// Default false for using only whenever necessary to avoid security issue
+#define USING_CORS_FEATURE     true
+```
+
+2. Not use CORS feature (default)
+
+```cpp
+// Default false for using only whenever necessary to avoid security issue
+#define USING_CORS_FEATURE     false
 ```
 
 ---
@@ -491,6 +540,7 @@ Once WiFi network information is saved in the `ESP32 / ESP8266`, it will try to 
 14. [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr)
 
 ---
+---
 
 ## So, how it works?
 In `ConfigPortal Mode`, it starts an access point called `ESP_XXXXXX`. Connect to it using the `configurable password` you can define in the code. For example, `your_password` (see examples):
@@ -528,6 +578,7 @@ Enter your credentials, then click ***Save***. The WiFi Credentials will be save
 
 If you're already connected to a listed WiFi AP and don't want to change anything, just select ***Exit Portal*** from the `Main` page to reboot the board and connect to the previously-stored AP. The WiFi Credentials are still intact.
 
+---
 ---
 
 ## Documentation
@@ -635,6 +686,7 @@ void loop()
 
 See  [ConfigOnSwitch](examples/ConfigOnSwitch) example for a more complex version.
 
+---
 ---
 
 #### Custom Parameters
@@ -926,6 +978,10 @@ String Router_Pass;
 // Use true to enable CloudFlare NTP service. System can hang if you don't have Internet access while accessing CloudFlare
 // See Issue #21: CloudFlare link in the default portal (https://github.com/khoih-prog/ESP_WiFiManager/issues/21)
 #define USE_CLOUDFLARE_NTP          false
+
+// New in v1.0.11
+#define USING_CORS_FEATURE          true
+//////
 
 // Use USE_DHCP_IP == true for dynamic DHCP IP, false to use static IP which you have to change accordingly to your network
 #if (defined(USE_STATIC_IP_CONFIG_IN_CP) && !USE_STATIC_IP_CONFIG_IN_CP)
@@ -1663,6 +1719,7 @@ HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH
 ```
 
 ---
+---
 
 ### Debug
 Debug is enabled by default on Serial. To disable, add before `startConfigPortal()`
@@ -1677,6 +1734,7 @@ You can also change the debugging level from 0 to 4
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
 ```
+---
 ---
 
 ### Troubleshooting
@@ -1693,8 +1751,17 @@ If you connect to the created configuration Access Point but the ConfigPortal do
 Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiFiManager/issues)
 
 ---
+---
 
-### Releases 1.0.10
+### Releases 1.0.11
+
+1. Add optional **CORS (Cross-Origin Resource Sharing)** feature. Thanks to [AlesSt](https://github.com/AlesSt). See more in [Issue #27: CORS protection fires up with AJAX](https://github.com/khoih-prog/ESP_WiFiManager/issues/27) and [Cross Origin Resource Sharing](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing). To use, you must explicitly use `#define USING_CORS_FEATURE true`
+2. Solve issue softAP with custom IP sometimes not working. Thanks to [AlesSt](https://github.com/AlesSt). See [Issue #26: softAP with custom IP not working](https://github.com/khoih-prog/ESP_WiFiManager/issues/26) and [Wifi.softAPConfig() sometimes set the wrong IP address](https://github.com/espressif/arduino-esp32/issues/985).
+3. Temporary fix for issue of not clearing WiFi SSID/PW from flash of ESP32. Thanks to [AlesSt](https://github.com/AlesSt). See more in [Issue #25: API call /r doesnt clear credentials](https://github.com/khoih-prog/ESP_WiFiManager/issues/25) and [WiFi.disconnect(true) problem](https://github.com/espressif/arduino-esp32/issues/400).
+4. Fix autoConnect() feature to permit autoConnect() to use STA static IP or DHCP IP. Remove from deprecated functi0n list.
+5. Enhance README.md with more instructions and illustrations.
+
+#### Releases 1.0.10
 
 1. Don't need to reinput already working SSID in Config Port to update other parameters, such as StaticIP.
 2. Disable/Enable StaticIP configuration in Config Portal from sketch. Valid only if DHCP is used.
@@ -1765,6 +1832,7 @@ See [KenTaylor's version](https://github.com/kentaylor/WiFiManager) for previous
 - Add example ConfigPortalParamsOnSwitch to enable ConfigPortal credentials to be reconfigurable using ConfigPortal.
 
 ---
+---
 
 ### Contributions and Thanks
 
@@ -1773,8 +1841,12 @@ See [KenTaylor's version](https://github.com/kentaylor/WiFiManager) for previous
 3. Thanks to [CrispinP](https://github.com/CrispinP) for idea to add HostName (v1.0.4) and request to reduce the unnecessary waiting time in ESP_WiFiManager constructor (v1.0.6+). See [Starting WiFIManger is very slow (2000ms)](https://github.com/khoih-prog/ESP_WiFiManager/issues/6)
 4. Thanks to [OttoKlaasen](https://github.com/OttoKlaasen) for reporting [Having issue to read the SPIFF file](https://github.com/khoih-prog/ESP_WiFiManager/issues/14) bug in examples.
 5. Thanks to [Giuseppe](https://github.com/Gius-8) for reporting [Static Station IP doesn't work](https://github.com/khoih-prog/ESP_WiFiManager/issues/17) bug.
-6. Thanks to [AlesSt](https://github.com/AlesSt) for reporting [On Android phone ConfigPortal is unresponsive](https://github.com/khoih-prog/ESP_WiFiManager/issues/23) and request an enhancement (***HOWTO disable the static IP inputs on the config page***) leading to [ESP_WiFiManager v1.0.10](https://github.com/khoih-prog/ESP_WiFiManager/releases/tag/v1.0.10).
+6. Thanks to [AlesSt](https://github.com/AlesSt) for reporting then help provide the fixes:
+  - [On Android phone ConfigPortal is unresponsive](https://github.com/khoih-prog/ESP_WiFiManager/issues/23) and request an enhancement (***HOWTO disable the static IP inputs on the config page***) leading to [ESP_WiFiManager v1.0.10](https://github.com/khoih-prog/ESP_WiFiManager/releases/tag/v1.0.10).
+  - [Issue #25: API call /r doesnt clear credentials](https://github.com/khoih-prog/ESP_WiFiManager/issues/25), [Issue #26: softAP with custom IP not working](https://github.com/khoih-prog/ESP_WiFiManager/issues/26) and [Issue #27: CORS protection fires up with AJAX](https://github.com/khoih-prog/ESP_WiFiManager/issues/27) leading to [ESP_WiFiManager v1.0.11](https://github.com/khoih-prog/ESP_WiFiManager/releases/tag/v1.0.11).
 7. Thanks to [wackoo-arduino](https://github.com/wackoo-arduino) for agreeing to contribute the sample code dealing with MQTT which the  [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr) is based on. See [Custom MQTT parameters using Wifi Manager](https://forum.arduino.cc/index.php?topic=692108.75).
+8. Thanks to [05prateek](https://github.com/05prateek) for reporting [Stationmode Static IP changes to dhcp when esp8266 is restarted](https://github.com/khoih-prog/ESP_WiFiManager/issues/28) bug which is fixed in v1.0.11 by enhance autoConnect() function.
+
 
 
 <table>
@@ -1787,8 +1859,9 @@ See [KenTaylor's version](https://github.com/kentaylor/WiFiManager) for previous
     <td align="center"><a href="https://github.com/Giuseppe"><img src="https://github.com/Giuseppe.png" width="100px;" alt="Giuseppe"/><br /><sub><b>Giuseppe</b></sub></a><br /></td>
     </tr>
     <tr>
-    <td align="center"><a href="https://github.com/AlesSt"><img src="https://github.com/AlesSt.png" width="100px;" alt="AlesSt"/><br /><sub><b>AlesSt</b></sub></a><br /></td>
+    <td align="center"><a href="https://github.com/AlesSt"><img src="https://github.com/AlesSt.png" width="100px;" alt="AlesSt"/><br /><sub><b>⭐️ AlesSt</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/wackoo-arduino"><img src="https://github.com/wackoo-arduino.png" width="100px;" alt="wackoo-arduino"/><br /><sub><b>wackoo-arduino</b></sub></a><br /></td>
+    <td align="center"><a href="https://github.com/05prateek"><img src="https://github.com/05prateek.png" width="100px;" alt="05prateek"/><br /><sub><b>05prateek</b></sub></a><br /></td>
   </tr> 
 </table>
 
