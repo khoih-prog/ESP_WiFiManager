@@ -7,6 +7,35 @@
 [![GitHub issues](https://img.shields.io/github/issues/khoih-prog/ESP_WiFiManager.svg)](http://github.com/khoih-prog/ESP_WiFiManager/issues)
 
 ---
+---
+
+### Important Note
+
+This [**ESP_WiFiManager**](https://github.com/khoih-prog/ESP_WiFiManager) has just been modified to create the new [**ESPAsync_WiFiManager Library**](https://github.com/khoih-prog/ESPAsync_WiFiManager) in order to use the better and more efficient [**ESPAsyncWebServer Library**](https://github.com/me-no-dev/ESPAsyncWebServer), instead of the (ESP8266)WebServer library.
+
+The new [ESPAsync_WiFiManager library](https://github.com/khoih-prog/ESPAsync_WiFiManager) is based on and sync'ed with [ESP_WiFiManager](https://github.com/khoih-prog/ESP_WiFiManager). Therefore, all the features currently supported by this [`ESP_WiFiManager`](https://github.com/khoih-prog/ESP_WiFiManager) will be available to the new library. The code change is to port to the new library is also very negligible, **mostly just changing the Class name from ESP_WiFiManager to ESPAsync_WiFiManager.**
+
+#### Why do we need the new Async [ESPAsync_WiFiManager library](https://github.com/khoih-prog/ESPAsync_WiFiManager)
+
+- Using asynchronous network means that you can handle **more than one connection at the same time**
+- **You are called once the request is ready and parsed**
+- When you send the response, you are **immediately ready** to handle other connections while the server is taking care of sending the response in the background
+- **Speed is OMG**
+- **Easy to use API, HTTP Basic and Digest MD5 Authentication (default), ChunkedResponse**
+- Easily extendible to handle **any type of content**
+- Supports Continue 100
+- **Async WebSocket plugin offering different locations without extra servers or ports**
+- Async EventSource (Server-Sent Events) plugin to send events to the browser
+- URL Rewrite plugin for conditional and permanent url rewrites
+- ServeStatic plugin that supports cache, Last-Modified, default index and more
+- Simple template processing engine to handle templates
+
+To appreciate the power of the [ESPAsyncWebServer](https://github.com/me-no-dev/ESPAsyncWebServer) and underlying Async libraries, please compare the more efficient [Async_ESP32_FSWebServer example](https://github.com/khoih-prog/ESPAsync_WiFiManager/tree/master/examples/Async_ESP32_FSWebServer) example code against the code of its complicated twin [ESP32_FSWebServer](examples/ESP32_FSWebServer).
+
+Thanks to [cancodr](https://github.com/cancodr) for requesting an enhancement in [Issue #29: Is it possible to use AsyncWebServer.h instead of WebServer.h?](https://github.com/khoih-prog/ESP_WiFiManager/issues/29), leading to the new [ESPAsync_WiFiManager Library](https://github.com/khoih-prog/ESPAsync_WiFiManager).
+
+---
+---
 
 ### Releases 1.0.11
 
