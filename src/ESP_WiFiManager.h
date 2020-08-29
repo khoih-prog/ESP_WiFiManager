@@ -15,7 +15,7 @@
 
    Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
    Licensed under MIT license
-   Version: 1.0.11
+   Version: 1.1.0
 
    Version Modified By   Date      Comments
    ------- -----------  ---------- -----------
@@ -32,6 +32,7 @@
                                     Add, enhance examples (fix MDNS for ESP32)
     1.0.10  K Hoang      08/08/2020 Add more features to Config Portal. Use random WiFi AP channel to avoid conflict.
     1.0.11  K Hoang      17/08/2020 Add CORS feature. Fix bug in softAP, autoConnect, resetSettings.
+    1.1.0   K Hoang      28/08/2020 Add MultiWiFi feature to autoconnect to best WiFi at runtime
  *****************************************************************************************************************************/
 
 #ifndef ESP_WiFiManager_h
@@ -80,7 +81,9 @@ const char WM_HTTP_HEAD_START[] PROGMEM = "<!DOCTYPE html><html lang=\"en\"><hea
 const char WM_HTTP_STYLE[] PROGMEM = "<style>div{padding:2px;font-size:1em;}body,textarea,input,select{background: 0;border-radius: 0;font: 16px sans-serif;margin: 0}textarea,input,select{outline: 0;font-size: 14px;border: 1px solid #ccc;padding: 8px;width: 90%}.btn a{text-decoration: none}.container{margin: auto;width: 90%}@media(min-width:1200px){.container{margin: auto;width: 30%}}@media(min-width:768px) and (max-width:1200px){.container{margin: auto;width: 50%}}.btn,h2{font-size: 2em}h1{font-size: 3em}.btn{background: #0ae;border-radius: 4px;border: 0;color: #fff;cursor: pointer;display: inline-block;margin: 2px 0;padding: 10px 14px 11px;width: 100%}.btn:hover{background: #09d}.btn:active,.btn:focus{background: #08b}label>*{display: inline}form>*{display: block;margin-bottom: 10px}textarea:focus,input:focus,select:focus{border-color: #5ab}.msg{background: #def;border-left: 5px solid #59d;padding: 1.5em}.q{float: right;width: 64px;text-align: right}.l{background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAALVBMVEX///8EBwfBwsLw8PAzNjaCg4NTVVUjJiZDRUUUFxdiZGSho6OSk5Pg4eFydHTCjaf3AAAAZElEQVQ4je2NSw7AIAhEBamKn97/uMXEGBvozkWb9C2Zx4xzWykBhFAeYp9gkLyZE0zIMno9n4g19hmdY39scwqVkOXaxph0ZCXQcqxSpgQpONa59wkRDOL93eAXvimwlbPbwwVAegLS1HGfZAAAAABJRU5ErkJggg==') no-repeat left center;background-size: 1em}input[type='checkbox']{float: left;width: 20px}.table td{padding:.5em;text-align:left}.table tbody>:nth-child(2n-1){background:#ddd}fieldset{border-radius:0.5rem;margin:0px;}</style>";
 //////
 
-const char WM_HTTP_SCRIPT[] PROGMEM = "<script>function c(l){document.getElementById('s').value=l.innerText||l.textContent;document.getElementById('p').focus();}</script>";
+// KH, update from v1.1.0
+const char WM_HTTP_SCRIPT[] PROGMEM = "<script>function c(l){document.getElementById('s').value=l.innerText||l.textContent;document.getElementById('p').focus();document.getElementById('s1').value=l.innerText||l.textContent;document.getElementById('p1').focus();}</script>";
+//////
 
 // From v1.0.9 to permit disable or configure NTP from sketch
 #ifndef USE_ESP_WIFIMANAGER_NTP
@@ -119,8 +122,8 @@ const char WM_HTTP_PORTAL_OPTIONS[] PROGMEM = "<form action=\"/wifi\" method=\"g
 const char WM_HTTP_ITEM[] PROGMEM = "<div><a href=\"#p\" onclick=\"c(this)\">{v}</a>&nbsp;<span class=\"q {i}\">{r}%</span></div>";
 const char JSON_ITEM[] PROGMEM = "{\"SSID\":\"{v}\", \"Encryption\":{i}, \"Quality\":\"{r}\"}";
 
-// KH, update from v1.0.10
-const char WM_HTTP_FORM_START[] PROGMEM = "<form method=\"get\" action=\"wifisave\"><fieldset><div><label>SSID</label><input id=\"s\" name=\"s\" length=32 placeholder=\"SSID\"><div></div></div><div><label>Password</label><input id=\"p\" name=\"p\" length=64 placeholder=\"password\"><div></div></div></fieldset>";
+// KH, update from v1.1.0
+const char WM_HTTP_FORM_START[] PROGMEM = "<form method=\"get\" action=\"wifisave\"><fieldset><div><label>SSID</label><input id=\"s\" name=\"s\" length=32 placeholder=\"SSID\"><div></div></div><div><label>Password</label><input id=\"p\" name=\"p\" length=64 placeholder=\"password\"><div></div></div><div><label>SSID1</label><input id=\"s1\" name=\"s1\" length=32 placeholder=\"SSID1\"><div></div></div><div><label>Password</label><input id=\"p1\" name=\"p1\" length=64 placeholder=\"password1\"><div></div></div></fieldset>";
 //////
 
 // KH, add from v1.0.10
@@ -132,7 +135,11 @@ const char WM_HTTP_FORM_LABEL[] PROGMEM = "<label for=\"{i}\">{p}</label>";
 const char WM_HTTP_FORM_PARAM[] PROGMEM = "<input id=\"{i}\" name=\"{n}\" length={l} placeholder=\"{p}\" value=\"{v}\" {c}>";
 
 const char WM_HTTP_FORM_END[] PROGMEM = "<button class=\"btn\" type=\"submit\">Save</button></form>";
-const char WM_HTTP_SAVED[] PROGMEM = "<div class=\"msg\"><b>Credentials Saved</b><br>Try connecting ESP to the {x} network.<br>Wait around 10 seconds then check <a href=\"/\">how it went.</a> <p/>The {v} network you are connected to will be restarted on the radio channel of the {x} network. You may have to manually reconnect to the {v} network.</div>";
+
+// KH, update from v1.1.0
+const char WM_HTTP_SAVED[] PROGMEM = "<div class=\"msg\"><b>Credentials Saved</b><br>Try connecting ESP to the {x} / {x1} network.<br>Wait around 10 seconds then check <a href=\"/\">how it went.</a> <p/>The {v} network will be restarted on the radio channel of the {x} / {x1} network. You may have to manually reconnect to the {v} network.</div>";
+//////
+
 const char WM_HTTP_END[] PROGMEM = "</div></body></html>";
 
 //KH, added 2019/12/15 from Tzapu Development
@@ -276,15 +283,53 @@ class ESP_WiFiManager
     int           scanWifiNetworks(int **indicesptr);
 
     // return SSID of router in STA mode got from config portal. NULL if no user's input //KH
-    String				getSSID(void) {
+    String				getSSID(void) 
+    {
       return _ssid;
     }
 
     // return password of router in STA mode got from config portal. NULL if no user's input //KH
-    String				getPW(void) {
+    String				getPW(void) 
+    {
       return _pass;
     }
+    
+    // New from v1.1.0
+    // return SSID of router in STA mode got from config portal. NULL if no user's input //KH
+    String				getSSID1(void) 
+    {
+      return _ssid1;
+    }
 
+    // return password of router in STA mode got from config portal. NULL if no user's input //KH
+    String				getPW1(void) 
+    {
+      return _pass1;
+    }
+    
+    #define MAX_WIFI_CREDENTIALS        2
+    
+    String				getSSID(uint8_t index) 
+    {
+      if (index == 0)
+        return _ssid;
+      else if (index == 1)
+        return _ssid1;
+      else     
+        return String("");
+    }
+    
+    String				getPW(uint8_t index) 
+    {
+      if (index == 0)
+        return _pass;
+      else if (index == 1)
+        return _pass1;
+      else     
+        return String("");
+    }
+    //////
+    
     //returns the list of Parameters
     ESP_WMParameter** getParameters();
     // returns the Parameters Count
@@ -350,9 +395,15 @@ class ESP_WiFiManager
 
     const char*   _apName = "no-net";
     const char*   _apPassword = NULL;
-    String        _ssid = "";
-    String        _pass = "";
-
+    
+    String        _ssid   = "";
+    String        _pass   = "";
+    
+    // New from v1.1.0
+    String        _ssid1  = "";
+    String        _pass1  = "";
+    //////
+    
     // From v1.0.6 with timezone info
     String        _timezoneName = "";
 
@@ -367,7 +418,7 @@ class ESP_WiFiManager
     // KH, new from v1.0.10 to enable dynamic/random channel
     // default to channel 1
     #define MIN_WIFI_CHANNEL      1
-    #define MAX_WIFI_CHANNEL      12    // Channel 13 is flaky, because of bad number 13 ;-)
+    #define MAX_WIFI_CHANNEL      11    // Channel 12,13 is flaky, because of bad number 13 ;-)
 
     int _WiFiAPChannel = 1;
     //////
@@ -393,8 +444,13 @@ class ESP_WiFiManager
     const char*   _customHeadElement = "";
 
     int           status = WL_IDLE_STATUS;
+    
     // New v1.0.8
     void          setWifiStaticIP(void);
+    
+    // New v1.1.0
+    bool          reconnectWifi(void);
+    //////
     
     // New v1.0.11
     int           connectWifi(String ssid = "", String pass = "");

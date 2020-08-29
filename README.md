@@ -37,16 +37,22 @@ Thanks to [cancodr](https://github.com/cancodr) for requesting an enhancement in
 ---
 ---
 
-### Releases 1.0.11
+### Major Releases v1.1.0
+
+1. Add **MultiWiFi feature to auto(Re)connect to the best WiFi at runtime**
+2. Fix bug.
+3. Completely enhanced examples to use new MultiWiFi feature.
+
+#### Releases v1.0.11
 
 1. Add optional **CORS (Cross-Origin Resource Sharing)** feature. Thanks to [AlesSt](https://github.com/AlesSt). See more in [Issue #27: CORS protection fires up with AJAX](https://github.com/khoih-prog/ESP_WiFiManager/issues/27) and [Cross Origin Resource Sharing](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing). To use, you must explicitly use `#define USING_CORS_FEATURE true`
 2. Solve issue softAP with custom IP sometimes not working. Thanks to [AlesSt](https://github.com/AlesSt). See [Issue #26: softAP with custom IP not working](https://github.com/khoih-prog/ESP_WiFiManager/issues/26) and [Wifi.softAPConfig() sometimes set the wrong IP address](https://github.com/espressif/arduino-esp32/issues/985).
 3. Temporary fix for issue of not clearing WiFi SSID/PW from flash of ESP32. Thanks to [AlesSt](https://github.com/AlesSt). See more in [Issue #25: API call /r doesnt clear credentials](https://github.com/khoih-prog/ESP_WiFiManager/issues/25) and [WiFi.disconnect(true) problem](https://github.com/espressif/arduino-esp32/issues/400).
-4. Fix autoConnect() feature to permit autoConnect() to use STA static IP or DHCP IP. Remove from deprecated functi0n list.
+4. Fix autoConnect() feature to permit autoConnect() to use STA static IP or DHCP IP. Remove from deprecated function list.
 5. Enhance README.md with more instructions and illustrations.
 
 
-#### Releases 1.0.10
+#### Releases v1.0.10
 
 1. Don't need to reinput already working SSID in Config Port to update other parameters, such as StaticIP.
 2. Disable/Enable StaticIP configuration in Config Portal from sketch. Valid only if DHCP is used.
@@ -55,20 +61,20 @@ Thanks to [cancodr](https://github.com/cancodr) for requesting an enhancement in
 5. Enhance Config Portal GUI and get the item out of the bucket list.
 6. Enhance README.md with more instructions and illustrations.
 
-#### Releases 1.0.9
+#### Releases v1.0.9
 
 1. Fix ESP32 STAstaticIP bug. 
 2. Enable changing from DHCP <-> static IP using Config Portal.
 3. Enable NTP configuration from sketch (USE_ESP_WIFIMANAGER_NTP, USE_CLOUDFLARE_NTP). See Issue #21: [CloudFlare link in the default portal](https://github.com/khoih-prog/ESP_WiFiManager/issues/21).
 4. Add, enhance examples (fix MDNS for ESP32 examples, add DRD feature).
 
-#### Releases 1.0.8
+#### Releases v1.0.8
 
 1. Fix setSTAStaticIPConfig issue. See [Static Station IP doesn't work](https://github.com/khoih-prog/ESP_WiFiManager/issues/17)
 2. Add LittleFS support for ESP8266 core 2.7.1+ in examples to replace deprecated SPIFFS.
 3. Restructure code.
 
-#### Releases 1.0.7
+#### Releases v1.0.7
 
 1. Use `just-in-time` scanWiFiNetworks() to reduce connection time necessary for battery-operated DeepSleep application. Thanks to [CrispinP](https://github.com/CrispinP) for identifying, requesting and testing. See [Starting WiFIManger is very slow (2000ms)](https://github.com/khoih-prog/ESP_WiFiManager/issues/6)
 2. Fix bug relating SPIFFS in examples :
@@ -78,7 +84,7 @@ Thanks to [cancodr](https://github.com/cancodr) for requesting an enhancement in
  See [Having issue to read the SPIFF file](https://github.com/khoih-prog/ESP_WiFiManager/issues/14), Thanks to [OttoKlaasen](https://github.com/OttoKlaasen) to report.
 3. Fix [README](README.md). See [Accessing manager after connection](https://github.com/khoih-prog/ESP_WiFiManager/issues/15) 
 
-#### Releases 1.0.6
+#### Releases v1.0.6
 
 1. Add function getConfigPortalPW()
 2. Add 4 new complicated examples compatible with ArduinoJson 6.0.0+ :[AutoConnect](examples/AutoConnect), [AutoConnectWithFeedback](examples/AutoConnectWithFeedback), [AutoConnectWithFeedbackLED](examples/AutoConnectWithFeedbackLED) and [AutoConnectWithFSParameters](examples/AutoConnectWithFSParameters)
@@ -156,18 +162,58 @@ then connect WebBrowser to configurable ConfigPortal IP address, default is 192.
   #include <WiFi.h>
   #include <WiFiClient.h>
 
+  // From v1.1.0
+  #include <WiFiMulti.h>
+  WiFiMulti wifiMulti;
+
+  #define USE_SPIFFS      true
+
+  #if USE_SPIFFS
+    #include <SPIFFS.h>
+    FS* filesystem =      &SPIFFS;
+    #define FileFS        SPIFFS
+    #define FS_Name       "SPIFFS"
+  #else
+    // Use FFat
+    #include <FFat.h>
+    FS* filesystem =      &FFat;
+    #define FileFS        FFat
+    #define FS_Name       "FFat"
+  #endif
+  //////
+
   #define ESP_getChipId()   ((uint32_t)ESP.getEfuseMac())
 
-  #define LED_ON      HIGH
-  #define LED_OFF     LOW
+  #define LED_BUILTIN       2
+  #define LED_ON            HIGH
+  #define LED_OFF           LOW
+
 #else
-  #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
+#include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
   //needed for library
   #include <DNSServer.h>
   #include <ESP8266WebServer.h>
 
-  #define ESP_getChipId()   (ESP.getChipId())
+  // From v1.1.0
+  #include <ESP8266WiFiMulti.h>
+  ESP8266WiFiMulti wifiMulti;
 
+  #define USE_LITTLEFS      true
+  
+  #if USE_LITTLEFS
+    #include <LittleFS.h>
+    FS* filesystem = &LittleFS;
+    #define FileFS    LittleFS
+    #define FS_Name       "LittleFS"
+  #else
+    FS* filesystem = &SPIFFS;
+    #define FileFS    SPIFFS
+    #define FS_Name       "SPIFFS"
+  #endif
+  //////
+  
+  #define ESP_getChipId()   (ESP.getChipId())
+  
   #define LED_ON      LOW
   #define LED_OFF     HIGH
 #endif
@@ -179,6 +225,41 @@ const char* password = "your_password";
 // SSID and PW for your Router
 String Router_SSID;
 String Router_Pass;
+
+// From v1.1.0
+// You only need to format the filesystem once
+//#define FORMAT_FILESYSTEM       true
+#define FORMAT_FILESYSTEM         false
+
+#define MIN_AP_PASSWORD_SIZE    8
+
+#define SSID_MAX_LEN            32
+//From v1.0.10, WPA2 passwords can be up to 63 characters long.
+#define PASS_MAX_LEN            64
+
+typedef struct
+{
+  char wifi_ssid[SSID_MAX_LEN];
+  char wifi_pw  [PASS_MAX_LEN];
+}  WiFi_Credentials;
+
+typedef struct
+{
+  String wifi_ssid;
+  String wifi_pw;
+}  WiFi_Credentials_String;
+
+#define NUM_WIFI_CREDENTIALS      2
+
+typedef struct
+{
+  WiFi_Credentials  WiFi_Creds [NUM_WIFI_CREDENTIALS];
+} WM_Config;
+
+WM_Config         WM_config;
+
+#define  CONFIG_FILENAME              F("/wifi_cred.dat")
+//////
 
 #include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
 ```
@@ -194,18 +275,58 @@ String Router_Pass;
   #include <WiFi.h>
   #include <WiFiClient.h>
 
+  // From v1.1.0
+  #include <WiFiMulti.h>
+  WiFiMulti wifiMulti;
+
+  #define USE_SPIFFS      true
+
+  #if USE_SPIFFS
+    #include <SPIFFS.h>
+    FS* filesystem =      &SPIFFS;
+    #define FileFS        SPIFFS
+    #define FS_Name       "SPIFFS"
+  #else
+    // Use FFat
+    #include <FFat.h>
+    FS* filesystem =      &FFat;
+    #define FileFS        FFat
+    #define FS_Name       "FFat"
+  #endif
+  //////
+
   #define ESP_getChipId()   ((uint32_t)ESP.getEfuseMac())
 
-  #define LED_ON      HIGH
-  #define LED_OFF     LOW
+  #define LED_BUILTIN       2
+  #define LED_ON            HIGH
+  #define LED_OFF           LOW
+
 #else
-  #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
+#include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
   //needed for library
   #include <DNSServer.h>
   #include <ESP8266WebServer.h>
 
-  #define ESP_getChipId()   (ESP.getChipId())
+  // From v1.1.0
+  #include <ESP8266WiFiMulti.h>
+  ESP8266WiFiMulti wifiMulti;
 
+  #define USE_LITTLEFS      true
+  
+  #if USE_LITTLEFS
+    #include <LittleFS.h>
+    FS* filesystem = &LittleFS;
+    #define FileFS    LittleFS
+    #define FS_Name       "LittleFS"
+  #else
+    FS* filesystem = &SPIFFS;
+    #define FileFS    SPIFFS
+    #define FS_Name       "SPIFFS"
+  #endif
+  //////
+  
+  #define ESP_getChipId()   (ESP.getChipId())
+  
   #define LED_ON      LOW
   #define LED_OFF     HIGH
 #endif
@@ -217,6 +338,44 @@ const char* password = "your_password";
 // SSID and PW for your Router
 String Router_SSID;
 String Router_Pass;
+
+// From v1.1.0
+// You only need to format the filesystem once
+//#define FORMAT_FILESYSTEM       true
+#define FORMAT_FILESYSTEM         false
+
+#define MIN_AP_PASSWORD_SIZE    8
+
+#define SSID_MAX_LEN            32
+//From v1.0.10, WPA2 passwords can be up to 63 characters long.
+#define PASS_MAX_LEN            64
+
+typedef struct
+{
+  char wifi_ssid[SSID_MAX_LEN];
+  char wifi_pw  [PASS_MAX_LEN];
+}  WiFi_Credentials;
+
+typedef struct
+{
+  String wifi_ssid;
+  String wifi_pw;
+}  WiFi_Credentials_String;
+
+#define NUM_WIFI_CREDENTIALS      2
+
+typedef struct
+{
+  WiFi_Credentials  WiFi_Creds [NUM_WIFI_CREDENTIALS];
+} WM_Config;
+
+WM_Config         WM_config;
+
+#define  CONFIG_FILENAME              F("/wifi_cred.dat")
+//////
+
+// Indicates whether ESP has WiFi credentials saved from previous session
+bool initialConfig = false;
 
 // Use false if you don't like to display Available Pages in Information Page of Config Portal
 // Comment out or use true to display Available Pages in Information Page of Config Portal
@@ -242,34 +401,34 @@ String Router_Pass;
 
 // Use USE_DHCP_IP == true for dynamic DHCP IP, false to use static IP which you have to change accordingly to your network
 #if (defined(USE_STATIC_IP_CONFIG_IN_CP) && !USE_STATIC_IP_CONFIG_IN_CP)
-// Force DHCP to be true
-#if defined(USE_DHCP_IP)
-#undef USE_DHCP_IP
-#endif
-#define USE_DHCP_IP     true
+  // Force DHCP to be true
+  #if defined(USE_DHCP_IP)
+    #undef USE_DHCP_IP
+  #endif
+  #define USE_DHCP_IP     true
 #else
-// You can select DHCP or Static IP here
-//#define USE_DHCP_IP     true
-#define USE_DHCP_IP     false
+  // You can select DHCP or Static IP here
+  //#define USE_DHCP_IP     true
+  #define USE_DHCP_IP     false
 #endif
 
 #if ( USE_DHCP_IP || ( defined(USE_STATIC_IP_CONFIG_IN_CP) && !USE_STATIC_IP_CONFIG_IN_CP ) )
-// Use DHCP
-#warning Using DHCP IP
-IPAddress stationIP   = IPAddress(0, 0, 0, 0);
-IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
-IPAddress netMask     = IPAddress(255, 255, 255, 0);
+  // Use DHCP
+  #warning Using DHCP IP
+  IPAddress stationIP   = IPAddress(0, 0, 0, 0);
+  IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
+  IPAddress netMask     = IPAddress(255, 255, 255, 0);
 #else
-// Use static IP
-#warning Using static IP
-#ifdef ESP32
-IPAddress stationIP   = IPAddress(192, 168, 2, 232);
-#else
-IPAddress stationIP   = IPAddress(192, 168, 2, 186);
-#endif
-
-IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
-IPAddress netMask     = IPAddress(255, 255, 255, 0);
+  // Use static IP
+  #warning Using static IP
+  #ifdef ESP32
+    IPAddress stationIP   = IPAddress(192, 168, 2, 232);
+  #else
+    IPAddress stationIP   = IPAddress(192, 168, 2, 186);
+  #endif
+  
+  IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
+  IPAddress netMask     = IPAddress(255, 255, 255, 0);
 #endif
 
 #define USE_CONFIGURABLE_DNS      true
@@ -504,6 +663,24 @@ ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2
 #define USING_CORS_FEATURE     false
 ```
 
+#### 16. Using MultiWiFi auto(Re)connect feature
+
+1. In loop()
+
+```cpp
+void loop()
+{
+  if ( (WiFi.status() != WL_CONNECTED) )
+  {
+    Serial.println("\nWiFi lost. Call connectMultiWiFi in loop");
+    connectMultiWiFi();
+  }
+  
+  // put your main code here, to run repeatedly
+  check_status();
+}
+```
+
 ---
 ---
 
@@ -657,56 +834,108 @@ the Config Portal.
 Example usage
 
 ```cpp
-void loop() 
+void loop()
 {
-  // is ConfigPortal requested?
-  if ((digitalRead(TRIGGER_PIN) == LOW) || (digitalRead(TRIGGER_PIN2) == LOW)) 
+  // is configuration portal requested?
+  if ((digitalRead(TRIGGER_PIN) == LOW) || (digitalRead(TRIGGER_PIN2) == LOW))
   {
-    Serial.println("\nConfigPortal requested.");
+    Serial.println("\nConfiguration portal requested.");
     digitalWrite(PIN_LED, LED_ON); // turn the LED on by making the voltage LOW to tell us we are in configuration mode.
-    
-		//Local intialization. Once its business is done, there is no need to keep it around
-		// Use this to default DHCP hostname to ESP8266-XXXXXX or ESP32-XXXXXX		
-    // ESP_WiFiManager ESP_wifiManager;
-		// Use this to personalize DHCP hostname (RFC952 conformed)
-    ESP_WiFiManager ESP_wifiManager("Personalized-HostName");
-		
-	  ESP_wifiManager.setMinimumSignalQuality(-1);
-	  
-	  //set custom ip for portal
-    ESP_wifiManager.setAPStaticIPConfig(IPAddress(192, 168, 100, 1), IPAddress(192, 168, 100, 1), IPAddress(255, 255, 255, 0));
-    
-	  // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
-	  ESP_wifiManager.setSTAStaticIPConfig(IPAddress(192,168,2,114), IPAddress(192,168,2,1), IPAddress(255,255,255,0), 
-                                        IPAddress(192,168,2,1), IPAddress(8,8,8,8));
-		  
+
+    //Local intialization. Once its business is done, there is no need to keep it around
+    ESP_WiFiManager ESP_wifiManager("ConfigOnSwitch");
+
+    ESP_wifiManager.setMinimumSignalQuality(-1);
+
+    // From v1.0.10 only
+    // Set config portal channel, default = 1. Use 0 => random channel from 1-13
+    ESP_wifiManager.setConfigPortalChannel(0);
+    //////
+
+    //set custom ip for portal
+    //ESP_wifiManager.setAPStaticIPConfig(IPAddress(192, 168, 100, 1), IPAddress(192, 168, 100, 1), IPAddress(255, 255, 255, 0));
+
+#if !USE_DHCP_IP    
+  #if USE_CONFIGURABLE_DNS  
+    // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
+    ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);  
+  #else
+    // Set static IP, Gateway, Subnetmask, Use auto DNS1 and DNS2.
+    ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask);
+  #endif 
+#endif       
+
     //Check if there is stored WiFi router/password credentials.
     //If not found, device will remain in configuration mode until switched off via webserver.
-    Serial.print("Opening ConfigPortal. ");
+    Serial.print("Opening configuration portal. ");
     Router_SSID = ESP_wifiManager.WiFi_SSID();
-    if (Router_SSID != "")
+    Router_Pass = ESP_wifiManager.WiFi_Pass();
+    
+    // From v1.1.0, Don't permit NULL password
+    if ( (Router_SSID != "") && (Router_Pass != "") )
     {
-      ESP_wifiManager.setConfigPortalTimeout(60); //If no access point name has been previously entered disable timeout.
-      Serial.println("Got stored Credentials. Timeout 60s");
+      ESP_wifiManager.setConfigPortalTimeout(120); //If no access point name has been previously entered disable timeout.
+      Serial.println("Got stored Credentials. Timeout 120s");
     }
     else
       Serial.println("No stored Credentials. No timeout");
-    
-    //it starts an access point 
+
+    //Starts an access point
     //and goes into a blocking loop awaiting configuration
-    if (!ESP_wifiManager.startConfigPortal((const char *) ssid.c_str(), password)) 
+    if (!ESP_wifiManager.startConfigPortal((const char *) ssid.c_str(), password))
     {
       Serial.println("Not connected to WiFi but continuing anyway.");
-    } 
-    else 
+    }
+    else
     {
       //if you get here you have connected to the WiFi
       Serial.println("connected...yeey :)");
+      Serial.print("Local IP: ");
+      Serial.println(WiFi.localIP());
     }
+
+    // Only clear then save data if CP entered and with new valid Credentials
+    // No CP => stored getSSID() = ""
+    if ( String(ESP_wifiManager.getSSID(0)) != "" && String(ESP_wifiManager.getSSID(1)) != "" )
+    {
+      // Stored  for later usage, from v1.1.0, but clear first
+      memset(&WM_config, 0, sizeof(WM_config));
+      
+      for (uint8_t i = 0; i < NUM_WIFI_CREDENTIALS; i++)
+      {
+        String tempSSID = ESP_wifiManager.getSSID(i);
+        String tempPW   = ESP_wifiManager.getPW(i);
     
+        if (strlen(tempSSID.c_str()) < sizeof(WM_config.WiFi_Creds[i].wifi_ssid) - 1)
+          strcpy(WM_config.WiFi_Creds[i].wifi_ssid, tempSSID.c_str());
+        else
+          strncpy(WM_config.WiFi_Creds[i].wifi_ssid, tempSSID.c_str(), sizeof(WM_config.WiFi_Creds[i].wifi_ssid) - 1);
+    
+        if (strlen(tempPW.c_str()) < sizeof(WM_config.WiFi_Creds[i].wifi_pw) - 1)
+          strcpy(WM_config.WiFi_Creds[i].wifi_pw, tempPW.c_str());
+        else
+          strncpy(WM_config.WiFi_Creds[i].wifi_pw, tempPW.c_str(), sizeof(WM_config.WiFi_Creds[i].wifi_pw) - 1);  
+    
+        // Don't permit NULL SSID and password len < MIN_AP_PASSWORD_SIZE (8)
+        if ( (String(WM_config.WiFi_Creds[i].wifi_ssid) != "") && (strlen(WM_config.WiFi_Creds[i].wifi_pw) >= MIN_AP_PASSWORD_SIZE) )
+        {
+          LOGERROR3(F("* Add SSID = "), WM_config.WiFi_Creds[i].wifi_ssid, F(", PW = "), WM_config.WiFi_Creds[i].wifi_pw );
+          wifiMulti.addAP(WM_config.WiFi_Creds[i].wifi_ssid, WM_config.WiFi_Creds[i].wifi_pw);
+        }
+      }
+    
+      saveConfigData();
+    }
+
     digitalWrite(PIN_LED, LED_OFF); // Turn led off as we are not in configuration mode.
   }
-   
+
+  if ( (WiFi.status() != WL_CONNECTED) )
+  {
+    Serial.println("\nWiFi lost. Call connectMultiWiFi in loop");
+    connectMultiWiFi();
+  }
+
   // put your main code here, to run repeatedly
   check_status();
 
@@ -797,46 +1026,70 @@ ESP_wifiManager.setRemoveDuplicateAPs(false);
 
 #include <FS.h>
 
-// Now support ArduinoJson 6.0.0+ ( tested with v6.15.2 to v6.16.1 ))
+// Now support ArduinoJson 6.0.0+ ( tested with v6.15.2 to v6.16.1 )
 #include <ArduinoJson.h>        // get it from https://arduinojson.org/ or install via Arduino library manager
 
-//Ported to ESP32
 //For ESP32, To use ESP32 Dev Module, QIO, Flash 4MB/80MHz, Upload 921600
-#if ESP32
-  #include "SPIFFS.h"
+//Ported to ESP32
+#ifdef ESP32
   #include <esp_wifi.h>
   #include <WiFi.h>
   #include <WiFiClient.h>
-  
+
+  // From v1.1.0
+  #include <WiFiMulti.h>
+  WiFiMulti wifiMulti;
+
+  #define USE_SPIFFS      true
+
+  #if USE_SPIFFS
+    #include <SPIFFS.h>
+    FS* filesystem =      &SPIFFS;
+    #define FileFS        SPIFFS
+    #define FS_Name       "SPIFFS"
+  #else
+    // Use FFat
+    #include <FFat.h>
+    FS* filesystem =      &FFat;
+    #define FileFS        FFat
+    #define FS_Name       "FFat"
+  #endif
+  //////
+
   #define ESP_getChipId()   ((uint32_t)ESP.getEfuseMac())
-  
-  #define LED_ON      HIGH
-  #define LED_OFF     LOW
 
-  #define FileFS      SPIFFS
-  
+  #define LED_BUILTIN       2
+  #define LED_ON            HIGH
+  #define LED_OFF           LOW
+
 #else
-
-  #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
+#include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
   //needed for library
   #include <DNSServer.h>
   #include <ESP8266WebServer.h>
+
+  // From v1.1.0
+  #include <ESP8266WiFiMulti.h>
+  ESP8266WiFiMulti wifiMulti;
+
+  #define USE_LITTLEFS      true
+  
+  #if USE_LITTLEFS
+    #include <LittleFS.h>
+    FS* filesystem = &LittleFS;
+    #define FileFS    LittleFS
+    #define FS_Name       "LittleFS"
+  #else
+    FS* filesystem = &SPIFFS;
+    #define FileFS    SPIFFS
+    #define FS_Name       "SPIFFS"
+  #endif
+  //////
   
   #define ESP_getChipId()   (ESP.getChipId())
   
   #define LED_ON      LOW
   #define LED_OFF     HIGH
-
-  #define USE_LITTLEFS      true
-
-  #if USE_LITTLEFS
-    #define FileFS    LittleFS
-  #else
-    #define FileFS    SPIFFS
-  #endif
-
-  #include <LittleFS.h>
-
 #endif
 
 #include "Adafruit_MQTT.h"                //https://github.com/adafruit/Adafruit_MQTT_Library
@@ -990,6 +1243,44 @@ const char* password = "your_password";
 String Router_SSID;
 String Router_Pass;
 
+// From v1.1.0
+// You only need to format the filesystem once
+//#define FORMAT_FILESYSTEM       true
+#define FORMAT_FILESYSTEM         false
+
+#define MIN_AP_PASSWORD_SIZE    8
+
+#define SSID_MAX_LEN            32
+//From v1.0.10, WPA2 passwords can be up to 63 characters long.
+#define PASS_MAX_LEN            64
+
+typedef struct
+{
+  char wifi_ssid[SSID_MAX_LEN];
+  char wifi_pw  [PASS_MAX_LEN];
+}  WiFi_Credentials;
+
+typedef struct
+{
+  String wifi_ssid;
+  String wifi_pw;
+}  WiFi_Credentials_String;
+
+#define NUM_WIFI_CREDENTIALS      2
+
+typedef struct
+{
+  WiFi_Credentials  WiFi_Creds [NUM_WIFI_CREDENTIALS];
+} WM_Config;
+
+WM_Config         WM_config;
+
+#define  CONFIG_FILENAME              F("/wifi_cred.dat")
+//////
+
+// Indicates whether ESP has WiFi credentials saved from previous session
+//bool initialConfig = false;
+
 // Use false if you don't like to display Available Pages in Information Page of Config Portal
 // Comment out or use true to display Available Pages in Information Page of Config Portal
 // Must be placed before #include <ESP_WiFiManager.h>
@@ -1025,23 +1316,36 @@ String Router_Pass;
 #define USE_DHCP_IP     false
 #endif
 
-#if ( USE_DHCP_IP || ( defined(USE_STATIC_IP_CONFIG_IN_CP) && !USE_STATIC_IP_CONFIG_IN_CP ) )
-// Use DHCP
-#warning Using DHCP IP
-IPAddress stationIP   = IPAddress(0, 0, 0, 0);
-IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
-IPAddress netMask     = IPAddress(255, 255, 255, 0);
+// Use USE_DHCP_IP == true for dynamic DHCP IP, false to use static IP which you have to change accordingly to your network
+#if (defined(USE_STATIC_IP_CONFIG_IN_CP) && !USE_STATIC_IP_CONFIG_IN_CP)
+  // Force DHCP to be true
+  #if defined(USE_DHCP_IP)
+    #undef USE_DHCP_IP
+  #endif
+  #define USE_DHCP_IP     true
 #else
-// Use static IP
-#warning Using static IP
-#ifdef ESP32
-IPAddress stationIP   = IPAddress(192, 168, 2, 232);
-#else
-IPAddress stationIP   = IPAddress(192, 168, 2, 186);
+  // You can select DHCP or Static IP here
+  //#define USE_DHCP_IP     true
+  #define USE_DHCP_IP     false
 #endif
 
-IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
-IPAddress netMask     = IPAddress(255, 255, 255, 0);
+#if ( USE_DHCP_IP || ( defined(USE_STATIC_IP_CONFIG_IN_CP) && !USE_STATIC_IP_CONFIG_IN_CP ) )
+  // Use DHCP
+  #warning Using DHCP IP
+  IPAddress stationIP   = IPAddress(0, 0, 0, 0);
+  IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
+  IPAddress netMask     = IPAddress(255, 255, 255, 0);
+#else
+  // Use static IP
+  #warning Using static IP
+  #ifdef ESP32
+    IPAddress stationIP   = IPAddress(192, 168, 2, 232);
+  #else
+    IPAddress stationIP   = IPAddress(192, 168, 2, 186);
+  #endif
+  
+  IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
+  IPAddress netMask     = IPAddress(255, 255, 255, 0);
 #endif
 
 #define USE_CONFIGURABLE_DNS      true
@@ -1183,143 +1487,95 @@ void createNewInstances(void)
   }
 }
 
-// Setup function
-void setup()
+void loadConfigData(void)
 {
-  // Put your setup code here, to run once
-  Serial.begin(115200);
-  while (!Serial);
+  File file = FileFS.open(CONFIG_FILENAME, "r");
+  LOGERROR(F("LoadWiFiCfgFile "));
 
-  Serial.println("\nStarting ConfigOnSwichFS_MQTT_Ptr on " + String(ARDUINO_BOARD));
-
-  btn.attachClick(handleClick);
-  btn.attachDoubleClick(handleDoubleClick);
-  btn.attachLongPressStop(handleLongPressStop);
-
-  // Initialize the LED digital pin as an output.
-  pinMode(BLUE_LED, OUTPUT);
-
-  // Mount the filesystem
-  bool result = FileFS.begin();
-
-  #if USE_LITTLEFS
-  Serial.print("\nLittleFS opened: ");
-  #else
-  Serial.print("\nSPIFFS opened: ");
-  #endif
-  
-  Serial.println(result? "OK" : "Failed");
-
-  if (!readConfigFile())
+  if (file)
   {
-    Serial.println("Failed to read configuration file, using default values");
-  }
-
-  unsigned long startedAt = millis();
-
-  //Here starts the WiFi Manager initialization
-  //Local intialization. Once its business is done, there is no need to keep it around
-  ESP_WiFiManager ESP_wifiManager("ConfigOnSwichFS");
-
-  ESP_wifiManager.setMinimumSignalQuality(-1);
-
-  // From v1.0.10 only
-  // Set config portal channel, default = 1. Use 0 => random channel from 1-13
-  ESP_wifiManager.setConfigPortalChannel(0);
-  //////
-
-  //set custom ip for portal
-  //ESP_wifiManager.setAPStaticIPConfig(IPAddress(192, 168, 100, 1), IPAddress(192, 168, 100, 1), IPAddress(255, 255, 255, 0));
-    
-#if !USE_DHCP_IP    
-  #if USE_CONFIGURABLE_DNS
-    // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
-    ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
-  #else
-    // Set static IP, Gateway, Subnetmask, Use auto DNS1 and DNS2.
-    ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask);
-  #endif 
-#endif  
-
-  // We can't use WiFi.SSID() in ESP32as it's only valid after connected.
-  // SSID and Password stored in ESP32 wifi_ap_record_t and wifi_config_t are also cleared in reboot
-  // Have to create a new function to store in EEPROM/SPIFFS for this purpose
-  Router_SSID = ESP_wifiManager.WiFi_SSID();
-  Router_Pass = ESP_wifiManager.WiFi_Pass();
-
-  //Remove this line if you do not want to see WiFi password printed
-  Serial.println("Stored: SSID = " + Router_SSID + ", Pass = " + Router_Pass);
-
-  // SSID to uppercase
-  ssid.toUpperCase();
-
-  if (Router_SSID == "")
-  {
-    Serial.println("We haven't got any access point credentials, so get them now");
-
-    digitalWrite(BLUE_LED, LED_ON); // Turn led on as we are in configuration mode.
-
-    //it starts an access point
-    //and goes into a blocking loop awaiting configuration
-    if (!ESP_wifiManager.startConfigPortal((const char *) ssid.c_str(), password))
-      Serial.println("Not connected to WiFi but continuing anyway.");
-    else
-      Serial.println("WiFi connected...yeey :)");
-  }
-
-
-  digitalWrite(BLUE_LED, LED_OFF); // Turn led off as we are not in configuration mode.
-
-#define WIFI_CONNECT_TIMEOUT        30000L
-#define WHILE_LOOP_DELAY            200L
-#define WHILE_LOOP_STEPS            (WIFI_CONNECT_TIMEOUT / ( 3 * WHILE_LOOP_DELAY ))
-
-  startedAt = millis();
-
-  while ( (WiFi.status() != WL_CONNECTED) && (millis() - startedAt < WIFI_CONNECT_TIMEOUT ) )
-  {
-    WiFi.mode(WIFI_STA);
-    WiFi.persistent (true);
-
-    // We start by connecting to a WiFi network
-    Serial.print("Connecting to ");
-    Serial.println(Router_SSID);
-
-    //WiFi.config(stationIP, gatewayIP, netMask);
-    //WiFi.config(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
-
-    WiFi.begin(Router_SSID.c_str(), Router_Pass.c_str());
-
-    int i = 0;
-    while ((!WiFi.status() || WiFi.status() >= WL_DISCONNECTED) && i++ < WHILE_LOOP_STEPS)
-    {
-      delay(WHILE_LOOP_DELAY);
-    }
-  }
-
-  Serial.print("After waiting ");
-  Serial.print((millis() - startedAt) / 1000);
-  Serial.print(" secs more in setup(), connection result is ");
-
-  if (WiFi.status() == WL_CONNECTED)
-  {
-    Serial.print("connected. Local IP: ");
-    Serial.println(WiFi.localIP());
+    file.readBytes((char *) &WM_config, sizeof(WM_config));
+    file.close();
+    LOGERROR(F("OK"));
   }
   else
-    Serial.println(ESP_wifiManager.getStatus(WiFi.status()));
+  {
+    LOGERROR(F("failed"));
+  }
 }
-
-// Loop function
-void loop()
+    
+void saveConfigData(void)
 {
-  // checking button state all the time
-  btn.tick();
+  File file = FileFS.open(CONFIG_FILENAME, "w");
+  LOGERROR(F("SaveWiFiCfgFile "));
 
-  // this is just for checking if we are connected to WiFi
-  check_status();
+  if (file)
+  {
+    file.write((uint8_t*) &WM_config, sizeof(WM_config));
+    file.close();
+    LOGERROR(F("OK"));
+  }
+  else
+  {
+    LOGERROR(F("failed"));
+  }
 }
 
+uint8_t connectMultiWiFi(void)
+{
+  // For ESP8266, this better be 3000 to enable connect the 1st time
+  #define WIFI_MULTI_CONNECT_WAITING_MS      3000L
+  
+  uint8_t status;
+
+  LOGERROR(F("ConnectMultiWiFi with :"));
+  
+  if ( (Router_SSID != "") && (Router_Pass != "") )
+  {
+    LOGERROR3(F("* Flash-stored Router_SSID = "), Router_SSID, F(", Router_Pass = "), Router_Pass );
+  }
+
+  for (uint8_t i = 0; i < NUM_WIFI_CREDENTIALS; i++)
+  {
+    // Don't permit NULL SSID and password len < MIN_AP_PASSWORD_SIZE (8)
+    if ( (String(WM_config.WiFi_Creds[i].wifi_ssid) != "") && (strlen(WM_config.WiFi_Creds[i].wifi_pw) >= MIN_AP_PASSWORD_SIZE) )
+    {
+      LOGERROR3(F("* Additional SSID = "), WM_config.WiFi_Creds[i].wifi_ssid, F(", PW = "), WM_config.WiFi_Creds[i].wifi_pw );
+    }
+  }
+  
+  LOGERROR(F("Connecting MultiWifi..."));
+
+  WiFi.mode(WIFI_STA);
+  
+  WiFi.config(stationIP, gatewayIP, netMask);
+  //WiFi.config(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
+       
+  int i = 0;
+  status = wifiMulti.run();
+  delay(WIFI_MULTI_CONNECT_WAITING_MS);
+
+  while ( ( i++ < 10 ) && ( status != WL_CONNECTED ) )
+  {
+    status = wifiMulti.run();
+
+    if ( status == WL_CONNECTED )
+      break;
+    else
+      delay(WIFI_MULTI_CONNECT_WAITING_MS);
+  }
+
+  if ( status == WL_CONNECTED )
+  {
+    LOGERROR1(F("WiFi connected after time: "), i);
+    LOGERROR3(F("SSID:"), WiFi.SSID(), F(",RSSI="), WiFi.RSSI());
+    LOGERROR3(F("Channel:"), WiFi.channel(), F(",IP address:"), WiFi.localIP() );
+  }
+  else
+    LOGERROR(F("WiFi not connected"));
+
+  return status;
+}
 
 //event handler functions for button
 static void handleClick() 
@@ -1339,20 +1595,23 @@ static void handleLongPressStop()
   newConfigData();
 }
 
-void wifi_manager() 
+void wifi_manager()
 {
   Serial.println("\nConfiguration Portal requested.");
   digitalWrite(BLUE_LED, LED_ON); // turn the LED on by making the voltage LOW to tell us we are in configuration mode.
 
   //Local intialization. Once its business is done, there is no need to keep it around
-  ESP_WiFiManager ESP_wifiManager;
+  ESP_WiFiManager ESP_wifiManager("ConfigOnSwitchFS-MQTT");
 
   //Check if there is stored WiFi router/password credentials.
   //If not found, device will remain in configuration mode until switched off via webserver.
   Serial.print("Opening Configuration Portal. ");
-  Router_SSID = ESP_wifiManager.WiFi_SSID();
   
-  if (Router_SSID != "")
+  Router_SSID = ESP_wifiManager.WiFi_SSID();
+  Router_Pass = ESP_wifiManager.WiFi_Pass();
+  
+  // From v1.1.0, Don't permit NULL password
+  if ( (Router_SSID != "") && (Router_Pass != "") )
   {
     ESP_wifiManager.setConfigPortalTimeout(120); //If no access point name has been previously entered disable timeout.
     Serial.println("Got stored Credentials. Timeout 120s");
@@ -1431,6 +1690,39 @@ void wifi_manager()
     Serial.println("Connected...yeey :)");
     Serial.print("Local IP: ");
     Serial.println(WiFi.localIP());
+  }
+
+  // Only clear then save data if CP entered and with new valid Credentials
+  // No CP => stored getSSID() = ""
+  if ( String(ESP_wifiManager.getSSID(0)) != "" && String(ESP_wifiManager.getSSID(1)) != "" )
+  {
+    // Stored  for later usage, from v1.1.0, but clear first
+    memset(&WM_config, 0, sizeof(WM_config));
+    
+    for (uint8_t i = 0; i < NUM_WIFI_CREDENTIALS; i++)
+    {
+      String tempSSID = ESP_wifiManager.getSSID(i);
+      String tempPW   = ESP_wifiManager.getPW(i);
+  
+      if (strlen(tempSSID.c_str()) < sizeof(WM_config.WiFi_Creds[i].wifi_ssid) - 1)
+        strcpy(WM_config.WiFi_Creds[i].wifi_ssid, tempSSID.c_str());
+      else
+        strncpy(WM_config.WiFi_Creds[i].wifi_ssid, tempSSID.c_str(), sizeof(WM_config.WiFi_Creds[i].wifi_ssid) - 1);
+  
+      if (strlen(tempPW.c_str()) < sizeof(WM_config.WiFi_Creds[i].wifi_pw) - 1)
+        strcpy(WM_config.WiFi_Creds[i].wifi_pw, tempPW.c_str());
+      else
+        strncpy(WM_config.WiFi_Creds[i].wifi_pw, tempPW.c_str(), sizeof(WM_config.WiFi_Creds[i].wifi_pw) - 1);  
+  
+      // Don't permit NULL SSID and password len < MIN_AP_PASSWORD_SIZE (8)
+      if ( (String(WM_config.WiFi_Creds[i].wifi_ssid) != "") && (strlen(WM_config.WiFi_Creds[i].wifi_pw) >= MIN_AP_PASSWORD_SIZE) )
+      {
+        LOGERROR3(F("* Add SSID = "), WM_config.WiFi_Creds[i].wifi_ssid, F(", PW = "), WM_config.WiFi_Creds[i].wifi_pw );
+        wifiMulti.addAP(WM_config.WiFi_Creds[i].wifi_ssid, WM_config.WiFi_Creds[i].wifi_pw);
+      }
+    }
+  
+    saveConfigData();
   }
 
   // Getting posted form values and overriding local variables parameters
@@ -1621,6 +1913,231 @@ void MQTT_connect()
   Serial.println("WiFi MQTT connection successful!");
 }
 
+// Setup function
+void setup()
+{
+  // Put your setup code here, to run once
+  Serial.begin(115200);
+  while (!Serial);
+
+  Serial.print("\nStarting ConfigOnSwichFS_MQTT_Ptr using " + String(FS_Name));
+  Serial.println(" on " + String(ARDUINO_BOARD));
+
+  btn.attachClick(handleClick);
+  btn.attachDoubleClick(handleDoubleClick);
+  btn.attachLongPressStop(handleLongPressStop);
+
+  // Initialize the LED digital pin as an output.
+  pinMode(BLUE_LED, OUTPUT);
+
+  // Mount the filesystem
+  if (FORMAT_FILESYSTEM)
+  {
+    Serial.println(F("Forced Formatting."));
+    FileFS.format();
+  }
+
+  // Format FileFS if not yet
+#ifdef ESP32
+  if (!FileFS.begin(true))
+#else
+  if (!FileFS.begin())
+#endif  
+  {
+    Serial.print(FS_Name);
+    Serial.println(F(" failed! AutoFormatting."));
+    
+#ifdef ESP8266
+    FileFS.format();
+#endif
+  }
+
+  if (!readConfigFile())
+  {
+    Serial.println("Failed to read configuration file, using default values");
+  }
+
+  unsigned long startedAt = millis();
+
+  //Here starts the WiFi Manager initialization
+  //Local intialization. Once its business is done, there is no need to keep it around
+  ESP_WiFiManager ESP_wifiManager("ConfigOnSwichFS-MQTT");
+
+  ESP_wifiManager.setDebugOutput(true);
+
+  // Use only to erase stored WiFi Credentials
+  //resetSettings();
+  //ESP_wifiManager.resetSettings();
+
+  //set custom ip for portal
+  //ESP_wifiManager.setAPStaticIPConfig(IPAddress(192, 168, 100, 1), IPAddress(192, 168, 100, 1), IPAddress(255, 255, 255, 0));
+
+  ESP_wifiManager.setMinimumSignalQuality(-1);
+
+  // From v1.0.10 only
+  // Set config portal channel, default = 1. Use 0 => random channel from 1-13
+  ESP_wifiManager.setConfigPortalChannel(0);
+  //////
+
+  //set custom ip for portal
+  //ESP_wifiManager.setAPStaticIPConfig(IPAddress(192, 168, 100, 1), IPAddress(192, 168, 100, 1), IPAddress(255, 255, 255, 0));
+    
+#if !USE_DHCP_IP    
+  #if USE_CONFIGURABLE_DNS
+    // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
+    ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
+  #else
+    // Set static IP, Gateway, Subnetmask, Use auto DNS1 and DNS2.
+    ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask);
+  #endif 
+#endif  
+
+  // We can't use WiFi.SSID() in ESP32as it's only valid after connected.
+  // SSID and Password stored in ESP32 wifi_ap_record_t and wifi_config_t are also cleared in reboot
+  // Have to create a new function to store in EEPROM/SPIFFS for this purpose
+  Router_SSID = ESP_wifiManager.WiFi_SSID();
+  Router_Pass = ESP_wifiManager.WiFi_Pass();
+
+  //Remove this line if you do not want to see WiFi password printed
+  Serial.println("Stored: SSID = " + Router_SSID + ", Pass = " + Router_Pass);
+
+  // SSID to uppercase
+  ssid.toUpperCase();
+
+  if (Router_SSID == "")
+  {
+    Serial.println("We haven't got any access point credentials, so get them now");
+
+    digitalWrite(BLUE_LED, LED_ON); // Turn led on as we are in configuration mode.
+
+    //it starts an access point
+    //and goes into a blocking loop awaiting configuration
+    if (!ESP_wifiManager.startConfigPortal((const char *) ssid.c_str(), password))
+      Serial.println("Not connected to WiFi but continuing anyway.");
+    else
+      Serial.println("WiFi connected...yeey :)");
+  }
+
+  // From v1.1.0, Don't permit NULL password
+  if ( (Router_SSID != "") && (Router_Pass != "") )
+  {
+    LOGERROR3(F("* Add SSID = "), Router_SSID, F(", PW = "), Router_Pass);
+    wifiMulti.addAP(Router_SSID.c_str(), Router_Pass.c_str());
+    
+    ESP_wifiManager.setConfigPortalTimeout(120); //If no access point name has been previously entered disable timeout.
+    Serial.println("Got stored Credentials. Timeout 120s for Config Portal");
+  }
+  else
+  {
+    Serial.println("Open Config Portal without Timeout: No stored Credentials.");
+    
+    initialConfig = true;
+  }
+
+  if (initialConfig)
+  {
+    Serial.println("Starting configuration portal.");
+    digitalWrite(BLUE_LED, LED_ON); // Turn led on as we are in configuration mode.
+
+    //sets timeout in seconds until configuration portal gets turned off.
+    //If not specified device will remain in configuration mode until
+    //switched off via webserver or device is restarted.
+    //ESP_wifiManager.setConfigPortalTimeout(600);
+
+    // Starts an access point
+    if (!ESP_wifiManager.startConfigPortal((const char *) ssid.c_str(), password))
+      Serial.println("Not connected to WiFi but continuing anyway.");
+    else
+    {
+      Serial.println("WiFi connected...yeey :)");
+    }
+
+    // Stored  for later usage, from v1.1.0, but clear first
+    memset(&WM_config, 0, sizeof(WM_config));
+    
+    for (uint8_t i = 0; i < NUM_WIFI_CREDENTIALS; i++)
+    {
+      String tempSSID = ESP_wifiManager.getSSID(i);
+      String tempPW   = ESP_wifiManager.getPW(i);
+  
+      if (strlen(tempSSID.c_str()) < sizeof(WM_config.WiFi_Creds[i].wifi_ssid) - 1)
+        strcpy(WM_config.WiFi_Creds[i].wifi_ssid, tempSSID.c_str());
+      else
+        strncpy(WM_config.WiFi_Creds[i].wifi_ssid, tempSSID.c_str(), sizeof(WM_config.WiFi_Creds[i].wifi_ssid) - 1);
+
+      if (strlen(tempPW.c_str()) < sizeof(WM_config.WiFi_Creds[i].wifi_pw) - 1)
+        strcpy(WM_config.WiFi_Creds[i].wifi_pw, tempPW.c_str());
+      else
+        strncpy(WM_config.WiFi_Creds[i].wifi_pw, tempPW.c_str(), sizeof(WM_config.WiFi_Creds[i].wifi_pw) - 1);  
+
+      // Don't permit NULL SSID and password len < MIN_AP_PASSWORD_SIZE (8)
+      if ( (String(WM_config.WiFi_Creds[i].wifi_ssid) != "") && (strlen(WM_config.WiFi_Creds[i].wifi_pw) >= MIN_AP_PASSWORD_SIZE) )
+      {
+        LOGERROR3(F("* Add SSID = "), WM_config.WiFi_Creds[i].wifi_ssid, F(", PW = "), WM_config.WiFi_Creds[i].wifi_pw );
+        wifiMulti.addAP(WM_config.WiFi_Creds[i].wifi_ssid, WM_config.WiFi_Creds[i].wifi_pw);
+      }
+    }
+
+    saveConfigData();
+  }
+
+  digitalWrite(BLUE_LED, LED_OFF); // Turn led off as we are not in configuration mode.
+
+  startedAt = millis();
+
+  if (!initialConfig)
+  {
+    // Load stored data, the addAP ready for MultiWiFi reconnection
+    loadConfigData();
+
+    for (uint8_t i = 0; i < NUM_WIFI_CREDENTIALS; i++)
+    {
+      // Don't permit NULL SSID and password len < MIN_AP_PASSWORD_SIZE (8)
+      if ( (String(WM_config.WiFi_Creds[i].wifi_ssid) != "") && (strlen(WM_config.WiFi_Creds[i].wifi_pw) >= MIN_AP_PASSWORD_SIZE) )
+      {
+        LOGERROR3(F("* Add SSID = "), WM_config.WiFi_Creds[i].wifi_ssid, F(", PW = "), WM_config.WiFi_Creds[i].wifi_pw );
+        wifiMulti.addAP(WM_config.WiFi_Creds[i].wifi_ssid, WM_config.WiFi_Creds[i].wifi_pw);
+      }
+    }
+
+    if ( WiFi.status() != WL_CONNECTED ) 
+    {
+      Serial.println("ConnectMultiWiFi in setup");
+     
+      connectMultiWiFi();
+    }
+  }
+
+  Serial.print("After waiting ");
+  Serial.print((millis() - startedAt) / 1000);
+  Serial.print(" secs more in setup(), connection result is ");
+
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    Serial.print("connected. Local IP: ");
+    Serial.println(WiFi.localIP());
+  }
+  else
+    Serial.println(ESP_wifiManager.getStatus(WiFi.status()));
+}
+
+// Loop function
+void loop()
+{
+  // checking button state all the time
+  btn.tick();
+
+  // Configuration portal not requested, so run normal loop
+  if ( (WiFi.status() != WL_CONNECTED) )
+  {
+    Serial.println("\nWiFi lost. Call connectMultiWiFi in loop");
+    connectMultiWiFi();
+  }
+
+  // this is just for checking if we are connected to WiFi
+  check_status();
+}
+
 ```
 
 ---
@@ -1630,16 +2147,33 @@ void MQTT_connect()
 1. This is terminal debug output when running [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr) on  ***ESP8266 NodeMCU 1.0.***. Config Portal was requested to input and save MQTT Credentials. The boards then connected to Adafruit MQTT Server successfully.
 
 ```
-Starting ConfigOnSwichFS_MQTT_Ptr on ESP8266_NODEMCU
-
-LittleFS opened: OK
-{"AIO_SERVER_Label":"","AIO_SERVERPORT_Label":0,"AIO_USERNAME_Label":"","AIO_KEY_Label":""}
-Config file was successfully parsed
-[WM] RFC925 Hostname = ConfigOnSwichFS
+Starting ConfigOnSwichFS_MQTT_Ptr using LittleFS on ESP8266_NODEMCU
+Configuration file not found
+Failed to read configuration file, using default values
+[WM] RFC925 Hostname = ConfigOnSwichFS-MQTT
 [WM] setSTAStaticIPConfig for USE_CONFIGURABLE_DNS
-Stored: SSID = HueNet1, Pass = password
-Connecting to HueNet1
-After waiting 6 secs more in setup(), connection result is connected. Local IP: 192.168.2.178
+Stored: SSID = HueNet, Pass = 12345678
+[WM] * Add SSID =  HueNet , PW =  12345678
+Got stored Credentials. Timeout 120s for Config Portal
+Starting configuration portal.
+[WM] WiFi.waitForConnectResult Done
+[WM] SET AP_STA
+[WM] Configuring AP SSID = ESP_119055
+[WM] AP PWD = your_password
+[WM] AP Channel = 3
+[WM] AP IP address = 192.168.4.1
+[WM] HTTP server started
+[WM] ESP_WiFiManager::startConfigPortal : Enter loop
+[WM] Custom STA IP/GW/Subnet
+[WM] DNS1 and DNS2 set
+[WM] setWifiStaticIP IP = 192.168.2.186
+[WM] Connected after waiting (s) : 0.12
+[WM] Local ip = 192.168.2.186
+[WM] Timed out connection result: WL_CONNECTED
+WiFi connected...yeey :)
+[WM] SaveWiFiCfgFile 
+[WM] OK
+After waiting 0 secs more in setup(), connection result is connected. Local IP: 192.168.2.186
 [WM] freeing allocated params!
 
 Creating new WiFi client object OK
@@ -1658,11 +2192,19 @@ Connection failed
 Another attemtpt to connect to MQTT in 2 seconds...
 WiFi MQTT connection failed. Continuing with program...
 FW
-
-Button clicked!
+...
+FWConnecting to WiFi MQTT (3 attempts)...
+Connection failed
+Another attemtpt to connect to MQTT in 2 seconds...
+Connection failed
+Another attemtpt to connect to MQTT in 2 seconds...
+Connection failed
+Another attemtpt to connect to MQTT in 2 seconds...
+WiFi MQTT connection failed. Continuing with program...
+FWButton clicked!
 
 Configuration Portal requested.
-[WM] RFC925 Hostname = ESP8266-1C0A56
+[WM] RFC925 Hostname = ConfigOnSwitchFS-MQTT
 Opening Configuration Portal. Got stored Credentials. Timeout 120s
 [WM] Adding parameter 
 [WM] Adding parameter AIO_SERVER_Label
@@ -1672,36 +2214,36 @@ Opening Configuration Portal. Got stored Credentials. Timeout 120s
 [WM] setSTAStaticIPConfig for USE_CONFIGURABLE_DNS
 [WM] WiFi.waitForConnectResult Done
 [WM] SET AP_STA
-[WM] 
-Configuring AP SSID = ESP_1C0A56
+[WM] Configuring AP SSID = ESP_119055
 [WM] AP PWD = your_password
-[WM] AP Channel = 1
+[WM] AP Channel = 6
 [WM] AP IP address = 192.168.4.1
 [WM] HTTP server started
 [WM] ESP_WiFiManager::startConfigPortal : Enter loop
 [WM] Connecting to new AP
-[WM] Custom STA IP/GW/Subnet
-[WM] DNS1 and DNS2 set
-[WM] setWifiStaticIP IP = 192.168.2.186
 [WM] Already connected. Bailing out.
 Connected...yeey :)
 Local IP: 192.168.2.186
+[WM] * Add SSID =  HueNet1 , PW =  12345678
+[WM] * Add SSID =  HueNet2 , PW =  12345678
+[WM] SaveWiFiCfgFile 
+[WM] OK
 Saving config file
 {
   "AIO_SERVER_Label": "io.adafruit.com",
   "AIO_SERVERPORT_Label": 1883,
-  "AIO_USERNAME_Label": "AIO_User",
-  "AIO_KEY_Label": "key"
+  "AIO_USERNAME_Label": "account",
+  "AIO_KEY_Label": "aio_key"
 }
 Config file was successfully saved
 Deleting old MQTT object
 Deleting old Temperature object
 Creating new MQTT object OK
 AIO_SERVER = io.adafruit.com, AIO_SERVERPORT = 1883
-AIO_USERNAME = AIO_User, AIO_KEY = key
-Creating new MQTT_Pub_Topic,  Temperature = AIO_User/feeds/Temperature
+AIO_USERNAME = account, AIO_KEY = aio_key
+Creating new MQTT_Pub_Topic,  Temperature = account/feeds/Temperature
 Creating new Temperature object OK
-Temperature MQTT_Pub_Topic = AIO_User/feeds/Temperature
+Temperature MQTT_Pub_Topic = account/feeds/Temperature
 [WM] freeing allocated params!
 Connecting to WiFi MQTT (3 attempts)...
 WiFi MQTT connection successful!
@@ -1709,41 +2251,61 @@ TWTWTWTWTWTW
 ```
 ---
 
-2. This is terminal debug output when running [ConfigOnDoubleReset](examples/ConfigOnDoubleReset)  on  ***ESP32 ESP32_DEV.***. Config Portal was requested by DRD to input and save Credentials. The boards then connected to WiFi using new Static IP successfully.
+2. This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD)  on  ***ESP32 ESP32_DEV.***. Config Portal was requested by DRD to input and save Credentials. The boards then connected to WiFi AP **HueNet1** using new Static IP successfully. WiFi AP **HueNet1** is then lost, and board **autoreconnects** itself to backup WiFi AP **HueNet2**.
 
 ```cpp
-Starting ConfigOnDoubleReset on ESP32_DEV
-[WM] RFC925 Hostname = ConfigOnDoubleReset
+Starting ESP32_FSWebServer_DRD with DoubleResetDetect using SPIFFS on ESP32_DEV
+FS File: /ConfigSW.json, size: 150B
+FS File: /CanadaFlag_1.png, size: 40.25KB
+FS File: /CanadaFlag_2.png, size: 8.12KB
+FS File: /CanadaFlag_3.jpg, size: 10.89KB
+FS File: /edit.htm.gz, size: 4.02KB
+FS File: /favicon.ico, size: 1.12KB
+FS File: /graphs.js.gz, size: 1.92KB
+FS File: /index.htm, size: 3.63KB
+FS File: /drd.dat, size: 4B
+FS File: /wifi_cred.dat, size: 192B
+
+[WM] RFC925 Hostname = ESP32-FSWebServerDRD
+[WM] setAPStaticIPConfig
 [WM] setSTAStaticIPConfig for USE_CONFIGURABLE_DNS
-Stored: SSID = HueNet1, Pass = password
-Got stored Credentials. Timeout 120s
-SPIFFS Flag read = 0xd0d01234
-doubleResetDetected
+Stored: SSID = HueNet2, Pass = 12345678
+[WM] * Add SSID =  HueNet2 , PW =  12345678
+Got stored Credentials. Timeout 120s for Config Portal
+SPIFFS Flag read = 0xd0d04321
+No doubleResetDetected
 Saving config file...
 Saving config file OK
-Open Config Portal without Timeout: Double Reset Detected
-Starting configuration portal.
-[WM] WiFi.waitForConnectResult Done
-[WM] SET AP
-[WM] 
-Configuring AP SSID = ESP_9ABF498
-[WM] AP PWD = your_password
-[WM] AP Channel = 11
-[WM] AP IP address = 192.168.4.1
-[WM] HTTP server started
-[WM] ESP_WiFiManager::startConfigPortal : Enter loop
-[WM] Connecting to new AP
-[WM] Previous settings invalidated
-[WM] Custom STA IP/GW/Subnet
-[WM] DNS1 and DNS2 set
-[WM] setWifiStaticIP IP = 192.168.2.222
-[WM] Connect to new WiFi using new IP parameters
-[WM] Connected after waiting (s) : 0.60
-[WM] Local ip = 192.168.2.222
-[WM] Connection result:  WL_CONNECTED
-WiFi connected...yeey :)
-After waiting 0 secs more in setup(), connection result is connected. Local IP: 192.168.2.222
+[WM] LoadWiFiCfgFile 
+[WM] OK
+[WM] * Add SSID =  HueNet1 , PW =  12345678
+[WM] * Add SSID =  HueNet2 , PW =  12345678
+ConnectMultiWiFi in setup
+[WM] ConnectMultiWiFi with :
+[WM] * Flash-stored Router_SSID =  HueNet2 , Router_Pass =  12345678
+[WM] * Additional SSID =  HueNet1 , PW =  12345678
+[WM] * Additional SSID =  HueNet2 , PW =  12345678
+[WM] Connecting MultiWifi...
+[WM] WiFi connected after time:  1
+[WM] SSID: HueNet1 ,RSSI= -27
+[WM] Channel: 2 ,IP address: 192.168.2.232
+After waiting 5 secs more in setup(), connection result is connected. Local IP: 192.168.2.232
+HTTP server started @ 192.168.2.232
+Open http://esp32-fs-browser.local/edit to see the file browser
 [WM] freeing allocated params!
+Stop doubleResetDetecting
+Saving config file...
+Saving config file OK
+
+WiFi lost. Call connectMultiWiFi in loop
+[WM] ConnectMultiWiFi with :
+[WM] * Flash-stored Router_SSID =  HueNet2 , Router_Pass =  12345678
+[WM] * Additional SSID =  HueNet1 , PW =  12345678
+[WM] * Additional SSID =  HueNet2 , PW =  12345678
+[WM] Connecting MultiWifi...
+[WM] WiFi connected after time:  3
+[WM] SSID: HueNet2 ,RSSI= -59
+[WM] Channel: 4 ,IP address: 192.168.2.232
 HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH
 ```
 
@@ -1782,15 +2344,22 @@ Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiF
 ---
 ---
 
-### Releases 1.0.11
+### Major Releases v1.1.0
+
+1. Add **MultiWiFi feature to auto(Re)connect to the best WiFi at runtime**
+2. Fix bug.
+3. Completely enhanced examples to use new MultiWiFi feature.
+
+#### Releases v1.0.11
 
 1. Add optional **CORS (Cross-Origin Resource Sharing)** feature. Thanks to [AlesSt](https://github.com/AlesSt). See more in [Issue #27: CORS protection fires up with AJAX](https://github.com/khoih-prog/ESP_WiFiManager/issues/27) and [Cross Origin Resource Sharing](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing). To use, you must explicitly use `#define USING_CORS_FEATURE true`
 2. Solve issue softAP with custom IP sometimes not working. Thanks to [AlesSt](https://github.com/AlesSt). See [Issue #26: softAP with custom IP not working](https://github.com/khoih-prog/ESP_WiFiManager/issues/26) and [Wifi.softAPConfig() sometimes set the wrong IP address](https://github.com/espressif/arduino-esp32/issues/985).
 3. Temporary fix for issue of not clearing WiFi SSID/PW from flash of ESP32. Thanks to [AlesSt](https://github.com/AlesSt). See more in [Issue #25: API call /r doesnt clear credentials](https://github.com/khoih-prog/ESP_WiFiManager/issues/25) and [WiFi.disconnect(true) problem](https://github.com/espressif/arduino-esp32/issues/400).
-4. Fix autoConnect() feature to permit autoConnect() to use STA static IP or DHCP IP. Remove from deprecated functi0n list.
+4. Fix autoConnect() feature to permit autoConnect() to use STA static IP or DHCP IP. Remove from deprecated function list.
 5. Enhance README.md with more instructions and illustrations.
 
-#### Releases 1.0.10
+
+#### Releases v1.0.10
 
 1. Don't need to reinput already working SSID in Config Port to update other parameters, such as StaticIP.
 2. Disable/Enable StaticIP configuration in Config Portal from sketch. Valid only if DHCP is used.
@@ -1799,20 +2368,20 @@ Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiF
 5. Enhance Config Portal GUI and get the item out of the bucket list.
 6. Enhance README.md with more instructions and illustrations.
 
-#### Releases 1.0.9
+#### Releases v1.0.9
 
 1. Fix ESP32 STAstaticIP bug. 
 2. Enable changing from DHCP <-> static IP using Config Portal.
 3. Enable NTP configuration from sketch (USE_ESP_WIFIMANAGER_NTP, USE_CLOUDFLARE_NTP). See Issue #21: [CloudFlare link in the default portal](https://github.com/khoih-prog/ESP_WiFiManager/issues/21).
 4. Add, enhance examples (fix MDNS for ESP32 examples, add DRD feature).
 
-#### Releases 1.0.8
+#### Releases v1.0.8
 
 1. Fix setSTAStaticIPConfig issue. See [Static Station IP doesn't work](https://github.com/khoih-prog/ESP_WiFiManager/issues/17)
 2. Add LittleFS support for ESP8266 core 2.7.1+ in examples to replace deprecated SPIFFS.
 3. Restructure code.
 
-#### Releases 1.0.7
+#### Releases v1.0.7
 
 1. Use `just-in-time` scanWiFiNetworks() to reduce connection time necessary for battery-operated DeepSleep application. Thanks to [CrispinP](https://github.com/CrispinP) for identifying, requesting and testing. See [Starting WiFIManger is very slow (2000ms)](https://github.com/khoih-prog/ESP_WiFiManager/issues/6)
 2. Fix bug relating SPIFFS in examples :
@@ -1820,35 +2389,35 @@ Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiF
  - [ConfigPortalParamsOnSwitch](examples/ConfigPortalParamsOnSwitch)  (now support ArduinoJson 6.0.0+ as well as 5.13.5-)
  - [AutoConnectWithFSParameters](examples/AutoConnectWithFSParameters)
  See [Having issue to read the SPIFF file](https://github.com/khoih-prog/ESP_WiFiManager/issues/14), Thanks to [OttoKlaasen](https://github.com/OttoKlaasen) to report.
- 3. Fix [README](README.md). See [Accessing manager after connection](https://github.com/khoih-prog/ESP_WiFiManager/issues/15)
- 
-#### Releases 1.0.6
+3. Fix [README](README.md). See [Accessing manager after connection](https://github.com/khoih-prog/ESP_WiFiManager/issues/15) 
+
+#### Releases v1.0.6
 
 - Add function getConfigPortalPW()
 - Add 4 new complicated examples compatible with ArduinoJson 6.0.0+ :[AutoConnect](examples/AutoConnect), [AutoConnectWithFeedback](examples/AutoConnectWithFeedback), [AutoConnectWithFeedbackLED](examples/AutoConnectWithFeedbackLED) and [AutoConnectWithFSParameters](examples/AutoConnectWithFSParameters)
 
-#### Releases 1.0.6-beta
+#### Releases v1.0.6-beta
 
 - Add NTP data
 - Add support to ArduinoJson 6.0.0+ as well as 5.13.5- to examples
 
-#### Releases 1.0.5
+#### Releases v1.0.5
 
 - Add option to specify static DNS servers, besides static IP, Gateway and Subnet Mask
 - Modify and add examples. Enhance README.md
 
-#### Releases 1.0.4
+#### Releases v1.0.4
 
 - Add ESP_WiFiManager setHostname feature
 - Modify and add examples. Enhance README.md
 
-### Releases 1.0.3
+### Releases v1.0.3
 
 - Add option not displaying AvailablePages in Info page.
 - Delete unnecessary files
 - Modify examples, Images and enhance README.md
 
-#### Releases 1.0.2
+#### Releases v1.0.2
 
 - Based on, modified, bug-fixed and improved from these versions of WiFiManager.
 
@@ -1893,6 +2462,8 @@ See [KenTaylor's version](https://github.com/kentaylor/WiFiManager) for previous
     <td align="center"><a href="https://github.com/05prateek"><img src="https://github.com/05prateek.png" width="100px;" alt="05prateek"/><br /><sub><b>05prateek</b></sub></a><br /></td>
   </tr> 
 </table>
+
+---
 
 ### Contributing
 
