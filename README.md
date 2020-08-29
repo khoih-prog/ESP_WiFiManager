@@ -782,6 +782,10 @@ Select `Configuration` to enter this page where you can select an AP and specify
 
 Enter your credentials, then click ***Save***. The WiFi Credentials will be saved and the board reboots to connect to the selected WiFi AP.
 
+<p align="center">
+    <img src="https://github.com/khoih-prog/ESP_WiFiManager/blob/master/Images/Saved.png">
+</p>
+
 If you're already connected to a listed WiFi AP and don't want to change anything, just select ***Exit Portal*** from the `Main` page to reboot the board and connect to the previously-stored AP. The WiFi Credentials are still intact.
 
 ---
@@ -856,9 +860,9 @@ void loop()
     //ESP_wifiManager.setAPStaticIPConfig(IPAddress(192, 168, 100, 1), IPAddress(192, 168, 100, 1), IPAddress(255, 255, 255, 0));
 
 #if !USE_DHCP_IP    
-  #if USE_CONFIGURABLE_DNS  
+  #if USE_CONFIGURABLE_DNS
     // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
-    ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);  
+    ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
   #else
     // Set static IP, Gateway, Subnetmask, Use auto DNS1 and DNS2.
     ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask);
