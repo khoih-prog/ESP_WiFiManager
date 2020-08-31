@@ -37,6 +37,12 @@ Thanks to [cancodr](https://github.com/cancodr) for requesting an enhancement in
 ---
 ---
 
+### Releases v1.1.1
+
+1. Add setCORSHeader function to allow **configurable CORS Header**. See [Using CORS feature](https://github.com/khoih-prog/ESP_WiFiManager#15-using-cors-cross-origin-resource-sharing-feature)
+2. Fix typo and minor improvement.
+3. Shorten MultiWiFi connection time.
+
 ### Major Releases v1.1.0
 
 1. Add **MultiWiFi feature to auto(Re)connect to the best WiFi at runtime**
@@ -202,12 +208,12 @@ then connect WebBrowser to configurable ConfigPortal IP address, default is 192.
   
   #if USE_LITTLEFS
     #include <LittleFS.h>
-    FS* filesystem = &LittleFS;
-    #define FileFS    LittleFS
+    FS* filesystem =      &LittleFS;
+    #define FileFS        LittleFS
     #define FS_Name       "LittleFS"
   #else
-    FS* filesystem = &SPIFFS;
-    #define FileFS    SPIFFS
+    FS* filesystem =      &SPIFFS;
+    #define FileFS        SPIFFS
     #define FS_Name       "SPIFFS"
   #endif
   //////
@@ -463,14 +469,14 @@ IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
 
 // Use USE_DHCP_IP == true for dynamic DHCP IP, false to use static IP which you have to change accordingly to your network
 #if (defined(USE_STATIC_IP_CONFIG_IN_CP) && !USE_STATIC_IP_CONFIG_IN_CP)
-// Force DHCP to be true
-#if defined(USE_DHCP_IP)
-#undef USE_DHCP_IP
-#endif
-#define USE_DHCP_IP     true
+  // Force DHCP to be true
+  #if defined(USE_DHCP_IP)
+    #undef USE_DHCP_IP
+  #endif
+  #define USE_DHCP_IP     true
 #else
-// You can select DHCP or Static IP here
-#define USE_DHCP_IP     true
+  // You can select DHCP or Static IP here
+  #define USE_DHCP_IP     true
 #endif
 
 ```
@@ -487,14 +493,14 @@ IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
 
 // Use USE_DHCP_IP == true for dynamic DHCP IP, false to use static IP which you have to change accordingly to your network
 #if (defined(USE_STATIC_IP_CONFIG_IN_CP) && !USE_STATIC_IP_CONFIG_IN_CP)
-// Force DHCP to be true
-#if defined(USE_DHCP_IP)
-#undef USE_DHCP_IP
-#endif
-#define USE_DHCP_IP     true
+  // Force DHCP to be true
+  #if defined(USE_DHCP_IP)
+    #undef USE_DHCP_IP
+  #endif
+  #define USE_DHCP_IP     true
 #else
-// You can select DHCP or Static IP here
-#define USE_DHCP_IP     false
+  // You can select DHCP or Static IP here
+  #define USE_DHCP_IP     false
 #endif
 
 ```
@@ -511,14 +517,14 @@ IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
 
 // Use USE_DHCP_IP == true for dynamic DHCP IP, false to use static IP which you have to change accordingly to your network
 #if (defined(USE_STATIC_IP_CONFIG_IN_CP) && !USE_STATIC_IP_CONFIG_IN_CP)
-// Force DHCP to be true
-#if defined(USE_DHCP_IP)
-#undef USE_DHCP_IP
-#endif
-#define USE_DHCP_IP     true
+  // Force DHCP to be true
+  #if defined(USE_DHCP_IP)
+    #undef USE_DHCP_IP
+  #endif
+  #define USE_DHCP_IP     true
 #else
-// You can select DHCP or Static IP here
-#define USE_DHCP_IP     false
+  // You can select DHCP or Static IP here
+  #define USE_DHCP_IP     false
 #endif
 
 #define USE_CONFIGURABLE_DNS      true
@@ -540,14 +546,14 @@ IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
 
 // Use USE_DHCP_IP == true for dynamic DHCP IP, false to use static IP which you have to change accordingly to your network
 #if (defined(USE_STATIC_IP_CONFIG_IN_CP) && !USE_STATIC_IP_CONFIG_IN_CP)
-// Force DHCP to be true
-#if defined(USE_DHCP_IP)
-#undef USE_DHCP_IP
-#endif
-#define USE_DHCP_IP     true
+  // Force DHCP to be true
+  #if defined(USE_DHCP_IP)
+    #undef USE_DHCP_IP
+  #endif
+  #define USE_DHCP_IP     true
 #else
-// You can select DHCP or Static IP here
-#define USE_DHCP_IP     false
+  // You can select DHCP or Static IP here
+  #define USE_DHCP_IP     false
 #endif
 
 #define USE_CONFIGURABLE_DNS      false
@@ -649,14 +655,28 @@ ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2
 
 #### 15. Using CORS (Cross-Origin Resource Sharing) feature
 
-1. To use CORS feature
+1. To use CORS feature with **default** CORS Header "*". Some WebBrowsers won't accept this allowing-all "*" CORS Header.
 
 ```cpp
 // Default false for using only whenever necessary to avoid security issue
 #define USING_CORS_FEATURE     true
 ```
 
-2. Not use CORS feature (default)
+2. To use CORS feature with specific CORS Header "Your Access-Control-Allow-Origin". **To be modified** according to your specific Allowed-Origin.
+
+```cpp
+// Default false for using only whenever necessary to avoid security issue
+#define USING_CORS_FEATURE     true
+
+...
+
+  // New from v1.1.1
+#if USING_CORS_FEATURE
+  ESP_wifiManager.setCORSHeader("Your Access-Control-Allow-Origin");
+#endif
+```
+
+3. Not use CORS feature (default)
 
 ```cpp
 // Default false for using only whenever necessary to avoid security issue
@@ -668,14 +688,35 @@ ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2
 1. In loop()
 
 ```cpp
-void loop()
+void check_WiFi(void)
 {
   if ( (WiFi.status() != WL_CONNECTED) )
   {
     Serial.println("\nWiFi lost. Call connectMultiWiFi in loop");
     connectMultiWiFi();
   }
+}
+
+void check_status(void)
+{
+  static ulong checkwifi_timeout    = 0;
+
+  static ulong current_millis;
+
+#define WIFICHECK_INTERVAL    1000L
+
+  current_millis = millis();
   
+  // Check WiFi every WIFICHECK_INTERVAL (1) seconds.
+  if ((current_millis > checkwifi_timeout) || (checkwifi_timeout == 0))
+  {
+    check_WiFi();
+    checkwifi_timeout = current_millis + WIFICHECK_INTERVAL;
+  }
+}
+
+void loop()
+{
   // put your main code here, to run repeatedly
   check_status();
 }
@@ -869,6 +910,11 @@ void loop()
   #endif 
 #endif       
 
+  // New from v1.1.1
+#if USING_CORS_FEATURE
+  ESP_wifiManager.setCORSHeader("Your Access-Control-Allow-Origin");
+#endif
+
     //Check if there is stored WiFi router/password credentials.
     //If not found, device will remain in configuration mode until switched off via webserver.
     Serial.print("Opening configuration portal. ");
@@ -932,12 +978,6 @@ void loop()
     }
 
     digitalWrite(PIN_LED, LED_OFF); // Turn led off as we are not in configuration mode.
-  }
-
-  if ( (WiFi.status() != WL_CONNECTED) )
-  {
-    Serial.println("\nWiFi lost. Call connectMultiWiFi in loop");
-    connectMultiWiFi();
   }
 
   // put your main code here, to run repeatedly
@@ -1409,21 +1449,50 @@ void publishMQTT(void)
     }
 }
 
-void check_status()
+void check_WiFi(void)
 {
-  static ulong checkstatus_timeout = 0;
+  if ( (WiFi.status() != WL_CONNECTED) )
+  {
+    Serial.println("\nWiFi lost. Call connectMultiWiFi in loop");
+    connectMultiWiFi();
+  }
+}
 
+void check_status(void)
+{
+  static ulong checkstatus_timeout  = 0;
+  static ulong checkwifi_timeout    = 0;
+  static ulong mqtt_publish_timeout = 0;
+  
+  ulong current_millis = millis();
+
+#define WIFICHECK_INTERVAL    1000L
 #define HEARTBEAT_INTERVAL    10000L
+#define PUBLISH_INTERVAL      60000L
+
+  // Check WiFi every WIFICHECK_INTERVAL (1) seconds.
+  if ((current_millis > checkwifi_timeout) || (checkwifi_timeout == 0))
+  {
+    check_WiFi();
+    checkwifi_timeout = current_millis + WIFICHECK_INTERVAL;
+  }
+
   // Print hearbeat every HEARTBEAT_INTERVAL (10) seconds.
-  if ((millis() > checkstatus_timeout) || (checkstatus_timeout == 0))
+  if ((current_millis > checkstatus_timeout) || (checkstatus_timeout == 0))
+  { 
+    heartBeatPrint();
+    checkstatus_timeout = current_millis + HEARTBEAT_INTERVAL;
+  }
+
+  // Check every PUBLISH_INTERVAL (60) seconds.
+  if ((current_millis > mqtt_publish_timeout) || (mqtt_publish_timeout == 0))
   {
     if (WiFi.status() == WL_CONNECTED)
     {
       publishMQTT();
     }
     
-    heartBeatPrint();
-    checkstatus_timeout = millis() + HEARTBEAT_INTERVAL;
+    mqtt_publish_timeout = current_millis + PUBLISH_INTERVAL;
   }
 }
 
@@ -1527,8 +1596,15 @@ void saveConfigData(void)
 
 uint8_t connectMultiWiFi(void)
 {
-  // For ESP8266, this better be 3000 to enable connect the 1st time
-  #define WIFI_MULTI_CONNECT_WAITING_MS      3000L
+#if ESP32
+  // For ESP32, this better be 0 to shorten the connect time
+  #define WIFI_MULTI_1ST_CONNECT_WAITING_MS       0
+#else
+  // For ESP8266, this better be 2200 to enable connect the 1st time
+  #define WIFI_MULTI_1ST_CONNECT_WAITING_MS       2200L
+#endif
+
+#define WIFI_MULTI_CONNECT_WAITING_MS           100L
   
   uint8_t status;
 
@@ -1551,13 +1627,20 @@ uint8_t connectMultiWiFi(void)
   LOGERROR(F("Connecting MultiWifi..."));
 
   WiFi.mode(WIFI_STA);
-  
-  WiFi.config(stationIP, gatewayIP, netMask);
-  //WiFi.config(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
-       
+
+#if !USE_DHCP_IP    
+  #if USE_CONFIGURABLE_DNS
+    // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
+    WiFi.config(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
+  #else
+    // Set static IP, Gateway, Subnetmask, Use auto DNS1 and DNS2.
+    WiFi.config(stationIP, gatewayIP, netMask);
+  #endif 
+#endif
+
   int i = 0;
   status = wifiMulti.run();
-  delay(WIFI_MULTI_CONNECT_WAITING_MS);
+  delay(WIFI_MULTI_1ST_CONNECT_WAITING_MS);
 
   while ( ( i++ < 10 ) && ( status != WL_CONNECTED ) )
   {
@@ -1679,6 +1762,11 @@ void wifi_manager()
     ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask);
   #endif 
 #endif  
+
+  // New from v1.1.1
+#if USING_CORS_FEATURE
+  ESP_wifiManager.setCORSHeader("Your Access-Control-Allow-Origin");
+#endif
 
   // Start an access point
   // and goes into a blocking loop awaiting configuration.
@@ -1994,9 +2082,14 @@ void setup()
     // Set static IP, Gateway, Subnetmask, Use auto DNS1 and DNS2.
     ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask);
   #endif 
-#endif  
+#endif
 
-  // We can't use WiFi.SSID() in ESP32as it's only valid after connected.
+  // New from v1.1.1
+#if USING_CORS_FEATURE
+  ESP_wifiManager.setCORSHeader("Your Access-Control-Allow-Origin");
+#endif
+
+  // We can't use WiFi.SSID() in ESP32 as it's only valid after connected.
   // SSID and Password stored in ESP32 wifi_ap_record_t and wifi_config_t are also cleared in reboot
   // Have to create a new function to store in EEPROM/SPIFFS for this purpose
   Router_SSID = ESP_wifiManager.WiFi_SSID();
@@ -2113,7 +2206,7 @@ void setup()
   }
 
   Serial.print("After waiting ");
-  Serial.print((millis() - startedAt) / 1000);
+  Serial.print((float) (millis() - startedAt) / 1000L);
   Serial.print(" secs more in setup(), connection result is ");
 
   if (WiFi.status() == WL_CONNECTED)
@@ -2130,13 +2223,6 @@ void loop()
 {
   // checking button state all the time
   btn.tick();
-
-  // Configuration portal not requested, so run normal loop
-  if ( (WiFi.status() != WL_CONNECTED) )
-  {
-    Serial.println("\nWiFi lost. Call connectMultiWiFi in loop");
-    connectMultiWiFi();
-  }
 
   // this is just for checking if we are connected to WiFi
   check_status();
@@ -2156,6 +2242,7 @@ Configuration file not found
 Failed to read configuration file, using default values
 [WM] RFC925 Hostname = ConfigOnSwichFS-MQTT
 [WM] setSTAStaticIPConfig for USE_CONFIGURABLE_DNS
+[WM] Set CORS Header to :  Your Access-Control-Allow-Origin
 Stored: SSID = HueNet, Pass = 12345678
 [WM] * Add SSID =  HueNet , PW =  12345678
 Got stored Credentials. Timeout 120s for Config Portal
@@ -2177,7 +2264,7 @@ Starting configuration portal.
 WiFi connected...yeey :)
 [WM] SaveWiFiCfgFile 
 [WM] OK
-After waiting 0 secs more in setup(), connection result is connected. Local IP: 192.168.2.186
+After waiting 0.00 secs more in setup(), connection result is connected. Local IP: 192.168.2.186
 [WM] freeing allocated params!
 
 Creating new WiFi client object OK
@@ -2216,6 +2303,7 @@ Opening Configuration Portal. Got stored Credentials. Timeout 120s
 [WM] Adding parameter AIO_USERNAME_Label
 [WM] Adding parameter AIO_KEY_Label
 [WM] setSTAStaticIPConfig for USE_CONFIGURABLE_DNS
+[WM] Set CORS Header to :  Your Access-Control-Allow-Origin
 [WM] WiFi.waitForConnectResult Done
 [WM] SET AP_STA
 [WM] Configuring AP SSID = ESP_119055
@@ -2251,7 +2339,7 @@ Temperature MQTT_Pub_Topic = account/feeds/Temperature
 [WM] freeing allocated params!
 Connecting to WiFi MQTT (3 attempts)...
 WiFi MQTT connection successful!
-TWTWTWTWTWTW
+TWWWW WTWWWW WWTWWW WWWTWW WWWWTW 
 ```
 ---
 
@@ -2273,6 +2361,7 @@ FS File: /wifi_cred.dat, size: 192B
 [WM] RFC925 Hostname = ESP32-FSWebServerDRD
 [WM] setAPStaticIPConfig
 [WM] setSTAStaticIPConfig for USE_CONFIGURABLE_DNS
+[WM] Set CORS Header to :  Your Access-Control-Allow-Origin
 Stored: SSID = HueNet2, Pass = 12345678
 [WM] * Add SSID =  HueNet2 , PW =  12345678
 Got stored Credentials. Timeout 120s for Config Portal
@@ -2293,7 +2382,7 @@ ConnectMultiWiFi in setup
 [WM] WiFi connected after time:  1
 [WM] SSID: HueNet1 ,RSSI= -27
 [WM] Channel: 2 ,IP address: 192.168.2.232
-After waiting 5 secs more in setup(), connection result is connected. Local IP: 192.168.2.232
+After waiting 3.16 secs more in setup(), connection result is connected. Local IP: 192.168.2.232
 HTTP server started @ 192.168.2.232
 Open http://esp32-fs-browser.local/edit to see the file browser
 [WM] freeing allocated params!
@@ -2347,6 +2436,12 @@ Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiF
 
 ---
 ---
+
+### Releases v1.1.1
+
+1. Add setCORSHeader function to allow **configurable CORS Header**. See [Using CORS feature](https://github.com/khoih-prog/ESP_WiFiManager#15-using-cors-cross-origin-resource-sharing-feature)
+2. Fix typo and minor improvement.
+3. Shorten MultiWiFi connection time
 
 ### Major Releases v1.1.0
 

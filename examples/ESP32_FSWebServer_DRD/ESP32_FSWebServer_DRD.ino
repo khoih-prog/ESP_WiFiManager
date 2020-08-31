@@ -27,24 +27,25 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
   
-  Version: 1.1.0
+  Version: 1.1.1
 
-  Version Modified By   Date      Comments
-  ------- -----------  ---------- -----------
-  1.0.0   K Hoang      07/10/2019 Initial coding
-  1.0.1   K Hoang      13/12/2019 Fix bug. Add features. Add support for ESP32
-  1.0.2   K Hoang      19/12/2019 Fix bug thatkeeps ConfigPortal in endless loop if Portal/Router SSID or Password is NULL.
-  1.0.3   K Hoang      05/01/2020 Option not displaying AvailablePages in Info page. Enhance README.md. Modify examples
-  1.0.4   K Hoang      07/01/2020 Add RFC952 setHostname feature.
-  1.0.5   K Hoang      15/01/2020 Add configurable DNS feature. Thanks to @Amorphous of https://community.blynk.cc
-  1.0.6   K Hoang      03/02/2020 Add support for ArduinoJson version 6.0.0+ ( tested with v6.14.1 )
-  1.0.7   K Hoang      13/04/2020 Reduce start time, fix SPIFFS bug in examples, update README.md
-  1.0.8   K Hoang      10/06/2020 Fix STAstaticIP issue. Restructure code. Add LittleFS support for ESP8266 core 2.7.1+
-  1.0.9   K Hoang      29/07/2020 Fix ESP32 STAstaticIP bug. Permit changing from DHCP <-> static IP using Config Portal.
-                                  Add, enhance examples (fix MDNS for ESP32)
-  1.0.10  K Hoang      08/08/2020 Add more features to Config Portal. Use random WiFi AP channel to avoid conflict.
-  1.0.11  K Hoang      17/08/2020 Add CORS feature. Fix bug in softAP, autoConnect, resetSettings.
-  1.1.0   K Hoang      28/08/2020 Add MultiWiFi feature to autoconnect to best WiFi at runtime
+   Version Modified By   Date      Comments
+   ------- -----------  ---------- -----------
+    1.0.0   K Hoang      07/10/2019 Initial coding
+    1.0.1   K Hoang      13/12/2019 Fix bug. Add features. Add support for ESP32
+    1.0.2   K Hoang      19/12/2019 Fix bug thatkeeps ConfigPortal in endless loop if Portal/Router SSID or Password is NULL.
+    1.0.3   K Hoang      05/01/2020 Option not displaying AvailablePages in Info page. Enhance README.md. Modify examples
+    1.0.4   K Hoang      07/01/2020 Add RFC952 setHostname feature.
+    1.0.5   K Hoang      15/01/2020 Add configurable DNS feature. Thanks to @Amorphous of https://community.blynk.cc
+    1.0.6   K Hoang      03/02/2020 Add support for ArduinoJson version 6.0.0+ ( tested with v6.14.1 )
+    1.0.7   K Hoang      13/04/2020 Reduce start time, fix SPIFFS bug in examples, update README.md
+    1.0.8   K Hoang      10/06/2020 Fix STAstaticIP issue. Restructure code. Add LittleFS support for ESP8266 core 2.7.1+
+    1.0.9   K Hoang      29/07/2020 Fix ESP32 STAstaticIP bug. Permit changing from DHCP <-> static IP using Config Portal.
+                                    Add, enhance examples (fix MDNS for ESP32)
+    1.0.10  K Hoang      08/08/2020 Add more features to Config Portal. Use random WiFi AP channel to avoid conflict.
+    1.0.11  K Hoang      17/08/2020 Add CORS feature. Fix bug in softAP, autoConnect, resetSettings.
+    1.1.0   K Hoang      28/08/2020 Add MultiWiFi feature to autoconnect to best WiFi at runtime
+    1.1.1   K Hoang      30/08/2020 Add setCORSHeader function to allow flexible CORS. Fix typo and minor improvement.
  *****************************************************************************************************************************/
 /*****************************************************************************************************************************
    How To Use:
@@ -243,6 +244,62 @@ WebServer server(HTTP_PORT);
 
 //holds the current upload
 File fsUploadFile;
+
+void heartBeatPrint(void)
+{
+  static int num = 1;
+
+  if (WiFi.status() == WL_CONNECTED)
+    Serial.print("H");        // H means connected to WiFi
+  else
+    Serial.print("F");        // F means not connected to WiFi
+
+  if (num == 80)
+  {
+    Serial.println();
+    num = 1;
+  }
+  else if (num++ % 10 == 0)
+  {
+    Serial.print(" ");
+  }
+}
+
+void check_WiFi(void)
+{
+  if ( (WiFi.status() != WL_CONNECTED) )
+  {
+    Serial.println("\nWiFi lost. Call connectMultiWiFi in loop");
+    connectMultiWiFi();
+  }
+}  
+
+void check_status(void)
+{
+  static ulong checkstatus_timeout  = 0;
+  static ulong checkwifi_timeout    = 0;
+
+  static ulong current_millis;
+
+#define WIFICHECK_INTERVAL    1000L
+#define HEARTBEAT_INTERVAL    10000L
+
+  current_millis = millis();
+  
+  // Check WiFi every WIFICHECK_INTERVAL (1) seconds.
+  if ((current_millis > checkwifi_timeout) || (checkwifi_timeout == 0))
+  {
+    check_WiFi();
+    checkwifi_timeout = current_millis + WIFICHECK_INTERVAL;
+  }
+
+  // Print hearbeat every HEARTBEAT_INTERVAL (10) seconds.
+  if ((current_millis > checkstatus_timeout) || (checkstatus_timeout == 0))
+  {
+    heartBeatPrint();
+    checkstatus_timeout = current_millis + HEARTBEAT_INTERVAL;
+  }
+}
 
 //format bytes
 String formatBytes(size_t bytes) 
@@ -526,8 +583,15 @@ void saveConfigData(void)
 
 uint8_t connectMultiWiFi(void)
 {
-  // For ESP32, this better be 2000 to enable connect the 1st time
-  #define WIFI_MULTI_CONNECT_WAITING_MS      2000L
+#if ESP32
+  // For ESP32, this better be 0 to shorten the connect time
+  #define WIFI_MULTI_1ST_CONNECT_WAITING_MS       0
+#else
+  // For ESP8266, this better be 2200 to enable connect the 1st time
+  #define WIFI_MULTI_1ST_CONNECT_WAITING_MS       2200L
+#endif
+
+#define WIFI_MULTI_CONNECT_WAITING_MS           100L
   
   uint8_t status;
 
@@ -550,13 +614,20 @@ uint8_t connectMultiWiFi(void)
   LOGERROR(F("Connecting MultiWifi..."));
 
   WiFi.mode(WIFI_STA);
-  
-  WiFi.config(stationIP, gatewayIP, netMask);
-  //WiFi.config(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
-       
+
+#if !USE_DHCP_IP    
+  #if USE_CONFIGURABLE_DNS  
+    // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
+    WiFi.config(stationIP, gatewayIP, netMask, dns1IP, dns2IP);  
+  #else
+    // Set static IP, Gateway, Subnetmask, Use auto DNS1 and DNS2.
+    WiFi.config(stationIP, gatewayIP, netMask);
+  #endif 
+#endif
+
   int i = 0;
   status = wifiMulti.run();
-  delay(WIFI_MULTI_CONNECT_WAITING_MS);
+  delay(WIFI_MULTI_1ST_CONNECT_WAITING_MS);
 
   while ( ( i++ < 10 ) && ( status != WL_CONNECTED ) )
   {
@@ -641,7 +712,12 @@ void setup(void)
     // Set static IP, Gateway, Subnetmask, Use auto DNS1 and DNS2.
     ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask);
   #endif 
-#endif  
+#endif
+
+  // New from v1.1.1
+#if USING_CORS_FEATURE
+  ESP_wifiManager.setCORSHeader("Your Access-Control-Allow-Origin");
+#endif
 
   // We can't use WiFi.SSID() in ESP32as it's only valid after connected.
   // SSID and Password stored in ESP32 wifi_ap_record_t and wifi_config_t are also cleared in reboot
@@ -744,7 +820,7 @@ void setup(void)
   }
 
   DBG_OUTPUT_PORT.print("After waiting ");
-  DBG_OUTPUT_PORT.print((millis() - startedAt) / 1000);
+  DBG_OUTPUT_PORT.print((float) (millis() - startedAt) / 1000L);
   DBG_OUTPUT_PORT.print(" secs more in setup(), connection result is ");
 
   if (WiFi.status() == WL_CONNECTED)
@@ -825,11 +901,8 @@ void loop(void)
   // consider the next reset as a double reset.
   drd->loop();
 
-  if ( (WiFi.status() != WL_CONNECTED) )
-  {
-    DBG_OUTPUT_PORT.println("\nWiFi lost. Call connectMultiWiFi in loop");
-    connectMultiWiFi();
-  }
+  // this is just for checking if we are alive and connected to WiFi
+  check_status();
   
   server.handleClient();
 }

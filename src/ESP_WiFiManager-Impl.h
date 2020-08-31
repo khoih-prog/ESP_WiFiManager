@@ -15,7 +15,7 @@
 
    Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
    Licensed under MIT license
-   Version: 1.1.0
+   Version: 1.1.1
 
    Version Modified By   Date      Comments
    ------- -----------  ---------- -----------
@@ -33,6 +33,7 @@
     1.0.10  K Hoang      08/08/2020 Add more features to Config Portal. Use random WiFi AP channel to avoid conflict.
     1.0.11  K Hoang      17/08/2020 Add CORS feature. Fix bug in softAP, autoConnect, resetSettings.
     1.1.0   K Hoang      28/08/2020 Add MultiWiFi feature to autoconnect to best WiFi at runtime
+    1.1.1   K Hoang      30/08/2020 Add setCORSHeader function to allow flexible CORS. Fix typo and minor improvement.
  *****************************************************************************************************************************/
 
 #ifndef ESP_WiFiManager_Impl_h
@@ -545,7 +546,7 @@ boolean  ESP_WiFiManager::startConfigPortal(char const *apName, char const *apPa
 #if 0
 
       // New Mod from v1.1.0
-      bool wifiConnected = reconnectWifi();
+      int wifiConnected = reconnectWifi();
           
       if ( wifiConnected == WL_CONNECTED )
       {
@@ -682,9 +683,9 @@ void ESP_WiFiManager::setWifiStaticIP(void)
 //////////////////////////////////////////
 
 // New from v1.1.0
-bool ESP_WiFiManager::reconnectWifi(void)
+int ESP_WiFiManager::reconnectWifi(void)
 {
-  bool connectResult;
+  int connectResult;
   
   // using user-provided  _ssid, _pass in place of system-stored ssid and pass
   if ( ( connectResult = connectWifi(_ssid, _pass) ) != WL_CONNECTED)
@@ -710,7 +711,7 @@ bool ESP_WiFiManager::reconnectWifi(void)
 int ESP_WiFiManager::connectWifi(String ssid, String pass)
 {
   //KH, from v1.0.10.
-  // Add option if didn't input/update SSID/PW => Use the previous saved Credentials. \
+  // Add option if didn't input/update SSID/PW => Use the previous saved Credentials.
   // But update the Static/DHCP options if changed.
   if ( (ssid != "") || ( (ssid == "") && (WiFi_SSID() != "") ) )
   {   
@@ -778,13 +779,21 @@ uint8_t ESP_WiFiManager::waitForConnectResult()
   if (_connectTimeout == 0)
   {
     unsigned long startedAt = millis();
-    int connRes = WiFi.waitForConnectResult();
+    
+    // In ESP8266, WiFi.waitForConnectResult() @return wl_status_t (0-255) or -1 on timeout !!!
+    // In ESP32, WiFi.waitForConnectResult() @return wl_status_t (0-255)
+    // So, using int for connRes to be safe
+    //int connRes = WiFi.waitForConnectResult();
+    WiFi.waitForConnectResult();
+    
     float waited = (millis() - startedAt);
 
     LOGWARN1(F("Connected after waiting (s) :"), waited / 1000);
     LOGWARN1(F("Local ip ="), WiFi.localIP());
 
-    return connRes;
+    // Fix bug from v1.1.0+, connRes is sometimes not correct.
+    //return connRes;
+    return WiFi.status();
   }
   else
   {
@@ -1022,9 +1031,15 @@ void ESP_WiFiManager::handleRoot()
     return;
   }
 
-  server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  server->sendHeader("Pragma", "no-cache");
-  server->sendHeader("Expires", "-1");
+  server->sendHeader(FPSTR(WM_HTTP_CACHE_CONTROL), FPSTR(WM_HTTP_NO_STORE));
+
+#if USING_CORS_FEATURE
+  // New from v1.1.1, for configure CORS Header, default to WM_HTTP_CORS_ALLOW_ALL = "*"
+  server->sendHeader(FPSTR(WM_HTTP_CORS), _CORS_Header);
+#endif
+    
+  server->sendHeader(FPSTR(WM_HTTP_PRAGMA), FPSTR(WM_HTTP_NO_CACHE));
+  server->sendHeader(FPSTR(WM_HTTP_EXPIRES), "-1");
 
   String page = FPSTR(WM_HTTP_HEAD_START);
   
@@ -1072,10 +1087,16 @@ void ESP_WiFiManager::handleWifi()
 
   // Disable _configPortalTimeout when someone accessing Portal to give some time to config
   _configPortalTimeout = 0;		//KH
+  
+  server->sendHeader(FPSTR(WM_HTTP_CACHE_CONTROL), FPSTR(WM_HTTP_NO_STORE));
 
-  server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  server->sendHeader("Pragma", "no-cache");
-  server->sendHeader("Expires", "-1");
+#if USING_CORS_FEATURE
+  // New from v1.1.1, for configure CORS Header, default to WM_HTTP_CORS_ALLOW_ALL = "*"
+  server->sendHeader(FPSTR(WM_HTTP_CORS), _CORS_Header);
+#endif
+    
+  server->sendHeader(FPSTR(WM_HTTP_PRAGMA), FPSTR(WM_HTTP_NO_CACHE));
+  server->sendHeader(FPSTR(WM_HTTP_EXPIRES), "-1");
   
   String page = FPSTR(WM_HTTP_HEAD_START);
   
@@ -1405,9 +1426,15 @@ void ESP_WiFiManager::handleServerClose()
 {
   LOGDEBUG(F("Server Close"));
   
-  server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  server->sendHeader("Pragma", "no-cache");
-  server->sendHeader("Expires", "-1");
+  server->sendHeader(FPSTR(WM_HTTP_CACHE_CONTROL), FPSTR(WM_HTTP_NO_STORE));
+
+#if USING_CORS_FEATURE
+  // New from v1.1.1, for configure CORS Header, default to WM_HTTP_CORS_ALLOW_ALL = "*"
+  server->sendHeader(FPSTR(WM_HTTP_CORS), _CORS_Header);
+#endif
+    
+  server->sendHeader(FPSTR(WM_HTTP_PRAGMA), FPSTR(WM_HTTP_NO_CACHE));
+  server->sendHeader(FPSTR(WM_HTTP_EXPIRES), "-1");
   
   String page = FPSTR(WM_HTTP_HEAD_START);
   
@@ -1446,9 +1473,15 @@ void ESP_WiFiManager::handleInfo()
   // Disable _configPortalTimeout when someone accessing Portal to give some time to config
   _configPortalTimeout = 0;		//KH
 
-  server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  server->sendHeader("Pragma", "no-cache");
-  server->sendHeader("Expires", "-1");
+  server->sendHeader(FPSTR(WM_HTTP_CACHE_CONTROL), FPSTR(WM_HTTP_NO_STORE));
+
+#if USING_CORS_FEATURE
+  // New from v1.1.1, for configure CORS Header, default to WM_HTTP_CORS_ALLOW_ALL = "*"
+  server->sendHeader(FPSTR(WM_HTTP_CORS), _CORS_Header);
+#endif
+    
+  server->sendHeader(FPSTR(WM_HTTP_PRAGMA), FPSTR(WM_HTTP_NO_CACHE));
+  server->sendHeader(FPSTR(WM_HTTP_EXPIRES), "-1");
   
   String page = FPSTR(WM_HTTP_HEAD_START);
   
@@ -1531,9 +1564,16 @@ void ESP_WiFiManager::handleInfo()
 void ESP_WiFiManager::handleState()
 {
   LOGDEBUG(F("State - json"));
-  server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  server->sendHeader("Pragma", "no-cache");
-  server->sendHeader("Expires", "-1");
+  
+  server->sendHeader(FPSTR(WM_HTTP_CACHE_CONTROL), FPSTR(WM_HTTP_NO_STORE));
+
+#if USING_CORS_FEATURE
+  // New from v1.1.1, for configure CORS Header, default to WM_HTTP_CORS_ALLOW_ALL = "*"
+  server->sendHeader(FPSTR(WM_HTTP_CORS), _CORS_Header);
+#endif
+    
+  server->sendHeader(FPSTR(WM_HTTP_PRAGMA), FPSTR(WM_HTTP_NO_CACHE));
+  server->sendHeader(FPSTR(WM_HTTP_EXPIRES), "-1");
   
   String page = F("{\"Soft_AP_IP\":\"");
   
@@ -1566,11 +1606,6 @@ void ESP_WiFiManager::handleState()
 //////////////////////////////////////////
 
 /** Handle the scan page */
-// Default false for using only whenever necessary to avoid security issue when using CORS (Cross-Origin Resource Sharing)
-#ifndef USING_CORS_FEATURE
-  #define USING_CORS_FEATURE     false
-#endif
-
 void ESP_WiFiManager::handleScan()
 {
   LOGDEBUG(F("Scan"));
@@ -1580,17 +1615,15 @@ void ESP_WiFiManager::handleScan()
 
   LOGDEBUG(F("State-Json"));
   
-  server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  server->sendHeader(FPSTR(WM_HTTP_CACHE_CONTROL), FPSTR(WM_HTTP_NO_STORE));
 
-  // New in v1.0.11
 #if USING_CORS_FEATURE
-  // Contributed by AlesSt (https://github.com/AlesSt) to solve AJAX CORS protection problem of API redirects on client side
-  // See more in https://github.com/khoih-prog/ESP_WiFiManager/issues/27 and https://en.wikipedia.org/wiki/Cross-origin_resource_sharing
-  server->sendHeader("Access-Control-Allow-Origin", "*");
+  // New from v1.1.1, for configure CORS Header, default to WM_HTTP_CORS_ALLOW_ALL = "*"
+  server->sendHeader(FPSTR(WM_HTTP_CORS), _CORS_Header);
 #endif
-  
-  server->sendHeader("Pragma", "no-cache");
-  server->sendHeader("Expires", "-1");
+    
+  server->sendHeader(FPSTR(WM_HTTP_PRAGMA), FPSTR(WM_HTTP_NO_CACHE));
+  server->sendHeader(FPSTR(WM_HTTP_EXPIRES), "-1");
 
   int n;
   int *indices;

@@ -15,7 +15,7 @@
 
    Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
    Licensed under MIT license
-   Version: 1.1.0
+   Version: 1.1.1
 
    Version Modified By   Date      Comments
    ------- -----------  ---------- -----------
@@ -33,6 +33,7 @@
     1.0.10  K Hoang      08/08/2020 Add more features to Config Portal. Use random WiFi AP channel to avoid conflict.
     1.0.11  K Hoang      17/08/2020 Add CORS feature. Fix bug in softAP, autoConnect, resetSettings.
     1.1.0   K Hoang      28/08/2020 Add MultiWiFi feature to autoconnect to best WiFi at runtime
+    1.1.1   K Hoang      30/08/2020 Add setCORSHeader function to allow flexible CORS. Fix typo and minor improvement.
  *****************************************************************************************************************************/
 
 #ifndef ESP_WiFiManager_h
@@ -71,6 +72,14 @@
 #define WFM_LABEL_BEFORE 1
 #define WFM_LABEL_AFTER 2
 #define WFM_NO_LABEL 0
+
+/** Handle CORS in pages */
+// Default false for using only whenever necessary to avoid security issue when using CORS (Cross-Origin Resource Sharing)
+#ifndef USING_CORS_FEATURE
+  // Contributed by AlesSt (https://github.com/AlesSt) to solve AJAX CORS protection problem of API redirects on client side
+  // See more in https://github.com/khoih-prog/ESP_WiFiManager/issues/27 and https://en.wikipedia.org/wiki/Cross-origin_resource_sharing
+  #define USING_CORS_FEATURE     false
+#endif
 
 //KH
 //Mofidy HTTP_HEAD to WM_HTTP_HEAD_START to avoid conflict in Arduino esp8266 core 2.6.0+
@@ -137,18 +146,24 @@ const char WM_HTTP_FORM_PARAM[] PROGMEM = "<input id=\"{i}\" name=\"{n}\" length
 const char WM_HTTP_FORM_END[] PROGMEM = "<button class=\"btn\" type=\"submit\">Save</button></form>";
 
 // KH, update from v1.1.0
-const char WM_HTTP_SAVED[] PROGMEM = "<div class=\"msg\"><b>Credentials Saved</b><br>Try connecting ESP to the {x} / {x1} network.<br>Wait around 10 seconds then check <a href=\"/\">how it went.</a> <p/>The {v} network will be restarted on the radio channel of the {x} / {x1} network. You may have to manually reconnect to the {v} network.</div>";
+const char WM_HTTP_SAVED[] PROGMEM = "<div class=\"msg\"><b>Credentials Saved</b><br>Try connecting ESP to the {x}/{x1} network. Wait around 10 seconds then check <a href=\"/\">if it's OK.</a> <p/>The {v} AP will run on the same WiFi channel of the {x}/{x1} AP. You may have to manually reconnect to the {v} AP.</div>";
 //////
 
 const char WM_HTTP_END[] PROGMEM = "</div></body></html>";
 
-//KH, added 2019/12/15 from Tzapu Development
-// http
+//KH, from v1.1.0
 const char WM_HTTP_HEAD_CL[]         PROGMEM = "Content-Length";
 const char WM_HTTP_HEAD_CT[]         PROGMEM = "text/html";
 const char WM_HTTP_HEAD_CT2[]        PROGMEM = "text/plain";
-const char WM_HTTP_HEAD_CORS[]       PROGMEM = "Access-Control-Allow-Origin";
-const char WM_HTTP_HEAD_CORS_ALLOW_ALL[]  PROGMEM = "*";
+
+//KH Add repeatedly used const
+const char WM_HTTP_CACHE_CONTROL[]   PROGMEM = "Cache-Control";
+const char WM_HTTP_NO_STORE[]        PROGMEM = "no-cache, no-store, must-revalidate";
+const char WM_HTTP_PRAGMA[]          PROGMEM = "Pragma";
+const char WM_HTTP_NO_CACHE[]        PROGMEM = "no-cache";
+const char WM_HTTP_EXPIRES[]         PROGMEM = "Expires";
+const char WM_HTTP_CORS[]            PROGMEM = "Access-Control-Allow-Origin";
+const char WM_HTTP_CORS_ALLOW_ALL[]  PROGMEM = "*";
 
 #if USE_AVAILABLE_PAGES
 const char WM_HTTP_AVAILABLE_PAGES[] PROGMEM = "<h3>Available Pages</h3><table class=\"table\"><thead><tr><th>Page</th><th>Function</th></tr></thead><tbody><tr><td><a href=\"/\">/</a></td><td>Menu page.</td></tr><tr><td><a href=\"/wifi\">/wifi</a></td><td>Show WiFi scan results and enter WiFi configuration.</td></tr><tr><td><a href=\"/wifisave\">/wifisave</a></td><td>Save WiFi configuration information and configure device. Needs variables supplied.</td></tr><tr><td><a href=\"/close\">/close</a></td><td>Close the configuration server and configuration WiFi network.</td></tr><tr><td><a href=\"/i\">/i</a></td><td>This page.</td></tr><tr><td><a href=\"/r\">/r</a></td><td>Delete WiFi configuration and reboot. ESP device will not reconnect to a network until new WiFi configuration data is entered.</td></tr><tr><td><a href=\"/state\">/state</a></td><td>Current device state in JSON format. Interface for programmatic WiFi configuration.</td></tr><tr><td><a href=\"/scan\">/scan</a></td><td>Run a WiFi scan and return results in JSON format. Interface for programmatic WiFi configuration.</td></tr></table>";
@@ -244,7 +259,7 @@ class ESP_WiFiManager
     void          setMinimumSignalQuality(int quality = 8);
     
     // KH, new from v1.0.10 to enable dynamic/random channel
-    int setConfigPortalChannel(int channel = 1);
+    int           setConfigPortalChannel(int channel = 1);
     //////
     
     //sets a custom ip /gateway /subnet configuration
@@ -329,6 +344,20 @@ class ESP_WiFiManager
         return String("");
     }
     //////
+    
+    // New from v1.1.1, for configure CORS Header, default to WM_HTTP_CORS_ALLOW_ALL = "*"
+#if USING_CORS_FEATURE
+    void setCORSHeader(const char * CORSHeaders = "*")
+    {
+      _CORS_Header = String(CORSHeaders);
+      LOGWARN1(F("Set CORS Header to : "), _CORS_Header);
+    }
+    
+    String getCORSHeader(void)
+    {
+      return _CORS_Header;
+    }
+#endif   
     
     //returns the list of Parameters
     ESP_WMParameter** getParameters();
@@ -445,11 +474,17 @@ class ESP_WiFiManager
 
     int           status = WL_IDLE_STATUS;
     
+    // New from v1.1.0, for configure CORS Header, default to WM_HTTP_CORS_ALLOW_ALL = "*"
+#if USING_CORS_FEATURE
+    String        _CORS_Header              = FPSTR(WM_HTTP_CORS_ALLOW_ALL);
+#endif   
+    //////
+    
     // New v1.0.8
     void          setWifiStaticIP(void);
     
     // New v1.1.0
-    bool          reconnectWifi(void);
+    int           reconnectWifi(void);
     //////
     
     // New v1.0.11
