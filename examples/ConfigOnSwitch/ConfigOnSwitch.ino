@@ -309,19 +309,6 @@ bool initialConfig = false;
 #define USE_DHCP_IP     false
 #endif
 
-// Use USE_DHCP_IP == true for dynamic DHCP IP, false to use static IP which you have to change accordingly to your network
-#if (defined(USE_STATIC_IP_CONFIG_IN_CP) && !USE_STATIC_IP_CONFIG_IN_CP)
-  // Force DHCP to be true
-  #if defined(USE_DHCP_IP)
-    #undef USE_DHCP_IP
-  #endif
-  #define USE_DHCP_IP     true
-#else
-  // You can select DHCP or Static IP here
-  //#define USE_DHCP_IP     true
-  #define USE_DHCP_IP     false
-#endif
-
 #if ( USE_DHCP_IP || ( defined(USE_STATIC_IP_CONFIG_IN_CP) && !USE_STATIC_IP_CONFIG_IN_CP ) )
   // Use DHCP
   #warning Using DHCP IP
