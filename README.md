@@ -13,7 +13,7 @@
 
 This [**ESP_WiFiManager**](https://github.com/khoih-prog/ESP_WiFiManager) has just been modified to create the new [**ESPAsync_WiFiManager Library**](https://github.com/khoih-prog/ESPAsync_WiFiManager) in order to use the better and more efficient [**ESPAsyncWebServer Library**](https://github.com/me-no-dev/ESPAsyncWebServer), instead of the (ESP8266)WebServer library.
 
-The new [ESPAsync_WiFiManager library](https://github.com/khoih-prog/ESPAsync_WiFiManager) is based on and sync'ed with [ESP_WiFiManager](https://github.com/khoih-prog/ESP_WiFiManager). Therefore, all the features currently supported by this [`ESP_WiFiManager`](https://github.com/khoih-prog/ESP_WiFiManager) will be available to the new library. The code change is to port to the new library is also very negligible, **mostly just changing the Class name from ESP_WiFiManager to ESPAsync_WiFiManager.**
+The new [**ESPAsync_WiFiManager** library](https://github.com/khoih-prog/ESPAsync_WiFiManager) is based on and sync'ed with [**ESP_WiFiManager**](https://github.com/khoih-prog/ESP_WiFiManager). Therefore, all the features currently supported by this [**ESP_WiFiManager**](https://github.com/khoih-prog/ESP_WiFiManager) will be available to the new library. The code change is to port to the new library is also very negligible, **mostly just changing the Class name from ESP_WiFiManager to ESPAsync_WiFiManager.**
 
 #### Why do we need the new Async [ESPAsync_WiFiManager library](https://github.com/khoih-prog/ESPAsync_WiFiManager)
 
@@ -118,8 +118,8 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
 
 ## Prerequisite
 
- 1. [`Arduino IDE 1.8.12+` for Arduino](https://www.arduino.cc/en/Main/Software)
- 2. [`ESP8266 Core 2.7.3+`](https://github.com/esp8266/Arduino) for ESP8266-based boards.
+ 1. [`Arduino IDE 1.8.13+` for Arduino](https://www.arduino.cc/en/Main/Software)
+ 2. [`ESP8266 Core 2.7.4+`](https://github.com/esp8266/Arduino) for ESP8266-based boards.
  3. [`ESP32 Core 1.0.4+`](https://github.com/espressif/arduino-esp32) for ESP32-based boards
  4. [`ESP_DoubleResetDetector v1.0.3+`](https://github.com/khoih-prog/ESP_DoubleResetDetector) if using DRD feature. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_DoubleResetDetector.svg?)](https://www.ardu-badge.com/ESP_DoubleResetDetector).
 
@@ -2464,7 +2464,7 @@ If you want to contribute to this project:
 
 ### License and credits ###
 
-- The library is licensed under [MIT](https://github.com/khoih-prog/WebSockets2_Generic/blob/master/LICENSE)
+- The library is licensed under [MIT](https://github.com/khoih-prog/ESP_WiFiManager/blob/master/LICENSE)
 
 ---
 
