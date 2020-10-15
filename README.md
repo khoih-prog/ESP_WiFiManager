@@ -40,7 +40,7 @@ Thanks to [cancodr](https://github.com/cancodr) for requesting an enhancement in
 
 ### Releases v1.2.0
 
-1. Restore cpp code besides Impl.h code to use in case of `multiple definition` linker error. See [`Change Implementation to seperate *.h and *.cpp file instead of *.h and *-Impl.h`](https://github.com/khoih-prog/ESP_WiFiManager/issues/38) and [`Support building in PlatformIO PR`](https://github.com/khoih-prog/ESP_WiFiManager/pull/20). SSee [**HOWTO Fix `Multiple Definitions` Linker Error**](https://github.com/khoih-prog/ESP_WiFiManager#HOWTO-Fix-Multiple-Definitions-Linker-Error)
+1. Restore cpp code besides Impl.h code to use in case of `multiple definition` linker error. See [`Change Implementation to seperate *.h and *.cpp file instead of *.h and *-Impl.h`](https://github.com/khoih-prog/ESP_WiFiManager/issues/38) and [`Support building in PlatformIO PR`](https://github.com/khoih-prog/ESP_WiFiManager/pull/20). Also have a look at [**HOWTO Fix Multiple Definitions Linker Error**](https://github.com/khoih-prog/ESP_WiFiManager#HOWTO-Fix-Multiple-Definitions-Linker-Error)
 2. Fix bug [/close does not close the config portal](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues/16).
 
 ### Releases v1.1.2
@@ -154,7 +154,12 @@ The best and easiest way is to use `Arduino Library Manager`. Search for `ESP_Wi
 
 ### HOWTO Fix `Multiple Definitions` Linker Error
 
-The current library implementation, using xyz-Impl.h instead of standard xyz.cpp, possibly creates certain `Multiple Definitions` Linker error in certain use cases. Although it's simple to just modify several lines of code, either in the library or in the application, the library is adding a separate source directory, named src_cpp, besides the standard src directory.
+The current library implementation, using xyz-Impl.h instead of standard xyz.cpp, possibly creates certain `Multiple Definitions` Linker error in certain use cases. Although it's simple to just modify several lines of code, either in the library or in the application, the library is adding 2 more source directories
+
+1. **scr_h** for new h-only files
+2. **src_cpp** for standard h/cpp files
+
+besides the standard **src** directory.
 
 To use the old standard cpp way, locate this library' directory, then just 
 
@@ -2347,8 +2352,9 @@ Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiF
 
 ### Releases v1.2.0
 
-1. Restore cpp code besides Impl.h code to use in case of `multiple definition` linker error. See [`Change Implementation to seperate *.h and *.cpp file instead of *.h and *-Impl.h`](https://github.com/khoih-prog/ESP_WiFiManager/issues/38) and [`Support building in PlatformIO PR`](https://github.com/khoih-prog/ESP_WiFiManager/pull/20)
+1. Restore cpp code besides Impl.h code to use in case of `multiple definition` linker error. See [`Change Implementation to seperate *.h and *.cpp file instead of *.h and *-Impl.h`](https://github.com/khoih-prog/ESP_WiFiManager/issues/38) and [`Support building in PlatformIO PR`](https://github.com/khoih-prog/ESP_WiFiManager/pull/20). Also have a look at [**HOWTO Fix Multiple Definitions Linker Error**](https://github.com/khoih-prog/ESP_WiFiManager#HOWTO-Fix-Multiple-Definitions-Linker-Error)
 2. Fix bug [/close does not close the config portal](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues/16).
+
 
 ### Releases v1.1.2
 
