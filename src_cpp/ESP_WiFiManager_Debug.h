@@ -40,9 +40,6 @@
 
 #pragma once
 
-//#ifndef ESP_WiFiManager_Debug_H
-//#define ESP_WiFiManager_Debug_H
-
 #ifdef WIFIMGR_DEBUG_PORT
   #define DBG_PORT      WIFIMGR_DEBUG_PORT
 #else
@@ -84,4 +81,3 @@
 #define LOGDEBUG2(x,y,z)    if(_WIFIMGR_LOGLEVEL_>3) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.print(y); DBG_PORT.print(" "); DBG_PORT.println(z); }
 #define LOGDEBUG3(x,y,z,w)  if(_WIFIMGR_LOGLEVEL_>3) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.print(y); DBG_PORT.print(" "); DBG_PORT.print(z); DBG_PORT.print(" "); DBG_PORT.println(w); }
 
-//#endif    //ESP_WiFiManager_Debug_H

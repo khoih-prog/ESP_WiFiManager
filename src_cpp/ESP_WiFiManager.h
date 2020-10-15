@@ -541,6 +541,3 @@ class ESP_WiFiManager
       return false;
     }
 };
-
-#include "ESP_WiFiManager-Impl.h"
-

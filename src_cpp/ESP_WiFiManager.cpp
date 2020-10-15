@@ -1,5 +1,5 @@
 /****************************************************************************************************************************
-  ESP_WiFiManager-Impl.h
+  ESP_WiFiManager.cpp
   For ESP8266 / ESP32 boards
 
   ESP_WiFiManager is a library for the ESP8266/Arduino platform
@@ -35,14 +35,10 @@
   1.1.0   K Hoang      28/08/2020 Add MultiWiFi feature to autoconnect to best WiFi at runtime
   1.1.1   K Hoang      30/08/2020 Add setCORSHeader function to allow flexible CORS. Fix typo and minor improvement.
   1.1.2   K Hoang      17/08/2020 Fix bug. Add example.
-  1.2.0   K Hoang      09/10/2020 Restore cpp code besides Impl.h code to use if linker error. Fix bug.
- *****************************************************************************************************************************/
+  1.2.0   K Hoang      09/10/2020 Restore cpp code besides Impl.h code to use if linker error. Fix bug. *****************************************************************************************************************************/
 
-#pragma once
-
-//#ifndef ESP_WiFiManager_Impl_h
-//#define ESP_WiFiManager_Impl_h
-
+#include "ESP_WiFiManager_Debug.h"
+#include "ESP_WiFiManager.h"
 
 //////////////////////////////////////////
 
@@ -1459,7 +1455,7 @@ void ESP_WiFiManager::handleServerClose()
   //page += F("Push button on device to restart configuration server!");
   page += FPSTR(WM_HTTP_END);
   server->send(200, "text/html", page);
-  stopConfigPortal = true; //signal ready to shutdown config portal
+  stopConfigPortal = true; //signal ready to shutdown config portal	
   
   LOGDEBUG(F("Sent server close page"));
 
@@ -2024,6 +2020,3 @@ String ESP_WiFiManager::getStoredWiFiPass()
   return String(reinterpret_cast<char*>(conf.sta.password));
 }
 #endif
-
-
-//#endif    //ESP_WiFiManager_Impl_h
