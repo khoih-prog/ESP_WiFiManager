@@ -5,6 +5,7 @@
 [![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/khoih-prog/ESP_WiFiManager/blob/master/LICENSE)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#Contributing)
 [![GitHub issues](https://img.shields.io/github/issues/khoih-prog/ESP_WiFiManager.svg)](http://github.com/khoih-prog/ESP_WiFiManager/issues)
+[![star this repo](https://githubbadges.com/star.svg?user=khoih-prog&repo=ESP_WiFiManager&style=default)](https://github.com/khoih-prog/ESP_WiFiManager)
 
 ---
 ---
@@ -171,6 +172,47 @@ To re-use the new h-only way, just
 1. **Delete the all the files in src directory.**
 2. **Copy the files in src_h directory into src.**
 3. Close then reopen the application code in Arduino IDE, etc. to recompile from scratch.
+
+
+---
+---
+
+### HOWTO Use analogRead() with ESP32 running WiFi and/or BlueTooth (BT/BLE)
+
+Please have a look at [**ESP_WiFiManager Issue 39: Not able to read analog port when using the autoconnect example**](https://github.com/khoih-prog/ESP_WiFiManager/issues/39) to have more detailed description and solution of the issue.
+
+#### 1.  ESP32 has 2 ADCs, named ADC1 and ADC2
+
+#### 2. ESP32 ADCs functions
+
+- ADC1 controls ADC function for pins **GPIO32-GPIO39**
+- ADC2 controls ADC function for pins **GPIO0, 2, 4, 12-15, 25-27**
+
+#### 3.. ESP32 WiFi uses ADC2 for WiFi functions
+
+Look in file [**adc_common.c**](https://github.com/espressif/esp-idf/blob/master/components/driver/adc_common.c#L61)
+
+> In ADC2, there're two locks used for different cases:
+> 1. lock shared with app and Wi-Fi:
+>    ESP32:
+>         When Wi-Fi using the ADC2, we assume it will never stop, so app checks the lock and returns immediately if failed.
+>    ESP32S2:
+>         The controller's control over the ADC is determined by the arbiter. There is no need to control by lock.
+> 
+> 2. lock shared between tasks:
+>    when several tasks sharing the ADC2, we want to guarantee
+>    all the requests will be handled.
+>    Since conversions are short (about 31us), app returns the lock very soon,
+>    we use a spinlock to stand there waiting to do conversions one by one.
+> 
+> adc2_spinlock should be acquired first, then adc2_wifi_lock or rtc_spinlock.
+
+
+- In order to use ADC2 for other functions, we have to **acquire complicated firmware locks and very difficult to do**
+- So, it's not advisable to use ADC2 with WiFi/BlueTooth (BT/BLE).
+- Use ADC1, and pins GPIO32-GPIO39
+- If somehow it's a must to use those pins serviced by ADC2 (**GPIO0, 2, 4, 12, 13, 14, 15, 25, 26 and 27**), use the **fix mentioned at the end** of [**ESP_WiFiManager Issue 39: Not able to read analog port when using the autoconnect example**](https://github.com/khoih-prog/ESP_WiFiManager/issues/39) to work with ESP32 WiFi/BlueTooth (BT/BLE).
+
 
 ---
 ---
@@ -2456,18 +2498,18 @@ See [KenTaylor's version](https://github.com/kentaylor/WiFiManager) for previous
 
 ### Contributions and Thanks
 
-1. Based on and modified from [Tzapu](https://github.com/tzapu/WiFiManager) and [KenTaylor's version]( https://github.com/kentaylor/WiFiManager)
-2. Thanks to [Amorphous](https://community.blynk.cc/t/esp-wifimanager-for-esp32-and-esp8266/42257/13) for the static DNS feature and code, included in v1.0.5
-3. Thanks to [CrispinP](https://github.com/CrispinP) for idea to add HostName (v1.0.4) and request to reduce the unnecessary waiting time in ESP_WiFiManager constructor (v1.0.6+). See [Starting WiFIManger is very slow (2000ms)](https://github.com/khoih-prog/ESP_WiFiManager/issues/6)
-4. Thanks to [OttoKlaasen](https://github.com/OttoKlaasen) for reporting [Having issue to read the SPIFF file](https://github.com/khoih-prog/ESP_WiFiManager/issues/14) bug in examples.
-5. Thanks to [Giuseppe](https://github.com/Gius-8) for reporting [Static Station IP doesn't work](https://github.com/khoih-prog/ESP_WiFiManager/issues/17) bug.
-6. Thanks to [AlesSt](https://github.com/AlesSt) for reporting then help provide the fixes:
+ 1. Based on and modified from [Tzapu](https://github.com/tzapu/WiFiManager) and [KenTaylor's version]( https://github.com/kentaylor/WiFiManager)
+ 2. Thanks to [Amorphous](https://community.blynk.cc/t/esp-wifimanager-for-esp32-and-esp8266/42257/13) for the static DNS feature and code, included in v1.0.5
+ 3. Thanks to [CrispinP](https://github.com/CrispinP) for idea to add HostName (v1.0.4) and request to reduce the unnecessary waiting time in ESP_WiFiManager constructor (v1.0.6+). See [Starting WiFIManger is very slow (2000ms)](https://github.com/khoih-prog/ESP_WiFiManager/issues/6)
+ 4. Thanks to [OttoKlaasen](https://github.com/OttoKlaasen) for reporting [Having issue to read the SPIFF file](https://github.com/khoih-prog/ESP_WiFiManager/issues/14) bug in examples.
+ 5. Thanks to [Giuseppe](https://github.com/Gius-8) for reporting [Static Station IP doesn't work](https://github.com/khoih-prog/ESP_WiFiManager/issues/17) bug.
+ 6. Thanks to [AlesSt](https://github.com/AlesSt) for reporting then help provide the fixes:
   - [On Android phone ConfigPortal is unresponsive](https://github.com/khoih-prog/ESP_WiFiManager/issues/23) and request an enhancement (***HOWTO disable the static IP inputs on the config page***) leading to [ESP_WiFiManager v1.0.10](https://github.com/khoih-prog/ESP_WiFiManager/releases/tag/v1.0.10).
   - [Issue #25: API call /r doesnt clear credentials](https://github.com/khoih-prog/ESP_WiFiManager/issues/25), [Issue #26: softAP with custom IP not working](https://github.com/khoih-prog/ESP_WiFiManager/issues/26) and [Issue #27: CORS protection fires up with AJAX](https://github.com/khoih-prog/ESP_WiFiManager/issues/27) leading to [ESP_WiFiManager v1.0.11](https://github.com/khoih-prog/ESP_WiFiManager/releases/tag/v1.0.11).
-7. Thanks to [Marko](https://github.com/wackoo-arduino) for agreeing to contribute the sample code dealing with MQTT which the  [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr) is based on. See [Custom MQTT parameters using Wifi Manager](https://forum.arduino.cc/index.php?topic=692108.75).
-8. Thanks to [05prateek](https://github.com/05prateek) for reporting [Stationmode Static IP changes to dhcp when esp8266 is restarted](https://github.com/khoih-prog/ESP_WiFiManager/issues/28) bug which is fixed in v1.0.11 by enhance autoConnect() function.
-9. Thanks to [Egor](https://github.com/eg321) and [HenrikW](https://github.com/Invento3D) to make [`Support building in PlatformIO PR`](https://github.com/khoih-prog/ESP_WiFiManager/pull/20) and post issue [`Change Implementation to seperate *.h and *.cpp file instead of *.h and *-Impl.h`](https://github.com/khoih-prog/ESP_WiFiManager/issues/38) to address the `multiple definition` linker error in certain cases, leading to v1.2.0
-
+ 7. Thanks to [Marko](https://github.com/wackoo-arduino) for agreeing to contribute the sample code dealing with MQTT which the  [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr) is based on. See [Custom MQTT parameters using Wifi Manager](https://forum.arduino.cc/index.php?topic=692108.75).
+ 8. Thanks to [05prateek](https://github.com/05prateek) for reporting [Stationmode Static IP changes to dhcp when esp8266 is restarted](https://github.com/khoih-prog/ESP_WiFiManager/issues/28) bug which is fixed in v1.0.11 by enhance autoConnect() function.
+ 9. Thanks to [Egor](https://github.com/eg321) and [HenrikW](https://github.com/Invento3D) to make [`Support building in PlatformIO PR`](https://github.com/khoih-prog/ESP_WiFiManager/pull/20) and post issue [`Change Implementation to seperate *.h and *.cpp file instead of *.h and *-Impl.h`](https://github.com/khoih-prog/ESP_WiFiManager/issues/38) to address the `multiple definition` linker error in certain cases, leading to v1.2.0
+10. Thanks to [Maurice Poos](https://github.com/MaPoLom) to report issue [`ESP_WiFiManager Issue 39: Not able to read analog port when using the autoconnect example`](https://github.com/khoih-prog/ESP_WiFiManager/issues/39).
 
 <table>
   <tr>
@@ -2484,6 +2526,7 @@ See [KenTaylor's version](https://github.com/kentaylor/WiFiManager) for previous
     <td align="center"><a href="https://github.com/05prateek"><img src="https://github.com/05prateek.png" width="100px;" alt="05prateek"/><br /><sub><b>05prateek</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/eg321"><img src="https://github.com/eg321.png" width="100px;" alt="eg321"/><br /><sub><b>Egor</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/Invento3D"><img src="https://github.com/Invento3D.png" width="100px;" alt="Invento3D"/><br /><sub><b>HenrikW</b></sub></a><br /></td>
+    <td align="center"><a href="https://github.com/MaPoLom"><img src="https://github.com/MaPoLom.png" width="100px;" alt="MaPoLom"/><br /><sub><b>Maurice Poos</b></sub></a><br /></td>
   </tr> 
 </table>
 
