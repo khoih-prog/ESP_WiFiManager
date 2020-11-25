@@ -3094,14 +3094,16 @@ See [KenTaylor's version](https://github.com/kentaylor/WiFiManager) for previous
     <td align="center"><a href="https://github.com/CrispinP"><img src="https://github.com/CrispinP.png" width="100px;" alt="CrispinP"/><br /><sub><b>CrispinP</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/OttoKlaasen"><img src="https://github.com/OttoKlaasen.png" width="100px;" alt="OttoKlaasen"/><br /><sub><b>Otto Klaasen</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/Gius-8"><img src="https://github.com/Gius-8.png" width="100px;" alt="Giuseppe"/><br /><sub><b>Giuseppe</b></sub></a><br /></td>
-    </tr>
-    <tr>
+  </tr>
+  <tr>
     <td align="center"><a href="https://github.com/AlesSt"><img src="https://github.com/AlesSt.png" width="100px;" alt="AlesSt"/><br /><sub><b>⭐️ AlesSt</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/wackoo-arduino"><img src="https://github.com/wackoo-arduino.png" width="100px;" alt="wackoo-arduino"/><br /><sub><b>Marko</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/05prateek"><img src="https://github.com/05prateek.png" width="100px;" alt="05prateek"/><br /><sub><b>05prateek</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/eg321"><img src="https://github.com/eg321.png" width="100px;" alt="eg321"/><br /><sub><b>Egor</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/Invento3D"><img src="https://github.com/Invento3D.png" width="100px;" alt="Invento3D"/><br /><sub><b>HenrikW</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/MaPoLom"><img src="https://github.com/MaPoLom.png" width="100px;" alt="MaPoLom"/><br /><sub><b>Maurice Poos</b></sub></a><br /></td>
+  </tr>
+  <tr>    
     <td align="center"><a href="https://github.com/thewhiterabbit"><img src="https://github.com/thewhiterabbit.png" width="100px;" alt="thewhiterabbit"/><br /><sub><b>Vague Rabbit</b></sub></a><br /></td>
   </tr> 
 </table>
