@@ -852,6 +852,579 @@ Once WiFi network information is saved in the `ESP32 / ESP8266`, it will try to 
 ---
 ---
 
+### HOWTO Add Dynamic Parameters
+
+
+These illustrating steps is based on the example [ConfigOnSwitchFS](examples/ConfigOnSwitchFS)
+
+####  1. Determine the variables to be configured via Config Portal (CP)
+
+The application will:
+
+- use DHT sensor (either DHT11 or DHT22) and 
+- need to connect to ThingSpeak with unique user's API Key. 
+
+The DHT sensor is connected to the ESP boards using SDA/SCL pins which also need to be configurable.
+
+So this is the list of variables to be dynamically configured using CP
+
+```
+1. `thingspeakApiKey`,  type `char array`, max length 17 chars, and just arbitrarily selected default value to be "" or "ThingSpeak-APIKey"
+2. `sensorDht22`,       type `bool`, default to be `true` (DHT22)
+3. `pinSda`,            type `int`,  default to be `PIN_D2`
+4. `pinScl`,            type `int`,  default to be `PIN_D1`
+```
+
+The Label can be any arbitrary string that help you identify the variable, but must be unique in your application
+
+The initial code will be
+
+```
+#define API_KEY_LEN                 17
+
+// Default configuration values
+char thingspeakApiKey[API_KEY_LEN]  = "";
+bool sensorDht22                    = true;
+int pinSda                          = PIN_D2;     // Pin D2 mapped to pin GPIO4 of ESP8266
+int pinScl                          = PIN_D1;     // Pin D1 mapped to pin GPIO5 of ESP8266
+
+// Any unique string helping you identify the vars
+#define ThingSpeakAPI_Label         "thingspeakApiKey"
+#define SensorDht22_Label           "SensorDHT22"
+#define PinSDA_Label                "PinSda"
+#define PinSCL_Label                "PinScl"
+```
+
+---
+
+####  2. Initialize the variables to prepare for Config Portal (CP)
+
+The example [ConfigOnSwitchFS](examples/ConfigOnSwitchFS) will open the CP whenever a SW press is detected in loop(). So the code to add `dynamic variables` will be there, just after the CP `ESP_WiFiManager` class initialization to create `ESP_wifiManager` object.
+
+```
+void loop()
+{
+  // is configuration portal requested?
+  if ((digitalRead(TRIGGER_PIN) == LOW) || (digitalRead(TRIGGER_PIN2) == LOW))
+  {
+    Serial.println("\nConfiguration portal requested.");
+    digitalWrite(PIN_LED, LED_ON); // turn the LED on by making the voltage LOW to tell us we are in configuration mode.
+
+    //Local intialization. Once its business is done, there is no need to keep it around
+    ESP_WiFiManager ESP_wifiManager("ConfigOnSwitchFS");
+
+    //Check if there is stored WiFi router/password credentials.
+    //If not found, device will remain in configuration mode until switched off via webserver.
+    Serial.print("Opening configuration portal. ");
+    
+    ...
+    
+    // The addition of dynamic vars will be somewhere here
+    
+}    
+```
+
+The `ESP_WMParameter` class constructor will be used to initialize each newly-added parameter object.
+
+#### 2.1 Use the following simple constructor for simple variables such as `thingspeakApiKey`, `pinSda` and `pinScl` :
+
+```
+ESP_WMParameter(const char *id, const char *placeholder, const char *defaultValue, int length);
+```
+
+#### 2.2 For example, to create a new `ESP_WMParameter` object `p_thingspeakApiKey` for `thingspeakApiKey`, 
+
+The command to use will be 
+
+
+```
+ESP_WMParameter p_thingspeakApiKey(ThingSpeakAPI_Label, "Thingspeak API Key", thingspeakApiKey, API_KEY_LEN);
+
+```
+
+where
+
+```
+- p_thingspeakApiKey                  : ESP_WMParameter class object reference that stores the new Custom Parameter
+- id => ThingSpeakAPI_Label           : var ref to Json associative name and HTML element ID for the new Custom Paramerter you just defined in step 1
+- placeholder => "Thingspeak API Key" : HTML input placeholder and/or label element text the user sees in the configuration interface for this Custom Parameter
+- defaultValue => thingspeakApiKey    : variable for storing the value of your Custom Parameter in the file system or default value when no data is entered
+- length  => API_KEY_LEN              : max allowed length you want for this Custom Parameter to have
+```
+
+For `pinSda` and `pinScl`, the command will be similar
+
+```
+// I2C SCL and SDA parameters are integers so we need to convert them to char array but
+// no other special considerations
+char convertedValue[3];
+sprintf(convertedValue, "%d", pinSda);
+ESP_WMParameter p_pinSda(PinSDA_Label, "I2C SDA pin", convertedValue, 3);
+
+sprintf(convertedValue, "%d", pinScl);
+ESP_WMParameter p_pinScl(PinSCL_Label, "I2C SCL pin", convertedValue, 3);
+```
+
+where
+
+```
+- p_pinSda / p_pinScl                         : ESP_WMParameter class object reference that stores the new Custom Parameter
+- id => PinSDA_Label/PinSCL_Label             : var ref to Json associative name and HTML element ID for the new Custom Paramerter you just defined in step 1
+- placeholder => "I2C SDA pin"/"I2C SCL pin"  : HTML input placeholder and/or label element text the user sees in the configuration interface for this Custom Parameter
+- defaultValue => convertedValue              : variable for storing the value of your Custom Parameter in the file system or default value when no data is entered
+- length  => 3                                : max allowed length you want for this Custom Parameter to have
+```
+
+---
+
+#### 2.3 Use the more complex following constructor for variables such as `sensorDht22`:
+
+```
+ESP_WMParameter(const char *id, const char *placeholder, const char *defaultValue, int length, const char *custom, int labelPlacement);
+```
+
+#### 2.4 For example, to create a new `ESP_WMParameter` object `p_sensorDht22` for `sensorDht22`, 
+
+The command to use will be 
+
+
+```
+ESP_WMParameter p_sensorDht22(SensorDht22_Label, "DHT-22 Sensor", "T", 2, customhtml, WFM_LABEL_AFTER);
+```
+
+where
+
+```
+- p_sensorDht22                       : ESP_WMParameter class object reference that stores the new Custom Parameter
+- id => SensorDht22_Label             : var ref to Json associative name and HTML element ID for the new Custom Paramerter you just defined in step 1
+- placeholder => "DHT-22 Sensor"      : HTML input placeholder and/or label element text the user sees in the configuration interface for this Custom Parameter
+- defaultValue => "T"                 : variable for storing the value of your Custom Parameter in the file system or default value when no data is entered ("T" means `true`)
+- length  => 2                        : max allowed length you want for this Custom Parameter to have
+- custom => customhtml                : custom HTML code to add element type, e.g. `checkbox`, and `checked` when `sensorDht22 == true`
+- labelPlacement => WFM_LABEL_AFTER   : to place label after
+```
+
+and customhtml Code is:
+
+```
+char customhtml[24] = "type=\"checkbox\"";
+
+if (sensorDht22)
+{
+  strcat(customhtml, " checked");
+}
+```
+
+---
+
+####  3. Add the variables to Config Portal (CP)
+
+Adding those `ESP_WMParameter` objects created in Step 2 using the function `addParameter()` of object `ESP_wifiManager`
+
+#### 3.1 addParameter() function Prototype:
+
+```
+//adds a custom parameter
+bool addParameter(ESP_WMParameter *p);
+```
+
+#### 3.2 Code to add variables to CP
+
+
+Add parameter objects, previously created in Step 2, such as : `p_thingspeakApiKey`, `p_sensorDht22`, `p_pinSda` and `p_pinScl`
+
+```
+//add all parameters here
+
+ESP_wifiManager.addParameter(&p_thingspeakApiKey);
+ESP_wifiManager.addParameter(&p_sensorDht22);
+ESP_wifiManager.addParameter(&p_pinSda);
+ESP_wifiManager.addParameter(&p_pinScl);
+```
+
+---
+
+####  4. Save the variables configured in Config Portal (CP)
+
+When the CP exits, we have to store the parameters' values that users input via CP to use later.
+
+For ESP32, that can be `EEPROM` or `SPIFFS`. While on ESP8266, `LittleFS` can be used besides `EEPROM` or `deprecated SPIFFS`.
+
+We can write directly to a **well-defined structure of our choice**, but the current example is using `JSON` to be portable but **much more complicated and not advised for new users**.
+
+
+#### 4.1 Getting variables' data from CP
+
+After users select `Save`, the CP `ESP_wifiManager` object will save the user input data into related `ESP_WMParameter` objects.
+
+We can now retrieve the data, using `getValue()` function, for each `ESP_WMParameter` object. Then we can utilize the data for our purpose, such as `thingspeakApiKey` to log in, `sensorDht22` type to know how to handle the sensor, `pinSda` and `pinSda` to know which pins to use to communicate with the DHT sensor.
+
+
+The code is as follows:
+
+```
+// Getting posted form values and overriding local variables parameters
+// Config file is written regardless the connection state
+strcpy(thingspeakApiKey, p_thingspeakApiKey.getValue());
+sensorDht22 = (strncmp(p_sensorDht22.getValue(), "T", 1) == 0);
+pinSda = atoi(p_pinSda.getValue());
+pinScl = atoi(p_pinScl.getValue());
+```
+
+We can also save to FS file to use later in next boot.
+
+```
+// Writing JSON config file to flash for next boot
+writeConfigFile();
+```
+
+---
+
+#### 5. Write to FS (SPIFFS, LittleFS, etc.) using JSON format
+
+First, you have to familiarize yourself with `ArduinoJson` library, its functions, the disruptive differences between `ArduinoJson version 5.x.x-` and `v6.0.0+`. The best documentation can be found at [The best JSON library for embedded C++](https://arduinojson.org/).
+
+This documentation will discuss only ArduinoJson v6.x.x+ (`ARDUINOJSON_VERSION_MAJOR >= 6`)
+
+
+Then have a look at the code snippet of `writeConfigFile()` function and the following step-by-step explanations.
+
+
+```
+bool writeConfigFile()
+{
+  Serial.println("Saving config file");
+
+#if (ARDUINOJSON_VERSION_MAJOR >= 6)
+  DynamicJsonDocument json(1024);
+#else
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject& json = jsonBuffer.createObject();
+#endif
+
+  // JSONify local configuration parameters
+  json[ThingSpeakAPI_Label] = thingspeakApiKey;
+  json[SensorDht22_Label] = sensorDht22;
+  json[PinSDA_Label] = pinSda;
+  json[PinSCL_Label] = pinScl;
+
+  // Open file for writing
+  File f = FileFS.open(CONFIG_FILE, "w");
+
+  if (!f)
+  {
+    Serial.println("Failed to open config file for writing");
+    return false;
+  }
+
+#if (ARDUINOJSON_VERSION_MAJOR >= 6)
+  serializeJsonPretty(json, Serial);
+  // Write data to file and close it
+  serializeJson(json, f);
+#else
+  json.prettyPrintTo(Serial);
+  // Write data to file and close it
+  json.printTo(f);
+#endif
+
+  f.close();
+
+  Serial.println("\nConfig file was successfully saved");
+  return true;
+}
+```
+
+#### 5.1 Create a DynamicJsonDocument Object
+
+We'll create an object with size 1024 bytes, enough to hold our data:
+
+```
+DynamicJsonDocument json(1024);
+```
+
+#### 5.2 Fill the DynamicJsonDocument Object with data got from Config Portal
+
+Then `JSONify` all local parameters we've just received from CP and wish to store into FS by using the function prototype:
+
+```
+json[Unique_Label] = Value_For_Unique_Label;
+```
+
+as follows:
+
+```
+// JSONify local configuration parameters
+json[ThingSpeakAPI_Label] = thingspeakApiKey;
+json[SensorDht22_Label]   = sensorDht22;
+json[PinSDA_Label]        = pinSda;
+json[PinSCL_Label]        = pinScl;
+```
+
+
+#### 5.3 Open file to write the Jsonified data
+
+
+This is the `CONFIG_FILE` file name we already declared at the beginning of the sketch (for ESP32):
+
+```
+#include <SPIFFS.h>
+FS* filesystem =      &SPIFFS;
+#define FileFS        SPIFFS
+    
+const char* CONFIG_FILE = "/ConfigSW.json";
+```
+
+Now just open the file for writing, and abort if open-for-writing error:
+
+
+```
+// Open file for writing
+File f = FileFS.open(CONFIG_FILE, "w");
+
+if (!f)
+{
+  Serial.println("Failed to open config file for writing");
+  return false;
+}
+```
+
+
+#### 5.4 Write the Jsonified data to CONFIG_FILE
+
+As simple as this single command to write the whole `json` object we declared then filled with data in steps 5.1 and 5.2
+
+```
+// Write data to file and close it
+serializeJson(json, f);
+```
+
+#### 5.5 Close CONFIG_FILE to flush and save the data
+
+Soooo simple !!! Now everybody can do it.
+
+```
+f.close();
+```
+
+
+But **HOWTO use the saved data in the next startup** ???? That's in next step 6.
+
+
+#### 6. Read from FS using JSON format
+
+
+Now, you have familiarized yourself with ArduinoJson library, its functions. We'll discuss HOWTO read data from the CONFIG_FILE in Jsonified format, then HOWTO parse the to use.
+
+The documentation will discuss only ArduinoJson v6.x.x+ (`ARDUINOJSON_VERSION_MAJOR >= 6`)
+
+
+First, have a look at the code snippet of `readConfigFile()` function.
+
+
+```
+bool readConfigFile()
+{
+  // this opens the config file in read-mode
+  File f = FileFS.open(CONFIG_FILE, "r");
+
+  if (!f)
+  {
+    Serial.println("Configuration file not found");
+    return false;
+  }
+  else
+  {
+    // we could open the file
+    size_t size = f.size();
+    // Allocate a buffer to store contents of the file.
+    std::unique_ptr<char[]> buf(new char[size + 1]);
+
+    // Read and store file contents in buf
+    f.readBytes(buf.get(), size);
+    // Closing file
+    f.close();
+    // Using dynamic JSON buffer which is not the recommended memory model, but anyway
+    // See https://github.com/bblanchon/ArduinoJson/wiki/Memory%20model
+
+#if (ARDUINOJSON_VERSION_MAJOR >= 6)
+    DynamicJsonDocument json(1024);
+    auto deserializeError = deserializeJson(json, buf.get());
+    if ( deserializeError )
+    {
+      Serial.println("JSON parseObject() failed");
+      return false;
+    }
+    serializeJson(json, Serial);
+#else
+    DynamicJsonBuffer jsonBuffer;
+    // Parse JSON string
+    JsonObject& json = jsonBuffer.parseObject(buf.get());
+    // Test if parsing succeeds.
+    if (!json.success())
+    {
+      Serial.println("JSON parseObject() failed");
+      return false;
+    }
+    json.printTo(Serial);
+#endif
+
+    // Parse all config file parameters, override
+    // local config variables with parsed values
+    if (json.containsKey(ThingSpeakAPI_Label))
+    {
+      strcpy(thingspeakApiKey, json[ThingSpeakAPI_Label]);
+    }
+
+    if (json.containsKey(SensorDht22_Label))
+    {
+      sensorDht22 = json[SensorDht22_Label];
+    }
+
+    if (json.containsKey(PinSDA_Label))
+    {
+      pinSda = json[PinSDA_Label];
+    }
+
+    if (json.containsKey(PinSCL_Label))
+    {
+      pinScl = json[PinSCL_Label];
+    }
+  }
+  Serial.println("\nConfig file was successfully parsed");
+  return true;
+}
+
+```
+
+and the following step-by-step explanations. 
+ 
+### 6.1 Open CONFIG_FILE to read
+
+As simple as this
+
+```
+// this opens the config file in read-mode
+File f = FileFS.open(CONFIG_FILE, "r");
+```
+
+We'll inform and abort if the CONFIG_FILE can't be opened (file not found, can't be opened, etc.)
+
+```
+if (!f)
+{
+  Serial.println("Configuration file not found");
+  return false;
+}
+```
+
+### 6.2 Open CONFIG_FILE to read
+
+Now we have to determine the file size to create a buffer large enough to store the to-be-read data
+
+```
+// we could open the file
+size_t size = f.size();
+// Allocate a buffer to store contents of the file.
+std::unique_ptr<char[]> buf(new char[size + 1]);
+```
+
+**Remember always add 1 to the buffer length to store the terminating `0`.**
+
+
+Then just read the file into the buffer, and close the file to be safe
+
+```
+// Read and store file contents in buf
+f.readBytes(buf.get(), size);
+// Closing file
+f.close();
+```
+
+### 6.3 Populate the just-read Jsonified data into the DynamicJsonDocument json object
+
+We again use the same `DynamicJsonDocument json` object to store the data we've just read fron `CONFIG_FILE`.
+
+Why the same complicated `DynamicJsonDocument json` object ?? Because in steps 5, we did store `Jsonified data` using the same `DynamicJsonDocument json` object. It's much easier we now use it again to facilitate the parsing of `Jsonified data` back to the data we can use easily.
+
+
+We first create the object with enough size
+
+```
+DynamicJsonDocument json(1024);
+```
+
+then populate it with data from buffer we read from CONFIG_FILE in step 6.2, pre-parse and check for error. All is done just by one command `deserializeJson()`
+
+```
+auto deserializeError = deserializeJson(json, buf.get());
+```
+
+Abort if there is any data error in the process of writing, storing, reading back. If OK, just nicely print out to the Debug Terminal
+
+```
+if ( deserializeError )
+{
+  Serial.println("JSON parseObject() failed");
+  return false;
+}
+
+serializeJson(json, Serial);
+```
+
+### 6.4 Parse the Jsonified data from the DynamicJsonDocument json object to store into corresponding parameters
+
+
+This is as simple as in the step 5.2, but in reverse direction.
+
+To be sure there is good corresponding data, not garbage, for each variable, we have to perform **sanity checks** by 
+verifying the `DynamicJsonDocument json object` still contains the correct keys we passed to it when we wrote into CONFIG_FILE. 
+
+For example:
+
+```
+if (json.containsKey(ThingSpeakAPI_Label))
+```
+
+Then proceed to get every parameter we know we stored there from last CP `Save`.
+
+
+```
+// Parse all config file parameters, override
+// local config variables with parsed values
+if (json.containsKey(ThingSpeakAPI_Label))
+{
+  strcpy(thingspeakApiKey, json[ThingSpeakAPI_Label]);
+}
+
+if (json.containsKey(SensorDht22_Label))
+{
+  sensorDht22 = json[SensorDht22_Label];
+}
+
+if (json.containsKey(PinSDA_Label))
+{
+  pinSda = json[PinSDA_Label];
+}
+
+if (json.containsKey(PinSCL_Label))
+{
+  pinScl = json[PinSCL_Label];
+}
+```
+
+
+### 6.5 Then what to do now
+
+**Just use those parameters for whatever purpose you designed them for in step 1:**
+
+
+```
+The application will use DHT sensor (either DHT11 or DHT22) and need to connect to ThingSpeak with unique user's API Key. The DHT sensor is connected to the ESP boards using SDA/SCL pins which also need to be configurable.
+```
+
+---
+---
+
 ### Examples
 
  1. [ConfigOnSwitch](examples/ConfigOnSwitch)
@@ -1383,7 +1956,7 @@ bool initialConfig = false;
 
 // Use false if you don't like to display Available Pages in Information Page of Config Portal
 // Comment out or use true to display Available Pages in Information Page of Config Portal
-// Must be placed before #include <ESPAsync_WiFiManager.h>
+// Must be placed before #include <ESP_WiFiManager.h>
 #define USE_AVAILABLE_PAGES     false
 
 // From v1.0.10 to permit disable/enable StaticIP configuration in Config Portal from sketch. Valid only if DHCP is used.
@@ -2510,6 +3083,8 @@ See [KenTaylor's version](https://github.com/kentaylor/WiFiManager) for previous
  8. Thanks to [05prateek](https://github.com/05prateek) for reporting [Stationmode Static IP changes to dhcp when esp8266 is restarted](https://github.com/khoih-prog/ESP_WiFiManager/issues/28) bug which is fixed in v1.0.11 by enhance autoConnect() function.
  9. Thanks to [Egor](https://github.com/eg321) and [HenrikW](https://github.com/Invento3D) to make [`Support building in PlatformIO PR`](https://github.com/khoih-prog/ESP_WiFiManager/pull/20) and post issue [`Change Implementation to seperate *.h and *.cpp file instead of *.h and *-Impl.h`](https://github.com/khoih-prog/ESP_WiFiManager/issues/38) to address the `multiple definition` linker error in certain cases, leading to v1.2.0
 10. Thanks to [Maurice Poos](https://github.com/MaPoLom) to report issue [`ESP_WiFiManager Issue 39: Not able to read analog port when using the autoconnect example`](https://github.com/khoih-prog/ESP_WiFiManager/issues/39).
+11. Thanks to [Vague Rabbit](https://github.com/thewhiterabbit) for requesting, collarborating in creating the [**HOWTO Add Dynamic Parameters**](#howto-add-dynamic-parameters).
+
 
 <table>
   <tr>
@@ -2527,6 +3102,7 @@ See [KenTaylor's version](https://github.com/kentaylor/WiFiManager) for previous
     <td align="center"><a href="https://github.com/eg321"><img src="https://github.com/eg321.png" width="100px;" alt="eg321"/><br /><sub><b>Egor</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/Invento3D"><img src="https://github.com/Invento3D.png" width="100px;" alt="Invento3D"/><br /><sub><b>HenrikW</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/MaPoLom"><img src="https://github.com/MaPoLom.png" width="100px;" alt="MaPoLom"/><br /><sub><b>Maurice Poos</b></sub></a><br /></td>
+    <td align="center"><a href="https://github.com/thewhiterabbit"><img src="https://github.com/thewhiterabbit.png" width="100px;" alt="thewhiterabbit"/><br /><sub><b>Vague Rabbit</b></sub></a><br /></td>
   </tr> 
 </table>
 
