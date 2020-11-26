@@ -122,7 +122,7 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
 ---
 ---
 
-## Prerequisite
+## Prerequisites
 
  1. [`Arduino IDE 1.8.13+` for Arduino](https://www.arduino.cc/en/Main/Software)
  2. [`ESP8266 Core 2.7.4+`](https://github.com/esp8266/Arduino) for ESP8266-based boards.
@@ -144,9 +144,10 @@ The best and easiest way is to use `Arduino Library Manager`. Search for `ESP_Wi
 4. Copy the whole `ESP_WiFiManager-master` folder to Arduino libraries' directory such as `~/Arduino/libraries/`.
 
 ### VS Code & PlatformIO:
+
 1. Install [VS Code](https://code.visualstudio.com/)
 2. Install [PlatformIO](https://platformio.org/platformio-ide)
-3. Install **ESP_WiFiManager** library by using [Library Manager](https://docs.platformio.org/en/latest/librarymanager/). Search for ***ESP_WiFiManager*** in [Platform.io Author's Libraries](https://platformio.org/lib/search?query=author:%22Khoi%20Hoang%22)
+3. Install [**ESP_WiFiManager** library](https://platformio.org/lib/show/6915/ESP_WiFiManager) by using [Library Manager](https://platformio.org/lib/show/6915/ESP_WiFiManager/installation). Search for **ESP_WiFiManager** in [Platform.io Author's Libraries](https://platformio.org/lib/search?query=author:%22Khoi%20Hoang%22)
 4. Use included [platformio.ini](platformio/platformio.ini) file from examples to ensure that all dependent libraries will installed automatically. Please visit documentation for the other options and examples at [Project Configuration File](https://docs.platformio.org/page/projectconf.html)
 
 ---
