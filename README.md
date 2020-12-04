@@ -40,7 +40,7 @@ Thanks to [cancodr](https://github.com/cancodr) for requesting an enhancement in
 
 ### Releases v1.3.0
 
-1. Add LittleFS support to ESP32-related examples to use [LITTLEFS Library](https://github.com/lorol/LITTLEFS)
+1. Add LittleFS support to ESP32-related examples to use [LittleFS_esp32 Library](https://github.com/lorol/LITTLEFS)
 2. Add Version String
 
 ### Releases v1.2.0
@@ -133,6 +133,7 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
  2. [`ESP8266 Core 2.7.4+`](https://github.com/esp8266/Arduino) for ESP8266-based boards.
  3. [`ESP32 Core 1.0.4+`](https://github.com/espressif/arduino-esp32) for ESP32-based boards
  4. [`ESP_DoubleResetDetector v1.1.0+`](https://github.com/khoih-prog/ESP_DoubleResetDetector) if using DRD feature. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_DoubleResetDetector.svg?)](https://www.ardu-badge.com/ESP_DoubleResetDetector). Use v1.1.0+ if using LittleFS for EP32.
+ 5. [`LittleFS_esp32 v1.0.5+`](https://github.com/lorol/LITTLEFS) for ESP32-based boards using LittleFS.
 
 ---
 
@@ -3007,8 +3008,8 @@ FS File: /wifi_cred.dat, size: 192B
 [WM] setAPStaticIPConfig
 [WM] setSTAStaticIPConfig for USE_CONFIGURABLE_DNS
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
-Stored: SSID = HueNet1, Pass = jenniqqs
-[WM] * Add SSID =  HueNet1 , PW =  jenniqqs
+Stored: SSID = HueNet1, Pass = 12345678
+[WM] * Add SSID =  HueNet1 , PW =  12345678
 Got stored Credentials. Timeout 120s for Config Portal
 LittleFS Flag read = 0xd0d01234
 doubleResetDetected
@@ -3077,7 +3078,7 @@ Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiF
 
 ### Releases v1.3.0
 
-1. Add LittleFS support to ESP32-related examples to use [LITTLEFS Library](https://github.com/lorol/LITTLEFS)
+1. Add LittleFS support to ESP32-related examples to use [LittleFS_esp32 Library](https://github.com/lorol/LITTLEFS)
 2. Add Version String
 
 ### Releases v1.2.0
