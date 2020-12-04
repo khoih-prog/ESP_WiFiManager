@@ -35,6 +35,12 @@
       "name": "ESP_DoubleResetDetector",
       "version": "^1.1.0",
       "platforms": ["espressif8266", "espressif32"]
+    },
+    {
+      "owner": "lorol",
+      "name": "LittleFS_esp32",
+      "version": "^1.0.5",
+      "platforms": ["espressif8266", "espressif32"]
     }
   ],
   "frameworks": "*",
