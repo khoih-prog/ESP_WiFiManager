@@ -1,5 +1,5 @@
 {
-  "name": "ESP_WifiManager",
+  "name": "ESP_WiFiManager",
   "version": "1.3.0",
   "keywords": "wifi, WiFiManager, esp8266, esp32",
   "description": "ESP32, ESP8266 MultiWiFi Connection Manager with enhanced GUI and fallback web ConfigPortal. This Library is used for configuring ESP32, ESP8266 modules MultiWiFi Credentials at runtime. You can also specify static DNS servers, personalized HostName, fixed or random AP channel. Now with MultiWiFi auto(Re)connect feature and configurable CORS Header.",
