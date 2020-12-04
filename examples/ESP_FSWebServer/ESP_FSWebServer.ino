@@ -27,7 +27,7 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
   
-  Version: 1.2.0
+  Version: 1.3.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -48,6 +48,7 @@
   1.1.1   K Hoang      30/08/2020 Add setCORSHeader function to allow flexible CORS. Fix typo and minor improvement.
   1.1.2   K Hoang      17/08/2020 Fix bug. Add example.
   1.2.0   K Hoang      09/10/2020 Restore cpp code besides Impl.h code to use if linker error. Fix bug.
+  1.3.0   K Hoang      04/12/2020 Add LittleFS support to ESP32 using LITTLEFS Library
  *****************************************************************************************************************************/
 /*****************************************************************************************************************************
    How To Use:
@@ -225,18 +226,18 @@ void heartBeatPrint(void)
   static int num = 1;
 
   if (WiFi.status() == WL_CONNECTED)
-    Serial.print("H");        // H means connected to WiFi
+    DBG_OUTPUT_PORT.print("H");        // H means connected to WiFi
   else
-    Serial.print("F");        // F means not connected to WiFi
+    DBG_OUTPUT_PORT.print("F");        // F means not connected to WiFi
 
   if (num == 80)
   {
-    Serial.println();
+    DBG_OUTPUT_PORT.println();
     num = 1;
   }
   else if (num++ % 10 == 0)
   {
-    Serial.print(" ");
+    DBG_OUTPUT_PORT.print(" ");
   }
 }
 
@@ -244,7 +245,7 @@ void check_WiFi(void)
 {
   if ( (WiFi.status() != WL_CONNECTED) )
   {
-    Serial.println("\nWiFi lost. Call connectMultiWiFi in loop");
+    DBG_OUTPUT_PORT.println("\nWiFi lost. Call connectMultiWiFi in loop");
     connectMultiWiFi();
   }
 }  
@@ -631,13 +632,14 @@ uint8_t connectMultiWiFi(void)
   return status;
 }
 
-void setup(void) 
+void setup() 
 {
   DBG_OUTPUT_PORT.begin(115200);
   while (!DBG_OUTPUT_PORT);
   
   DBG_OUTPUT_PORT.print("\nStarting ESP_FSWebServer using " + String(FS_Name));
   DBG_OUTPUT_PORT.println(" on " + String(ARDUINO_BOARD));
+  DBG_OUTPUT_PORT.println("ESP_WiFiManager Version " + String(ESP_WIFIMANAGER_VERSION));
 
   DBG_OUTPUT_PORT.setDebugOutput(false);
   

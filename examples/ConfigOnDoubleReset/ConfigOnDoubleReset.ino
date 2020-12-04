@@ -13,7 +13,7 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.2.0
+  Version: 1.3.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -34,6 +34,7 @@
   1.1.1   K Hoang      30/08/2020 Add setCORSHeader function to allow flexible CORS. Fix typo and minor improvement.
   1.1.2   K Hoang      17/08/2020 Fix bug. Add example.
   1.2.0   K Hoang      09/10/2020 Restore cpp code besides Impl.h code to use if linker error. Fix bug.
+  1.3.0   K Hoang      04/12/2020 Add LittleFS support to ESP32 using LITTLEFS Library
  *****************************************************************************************************************************/
 /****************************************************************************************************************************
    This example will open a configuration portal when the reset button is pressed twice.
@@ -69,64 +70,77 @@
 
 //Ported to ESP32
 #ifdef ESP32
-#include <esp_wifi.h>
-#include <WiFi.h>
-#include <WiFiClient.h>
+  #include <esp_wifi.h>
+  #include <WiFi.h>
+  #include <WiFiClient.h>
+  
+  // From v1.1.0
+  #include <WiFiMulti.h>
+  WiFiMulti wifiMulti;
 
-// From v1.1.0
-#include <WiFiMulti.h>
-WiFiMulti wifiMulti;
+  // LittleFS has higher priority than SPIFFS
+  #define USE_LITTLEFS    true
+  #define USE_SPIFFS      false
 
-#define USE_SPIFFS      true
+  #if USE_LITTLEFS
+    // Use LittleFS
+    #include "FS.h"
 
-#if USE_SPIFFS
-#include <SPIFFS.h>
-FS* filesystem =      &SPIFFS;
-#define FileFS        SPIFFS
-#define FS_Name       "SPIFFS"
-#else
-// Use FFat
-#include <FFat.h>
-FS* filesystem =      &FFat;
-#define FileFS        FFat
-#define FS_Name       "FFat"
-#endif
-//////
-
-#define ESP_getChipId()   ((uint32_t)ESP.getEfuseMac())
+    // The library will be depreciated after being merged to future major Arduino esp32 core release 2.x
+    // At that time, just remove this library inclusion
+    #include <LITTLEFS.h>             // https://github.com/lorol/LITTLEFS
+    
+    FS* filesystem =      &LITTLEFS;
+    #define FileFS        LITTLEFS
+    #define FS_Name       "LittleFS"
+  #elif USE_SPIFFS
+    #include <SPIFFS.h>
+    FS* filesystem =      &SPIFFS;
+    #define FileFS        SPIFFS
+    #define FS_Name       "SPIFFS"
+  #else
+    // Use FFat
+    #include <FFat.h>
+    FS* filesystem =      &FFat;
+    #define FileFS        FFat
+    #define FS_Name       "FFat"
+  #endif
+    //////
+    
+    #define ESP_getChipId()   ((uint32_t)ESP.getEfuseMac())
 
 #define LED_BUILTIN       2
 #define LED_ON            HIGH
 #define LED_OFF           LOW
 
 #else
-#include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
-//needed for library
-#include <DNSServer.h>
-#include <ESP8266WebServer.h>
-
-// From v1.1.0
-#include <ESP8266WiFiMulti.h>
-ESP8266WiFiMulti wifiMulti;
-
-#define USE_LITTLEFS      true
-
-#if USE_LITTLEFS
-#include <LittleFS.h>
-FS* filesystem =      &LittleFS;
-#define FileFS        LittleFS
-#define FS_Name       "LittleFS"
-#else
-FS* filesystem =      &SPIFFS;
-#define FileFS        SPIFFS
-#define FS_Name       "SPIFFS"
-#endif
-//////
-
-#define ESP_getChipId()   (ESP.getChipId())
-
-#define LED_ON      LOW
-#define LED_OFF     HIGH
+  #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
+  //needed for library
+  #include <DNSServer.h>
+  #include <ESP8266WebServer.h>
+  
+  // From v1.1.0
+  #include <ESP8266WiFiMulti.h>
+  ESP8266WiFiMulti wifiMulti;
+  
+  #define USE_LITTLEFS      true
+  
+  #if USE_LITTLEFS
+    #include <LittleFS.h>
+    FS* filesystem =      &LittleFS;
+    #define FileFS        LittleFS
+    #define FS_Name       "LittleFS"
+  #else
+    FS* filesystem =      &SPIFFS;
+    #define FileFS        SPIFFS
+    #define FS_Name       "SPIFFS"
+  #endif
+  //////
+  
+  #define ESP_getChipId()   (ESP.getChipId())
+  
+  #define LED_ON      LOW
+  #define LED_OFF     HIGH
 #endif
 
 // These defines must be put before #include <ESP_DoubleResetDetector.h>
@@ -136,35 +150,41 @@ FS* filesystem =      &SPIFFS;
 // Otherwise, library will use default EEPROM storage
 #ifdef ESP32
 
-// These defines must be put before #include <ESP_DoubleResetDetector.h>
-// to select where to store DoubleResetDetector's variable.
-// For ESP32, You must select one to be true (EEPROM or SPIFFS)
-// Otherwise, library will use default EEPROM storage
-#if USE_SPIFFS
-#define ESP_DRD_USE_SPIFFS      true
-#define ESP_DRD_USE_EEPROM      false
-#else
-#define ESP_DRD_USE_SPIFFS      false
-#define ESP_DRD_USE_EEPROM      true
-#endif
+  // These defines must be put before #include <ESP_DoubleResetDetector.h>
+  // to select where to store DoubleResetDetector's variable.
+  // For ESP32, You must select one to be true (EEPROM or SPIFFS)
+  // Otherwise, library will use default EEPROM storage
+  #if USE_LITTLEFS
+    #define ESP_DRD_USE_LITTLEFS    true
+    #define ESP_DRD_USE_SPIFFS      false
+    #define ESP_DRD_USE_EEPROM      false
+  #elif USE_SPIFFS
+    #define ESP_DRD_USE_LITTLEFS    false
+    #define ESP_DRD_USE_SPIFFS      true
+    #define ESP_DRD_USE_EEPROM      false
+  #else
+    #define ESP_DRD_USE_LITTLEFS    false
+    #define ESP_DRD_USE_SPIFFS      false
+    #define ESP_DRD_USE_EEPROM      true
+  #endif
 
 #else //ESP8266
 
-// For DRD
-// These defines must be put before #include <ESP_DoubleResetDetector.h>
-// to select where to store DoubleResetDetector's variable.
-// For ESP8266, You must select one to be true (RTC, EEPROM, SPIFFS or LITTLEFS)
-// Otherwise, library will use default EEPROM storage
-#if USE_LITTLEFS
-#define ESP_DRD_USE_LITTLEFS    true
-#define ESP_DRD_USE_SPIFFS      false
-#else
-#define ESP_DRD_USE_LITTLEFS    false
-#define ESP_DRD_USE_SPIFFS      true
-#endif
-
-#define ESP_DRD_USE_EEPROM      false
-#define ESP8266_DRD_USE_RTC     false
+  // For DRD
+  // These defines must be put before #include <ESP_DoubleResetDetector.h>
+  // to select where to store DoubleResetDetector's variable.
+  // For ESP8266, You must select one to be true (RTC, EEPROM, SPIFFS or LITTLEFS)
+  // Otherwise, library will use default EEPROM storage
+  #if USE_LITTLEFS
+    #define ESP_DRD_USE_LITTLEFS    true
+    #define ESP_DRD_USE_SPIFFS      false
+  #else
+    #define ESP_DRD_USE_LITTLEFS    false
+    #define ESP_DRD_USE_SPIFFS      true
+  #endif
+  
+  #define ESP_DRD_USE_EEPROM      false
+  #define ESP8266_DRD_USE_RTC     false
 #endif
 
 #define DOUBLERESETDETECTOR_DEBUG       true  //false
@@ -261,8 +281,8 @@ bool initialConfig = false;
 #define USE_DHCP_IP     true
 #else
 // You can select DHCP or Static IP here
-//#define USE_DHCP_IP     true
-#define USE_DHCP_IP     false
+#define USE_DHCP_IP     true
+//#define USE_DHCP_IP     false
 #endif
 
 #if ( USE_DHCP_IP || ( defined(USE_STATIC_IP_CONFIG_IN_CP) && !USE_STATIC_IP_CONFIG_IN_CP ) )
@@ -465,6 +485,8 @@ void setup()
 
   Serial.print("\nStarting ConfigOnDoubleReset with DoubleResetDetect using " + String(FS_Name));
   Serial.println(" on " + String(ARDUINO_BOARD));
+  Serial.println("ESP_WiFiManager Version " + String(ESP_WIFIMANAGER_VERSION));
+  Serial.println("ESP_DoubleResetDetector Version " + String(ESP_DOUBLE_RESET_DETECTOR_VERSION));
 
   Serial.setDebugOutput(false);
 

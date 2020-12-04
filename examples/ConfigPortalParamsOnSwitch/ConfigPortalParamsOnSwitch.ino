@@ -13,7 +13,7 @@
   
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.2.0
+  Version: 1.3.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -34,6 +34,7 @@
   1.1.1   K Hoang      30/08/2020 Add setCORSHeader function to allow flexible CORS. Fix typo and minor improvement.
   1.1.2   K Hoang      17/08/2020 Fix bug. Add example.
   1.2.0   K Hoang      09/10/2020 Restore cpp code besides Impl.h code to use if linker error. Fix bug.
+  1.3.0   K Hoang      04/12/2020 Add LittleFS support to ESP32 using LITTLEFS Library
  *****************************************************************************************************************************/
 /****************************************************************************************************************************
    This example will open a configuration portal when a predetermined button is pressed
@@ -73,9 +74,22 @@
   #include <WiFiMulti.h>
   WiFiMulti wifiMulti;
 
-  #define USE_SPIFFS      true
+  // LittleFS has higher priority than SPIFFS
+  #define USE_LITTLEFS    true
+  #define USE_SPIFFS      false
 
-  #if USE_SPIFFS
+  #if USE_LITTLEFS
+    // Use LittleFS
+    #include "FS.h"
+
+    // The library will be depreciated after being merged to future major Arduino esp32 core release 2.x
+    // At that time, just remove this library inclusion
+    #include <LITTLEFS.h>             // https://github.com/lorol/LITTLEFS
+    
+    FS* filesystem =      &LITTLEFS;
+    #define FileFS        LITTLEFS
+    #define FS_Name       "LittleFS"
+  #elif USE_SPIFFS
     #include <SPIFFS.h>
     FS* filesystem =      &SPIFFS;
     #define FileFS        SPIFFS
@@ -636,6 +650,7 @@ void setup()
   
   Serial.print("\nStarting ConfigPortalParamsOnSwitch using " + String(FS_Name));
   Serial.println(" on " + String(ARDUINO_BOARD));
+  Serial.println("ESP_WiFiManager Version " + String(ESP_WIFIMANAGER_VERSION));
 
   // Initialize the LED digital pin as an output.
   pinMode(PIN_LED, OUTPUT);

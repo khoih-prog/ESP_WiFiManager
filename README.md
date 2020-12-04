@@ -38,6 +38,11 @@ Thanks to [cancodr](https://github.com/cancodr) for requesting an enhancement in
 ---
 ---
 
+### Releases v1.3.0
+
+1. Add LittleFS support to ESP32-related examples to use [LITTLEFS Library](https://github.com/lorol/LITTLEFS)
+2. Add Version String
+
 ### Releases v1.2.0
 
 1. Restore cpp code besides Impl.h code to use in case of `multiple definition` linker error. See [`Change Implementation to seperate *.h and *.cpp file instead of *.h and *-Impl.h`](https://github.com/khoih-prog/ESP_WiFiManager/issues/38) and [`Support building in PlatformIO PR`](https://github.com/khoih-prog/ESP_WiFiManager/pull/20). Also have a look at [**HOWTO Fix Multiple Definitions Linker Error**](https://github.com/khoih-prog/ESP_WiFiManager#HOWTO-Fix-Multiple-Definitions-Linker-Error)
@@ -127,13 +132,14 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
  1. [`Arduino IDE 1.8.13+` for Arduino](https://www.arduino.cc/en/Main/Software)
  2. [`ESP8266 Core 2.7.4+`](https://github.com/esp8266/Arduino) for ESP8266-based boards.
  3. [`ESP32 Core 1.0.4+`](https://github.com/espressif/arduino-esp32) for ESP32-based boards
- 4. [`ESP_DoubleResetDetector v1.0.3+`](https://github.com/khoih-prog/ESP_DoubleResetDetector) if using DRD feature. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_DoubleResetDetector.svg?)](https://www.ardu-badge.com/ESP_DoubleResetDetector).
+ 4. [`ESP_DoubleResetDetector v1.1.0+`](https://github.com/khoih-prog/ESP_DoubleResetDetector) if using DRD feature. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_DoubleResetDetector.svg?)](https://www.ardu-badge.com/ESP_DoubleResetDetector). Use v1.1.0+ if using LittleFS for EP32.
 
 ---
 
 ## Installation
 
 ### Use Arduino Library Manager
+
 The best and easiest way is to use `Arduino Library Manager`. Search for `ESP_WiFiManager`, then select / install the latest version. You can also use this link [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_WiFiManager.svg?)](https://www.ardu-badge.com/ESP_WiFiManager) for more detailed instructions.
 
 ### Manual Install
@@ -253,9 +259,22 @@ then connect WebBrowser to configurable ConfigPortal IP address, default is 192.
   #include <WiFiMulti.h>
   WiFiMulti wifiMulti;
 
-  #define USE_SPIFFS      true
+  // LittleFS has higher priority than SPIFFS
+  #define USE_LITTLEFS    true
+  #define USE_SPIFFS      false
 
-  #if USE_SPIFFS
+  #if USE_LITTLEFS
+    // Use LittleFS
+    #include "FS.h"
+
+    // The library will be depreciated after being merged to future major Arduino esp32 core release 2.x
+    // At that time, just remove this library inclusion
+    #include <LITTLEFS.h>             // https://github.com/lorol/LITTLEFS
+    
+    FS* filesystem =      &LITTLEFS;
+    #define FileFS        LITTLEFS
+    #define FS_Name       "LittleFS"
+  #elif USE_SPIFFS
     #include <SPIFFS.h>
     FS* filesystem =      &SPIFFS;
     #define FileFS        SPIFFS
@@ -366,9 +385,22 @@ WM_Config         WM_config;
   #include <WiFiMulti.h>
   WiFiMulti wifiMulti;
 
-  #define USE_SPIFFS      true
+  // LittleFS has higher priority than SPIFFS
+  #define USE_LITTLEFS    true
+  #define USE_SPIFFS      false
 
-  #if USE_SPIFFS
+  #if USE_LITTLEFS
+    // Use LittleFS
+    #include "FS.h"
+
+    // The library will be depreciated after being merged to future major Arduino esp32 core release 2.x
+    // At that time, just remove this library inclusion
+    #include <LITTLEFS.h>             // https://github.com/lorol/LITTLEFS
+    
+    FS* filesystem =      &LITTLEFS;
+    #define FileFS        LITTLEFS
+    #define FS_Name       "LittleFS"
+  #elif USE_SPIFFS
     #include <SPIFFS.h>
     FS* filesystem =      &SPIFFS;
     #define FileFS        SPIFFS
@@ -1767,9 +1799,22 @@ ESP_wifiManager.setRemoveDuplicateAPs(false);
   #include <WiFiMulti.h>
   WiFiMulti wifiMulti;
 
-  #define USE_SPIFFS      true
+  // LittleFS has higher priority than SPIFFS
+  #define USE_LITTLEFS    true
+  #define USE_SPIFFS      false
 
-  #if USE_SPIFFS
+  #if USE_LITTLEFS
+    // Use LittleFS
+    #include "FS.h"
+
+    // The library will be depreciated after being merged to future major Arduino esp32 core release 2.x
+    // At that time, just remove this library inclusion
+    #include <LITTLEFS.h>             // https://github.com/lorol/LITTLEFS
+    
+    FS* filesystem =      &LITTLEFS;
+    #define FileFS        LITTLEFS
+    #define FS_Name       "LittleFS"
+  #elif USE_SPIFFS
     #include <SPIFFS.h>
     FS* filesystem =      &SPIFFS;
     #define FileFS        SPIFFS
@@ -1830,14 +1875,20 @@ ESP_wifiManager.setRemoveDuplicateAPs(false);
   // to select where to store DoubleResetDetector's variable.
   // For ESP32, You must select one to be true (EEPROM or SPIFFS)
   // Otherwise, library will use default EEPROM storage
-  #if USE_SPIFFS
+  #if USE_LITTLEFS
+    #define ESP_DRD_USE_LITTLEFS    true
+    #define ESP_DRD_USE_SPIFFS      false
+    #define ESP_DRD_USE_EEPROM      false
+  #elif USE_SPIFFS
+    #define ESP_DRD_USE_LITTLEFS    false
     #define ESP_DRD_USE_SPIFFS      true
     #define ESP_DRD_USE_EEPROM      false
   #else
+    #define ESP_DRD_USE_LITTLEFS    false
     #define ESP_DRD_USE_SPIFFS      false
     #define ESP_DRD_USE_EEPROM      true
   #endif
-  
+
 #else //ESP8266
   
   // For DRD
@@ -1957,7 +2008,7 @@ bool initialConfig = false;
 
 // Use false if you don't like to display Available Pages in Information Page of Config Portal
 // Comment out or use true to display Available Pages in Information Page of Config Portal
-// Must be placed before #include <ESP_WiFiManager.h>
+// Must be placed before #include <ESPAsync_WiFiManager.h>
 #define USE_AVAILABLE_PAGES     false
 
 // From v1.0.10 to permit disable/enable StaticIP configuration in Config Portal from sketch. Valid only if DHCP is used.
@@ -2061,9 +2112,9 @@ uint8_t connectMultiWiFi(void)
   WiFi.mode(WIFI_STA);
 
 #if !USE_DHCP_IP    
-  #if USE_CONFIGURABLE_DNS
+  #if USE_CONFIGURABLE_DNS  
     // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
-    WiFi.config(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
+    WiFi.config(stationIP, gatewayIP, netMask, dns1IP, dns2IP);  
   #else
     // Set static IP, Gateway, Subnetmask, Use auto DNS1 and DNS2.
     WiFi.config(stationIP, gatewayIP, netMask);
@@ -2149,7 +2200,7 @@ void check_WiFi(void)
     Serial.println(F("\nWiFi lost. Call connectMultiWiFi in loop"));
     connectMultiWiFi();
   }
-}
+}  
 
 void check_status(void)
 {
@@ -2249,7 +2300,7 @@ void deleteOldInstances(void)
     Temperature = NULL;
     
     Serial.println(F("Deleting old Temperature object"));
-  }
+  }  
 }
 
 void createNewInstances(void)
@@ -2654,6 +2705,8 @@ void setup()
 
   Serial.print("\nStarting ConfigOnDRD_FS_MQTT_Ptr using " + String(FS_Name));
   Serial.println(" on " + String(ARDUINO_BOARD));
+  Serial.println("ESP_WiFiManager Version " + String(ESP_WIFIMANAGER_VERSION));
+  Serial.println("ESP_DoubleResetDetector Version " + String(ESP_DOUBLE_RESET_DETECTOR_VERSION));
 
   Serial.setDebugOutput(false);
 
@@ -2704,7 +2757,7 @@ void setup()
     wifi_manager();
   }
   else
-  {
+  {   
     // Load stored data, the addAP ready for MultiWiFi reconnection
     loadConfigData();
 
@@ -2736,7 +2789,7 @@ void setup()
     }
   }
 
-  digitalWrite(LED_BUILTIN, LED_OFF); // Turn led off as we are not in configuration mode.
+  digitalWrite(LED_BUILTIN, LED_OFF); // Turn led off as we are not in configuration mode.   
 }
 
 // Loop function
@@ -2764,6 +2817,7 @@ void loop()
 
 ```
 Starting ConfigOnSwichFS_MQTT_Ptr using LittleFS on ESP8266_NODEMCU
+ESP_WiFiManager Version v1.3.0
 Configuration file not found
 Failed to read configuration file, using default values
 [WM] RFC925 Hostname = ConfigOnSwichFS-MQTT
@@ -2869,10 +2923,12 @@ TWWWW WTWWWW WWTWWW WWWTWW WWWWTW
 ```
 ---
 
-2. This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD)  on  ***ESP32 ESP32_DEV.***. Config Portal was requested by DRD to input and save Credentials. The boards then connected to WiFi AP **HueNet1** using new Static IP successfully. WiFi AP **HueNet1** is then lost, and board **autoreconnects** itself to backup WiFi AP **HueNet2**.
+2. This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD)  on  ***ESP32 ESP32_DEV using SPIFFS.***. Config Portal was requested by DRD to input and save Credentials. The boards then connected to WiFi AP **HueNet1** using new Static IP successfully. WiFi AP **HueNet1** is then lost, and board **autoreconnects** itself to backup WiFi AP **HueNet2**.
 
 ```cpp
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using SPIFFS on ESP32_DEV
+ESP_WiFiManager Version v1.3.0
+ESP_DoubleResetDetector Version v1.1.0
 FS File: /ConfigSW.json, size: 150B
 FS File: /CanadaFlag_1.png, size: 40.25KB
 FS File: /CanadaFlag_2.png, size: 8.12KB
@@ -2929,6 +2985,60 @@ HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH
 ```
 
 ---
+
+3. This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD)  on  ***ESP32 ESP32_DEV using newly-supported LittleFS.***. Config Portal was requested by DRD to input and save Credentials. The boards then connected to WiFi AP **HueNet1** using new Static IP successfully.
+
+```
+Starting ESP32_FSWebServer_DRD with DoubleResetDetect using LittleFS on ESP32_DEV
+ESP_WiFiManager Version v1.3.0
+ESP_DoubleResetDetector Version v1.1.0
+FS File: /CanadaFlag_1.png, size: 40.25KB
+FS File: /CanadaFlag_2.png, size: 8.12KB
+FS File: /CanadaFlag_3.jpg, size: 10.89KB
+FS File: /Credentials.txt, size: 192B
+FS File: /drd.dat, size: 4B
+FS File: /edit.htm.gz, size: 4.02KB
+FS File: /favicon.ico, size: 1.12KB
+FS File: /graphs.js.gz, size: 1.92KB
+FS File: /index.htm, size: 3.63KB
+FS File: /wifi_cred.dat, size: 192B
+
+[WM] RFC925 Hostname = ESP32-FSWebServerDRD
+[WM] setAPStaticIPConfig
+[WM] setSTAStaticIPConfig for USE_CONFIGURABLE_DNS
+[WM] Set CORS Header to :  Your Access-Control-Allow-Origin
+Stored: SSID = HueNet1, Pass = jenniqqs
+[WM] * Add SSID =  HueNet1 , PW =  jenniqqs
+Got stored Credentials. Timeout 120s for Config Portal
+LittleFS Flag read = 0xd0d01234
+doubleResetDetected
+Saving config file...
+Saving config file OK
+Open Config Portal without Timeout: Double Reset Detected
+[WM] WiFi.waitForConnectResult Done
+[WM] SET AP
+[WM] Configuring AP SSID = ESP_9ABF498
+[WM] AP PWD = your_password
+[WM] AP Channel = 10
+[WM] Custom AP IP/GW/Subnet =  192.168.232.1 192.168.232.1 255.255.255.0
+[WM] AP IP address = 192.168.232.1
+[WM] HTTP server started
+[WM] ESP_WiFiManager::startConfigPortal : Enter loop
+[WM] WiFi connected after time:  1
+[WM] SSID: HueNet1 ,RSSI= -33
+[WM] Channel: 2 ,IP address: 192.168.2.232
+After waiting 2.92 secs more in setup(), connection result is connected. Local IP: 192.168.2.232
+HTTP server started @ 192.168.2.232
+Open http://esp32-fs-browser.local/edit to see the file browser
+[WM] freeing allocated params!
+HStop doubleResetDetecting
+Saving config file...
+Saving config file OK
+HHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH
+HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH
+HHHHHHHHHH HHHHHHHHHH HHH
+```
+---
 ---
 
 ### Debug
@@ -2964,6 +3074,11 @@ Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiF
 
 ---
 ---
+
+### Releases v1.3.0
+
+1. Add LittleFS support to ESP32-related examples to use [LITTLEFS Library](https://github.com/lorol/LITTLEFS)
+2. Add Version String
 
 ### Releases v1.2.0
 

@@ -74,16 +74,25 @@
 WiFiMulti wifiMulti;
 //////
 
-#define USE_SPIFFS      true
+// LittleFS has higher priority than SPIFFS
+#define USE_LITTLEFS    true
+#define USE_SPIFFS      false
 
 // These defines must be put before #include <ESP_DoubleResetDetector.h>
 // to select where to store DoubleResetDetector's variable.
 // For ESP32, You must select one to be true (EEPROM or SPIFFS)
 // Otherwise, library will use default EEPROM storage
-#if USE_SPIFFS
+
+#if USE_LITTLEFS
+  #define ESP_DRD_USE_LITTLEFS    true
+  #define ESP_DRD_USE_SPIFFS      false
+  #define ESP_DRD_USE_EEPROM      false
+#elif USE_SPIFFS
+  #define ESP_DRD_USE_LITTLEFS    false
   #define ESP_DRD_USE_SPIFFS      true
   #define ESP_DRD_USE_EEPROM      false
 #else
+  #define ESP_DRD_USE_LITTLEFS    false
   #define ESP_DRD_USE_SPIFFS      false
   #define ESP_DRD_USE_EEPROM      true
 #endif
@@ -107,7 +116,18 @@ DoubleResetDetector* drd;
 //#define FORMAT_FILESYSTEM       true
 #define FORMAT_FILESYSTEM         false
 
-#if USE_SPIFFS
+#if USE_LITTLEFS
+  // Use LittleFS
+  #include "FS.h"
+
+  // The library will be depreciated after being merged to future major Arduino esp32 core release 2.x
+  // At that time, just remove this library inclusion
+  #include <LITTLEFS.h>             // https://github.com/lorol/LITTLEFS
+  
+  FS* filesystem =      &LITTLEFS;
+  #define FileFS        LITTLEFS
+  #define FS_Name       "LittleFS"
+#elif USE_SPIFFS
   #include <SPIFFS.h>
   FS* filesystem =      &SPIFFS;
   #define FileFS        SPIFFS
@@ -248,38 +268,38 @@ WebServer server(HTTP_PORT);
 File fsUploadFile;
 
 // Function Prototypes
-uint8_t connectMultiWiFi(void);
+uint8_t connectMultiWiFi();
 
-void heartBeatPrint(void)
+void heartBeatPrint()
 {
   static int num = 1;
 
   if (WiFi.status() == WL_CONNECTED)
-    Serial.print("H");        // H means connected to WiFi
+    DBG_OUTPUT_PORT.print("H");        // H means connected to WiFi
   else
-    Serial.print("F");        // F means not connected to WiFi
+    DBG_OUTPUT_PORT.print("F");        // F means not connected to WiFi
 
   if (num == 80)
   {
-    Serial.println();
+    DBG_OUTPUT_PORT.println();
     num = 1;
   }
   else if (num++ % 10 == 0)
   {
-    Serial.print(" ");
+    DBG_OUTPUT_PORT.print(" ");
   }
 }
 
-void check_WiFi(void)
+void check_WiFi()
 {
   if ( (WiFi.status() != WL_CONNECTED) )
   {
-    Serial.println("\nWiFi lost. Call connectMultiWiFi in loop");
+    DBG_OUTPUT_PORT.println("\nWiFi lost. Call connectMultiWiFi in loop");
     connectMultiWiFi();
   }
 }  
 
-void check_status(void)
+void check_status()
 {
   static ulong checkstatus_timeout  = 0;
   static ulong checkwifi_timeout    = 0;
@@ -552,7 +572,7 @@ void handleFileList()
   server.send(200, "text/json", output);
 }
 
-void loadConfigData(void)
+void loadConfigData()
 {
   File file = FileFS.open(CONFIG_FILENAME, "r");
   LOGERROR(F("LoadWiFiCfgFile "));
@@ -569,7 +589,7 @@ void loadConfigData(void)
   }
 }
     
-void saveConfigData(void)
+void saveConfigData()
 {
   File file = FileFS.open(CONFIG_FILENAME, "w");
   LOGERROR(F("SaveWiFiCfgFile "));
@@ -586,7 +606,7 @@ void saveConfigData(void)
   }
 }
 
-uint8_t connectMultiWiFi(void)
+uint8_t connectMultiWiFi()
 {
 #if ESP32
   // For ESP32, this better be 0 to shorten the connect time
@@ -656,13 +676,15 @@ uint8_t connectMultiWiFi(void)
   return status;
 }
 
-void setup(void)
+void setup()
 {
   DBG_OUTPUT_PORT.begin(115200);
   while (!DBG_OUTPUT_PORT);
   
   DBG_OUTPUT_PORT.print("\nStarting ESP32_FSWebServer_DRD with DoubleResetDetect using " + String(FS_Name));
   DBG_OUTPUT_PORT.println(" on " + String(ARDUINO_BOARD));
+  DBG_OUTPUT_PORT.println("ESP_WiFiManager Version " + String(ESP_WIFIMANAGER_VERSION));
+  DBG_OUTPUT_PORT.println("ESP_DoubleResetDetector Version " + String(ESP_DOUBLE_RESET_DETECTOR_VERSION));
 
   DBG_OUTPUT_PORT.setDebugOutput(false);
 
@@ -743,11 +765,11 @@ void setup(void)
     wifiMulti.addAP(Router_SSID.c_str(), Router_Pass.c_str());
     
     ESP_wifiManager.setConfigPortalTimeout(120); //If no access point name has been previously entered disable timeout.
-    Serial.println("Got stored Credentials. Timeout 120s for Config Portal");
+    DBG_OUTPUT_PORT.println("Got stored Credentials. Timeout 120s for Config Portal");
   }
   else
   {
-    Serial.println("Open Config Portal without Timeout: No stored Credentials.");
+    DBG_OUTPUT_PORT.println("Open Config Portal without Timeout: No stored Credentials.");
     initialConfig = true;
   }
 
@@ -898,7 +920,7 @@ void setup(void)
   DBG_OUTPUT_PORT.println(".local/edit to see the file browser");
 }
 
-void loop(void) 
+void loop() 
 {
   // Call the double reset detector loop method every so often,
   // so that it can recognise when the timeout expires.
