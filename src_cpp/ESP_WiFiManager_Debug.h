@@ -15,7 +15,7 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.3.0
+  Version: 1.4.1
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -37,9 +37,13 @@
   1.1.2   K Hoang      17/08/2020 Fix bug. Add example.
   1.2.0   K Hoang      09/10/2020 Restore cpp code besides Impl.h code to use if linker error. Fix bug.
   1.3.0   K Hoang      04/12/2020 Add LittleFS support to ESP32 using LITTLEFS Library
+  1.4.1   K Hoang      22/12/2020 Fix staticIP not saved. Add functions. Add complex examples. Sync with ESPAsync_WiFiManager
  *****************************************************************************************************************************/
 
 #pragma once
+
+//#ifndef ESP_WiFiManager_Debug_H
+//#define ESP_WiFiManager_Debug_H
 
 #ifdef WIFIMGR_DEBUG_PORT
   #define DBG_PORT      WIFIMGR_DEBUG_PORT
@@ -82,3 +86,4 @@
 #define LOGDEBUG2(x,y,z)    if(_WIFIMGR_LOGLEVEL_>3) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.print(y); DBG_PORT.print(" "); DBG_PORT.println(z); }
 #define LOGDEBUG3(x,y,z,w)  if(_WIFIMGR_LOGLEVEL_>3) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.print(y); DBG_PORT.print(" "); DBG_PORT.print(z); DBG_PORT.print(" "); DBG_PORT.println(w); }
 
+//#endif    //ESP_WiFiManager_Debug_H

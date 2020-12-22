@@ -13,7 +13,7 @@
   
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.3.0
+  Version: 1.4.1
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -35,6 +35,7 @@
   1.1.2   K Hoang      17/08/2020 Fix bug. Add example.
   1.2.0   K Hoang      09/10/2020 Restore cpp code besides Impl.h code to use if linker error. Fix bug.
   1.3.0   K Hoang      04/12/2020 Add LittleFS support to ESP32 using LITTLEFS Library
+  1.4.1   K Hoang      22/12/2020 Fix staticIP not saved. Add functions. Add complex examples. Sync with ESPAsync_WiFiManager
  *****************************************************************************************************************************/
 /****************************************************************************************************************************
   This example will open a Config Portal when there is no stored WiFi Credentials or when a DRD is detected.
@@ -341,6 +342,11 @@ IPAddress netMask     = IPAddress(255, 255, 255, 0);
 IPAddress dns1IP      = gatewayIP;
 IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
 
+// New in v1.4.0
+IPAddress APStaticIP  = IPAddress(192, 168, 100, 1);
+IPAddress APStaticGW  = IPAddress(192, 168, 100, 1);
+IPAddress APStaticSN  = IPAddress(255, 255, 255, 0);
+
 #include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
 
 #define HTTP_PORT           80
@@ -351,9 +357,74 @@ WiFiClient *client                    = NULL;
 Adafruit_MQTT_Client    *mqtt         = NULL;
 Adafruit_MQTT_Publish   *Temperature  = NULL;
 
-// Forward Declaration
+///////////////////////////////////////////
+// New in v1.4.0
+/******************************************
+ * // Defined in ESPAsync_WiFiManager.h
+typedef struct
+{
+  IPAddress _ap_static_ip;
+  IPAddress _ap_static_gw;
+  IPAddress _ap_static_sn;
 
-uint8_t connectMultiWiFi(void)
+}  WiFi_AP_IPConfig;
+
+typedef struct
+{
+  IPAddress _sta_static_ip;
+  IPAddress _sta_static_gw;
+  IPAddress _sta_static_sn;
+#if USE_CONFIGURABLE_DNS  
+  IPAddress _sta_static_dns1;
+  IPAddress _sta_static_dns2;
+#endif
+}  WiFi_STA_IPConfig;
+******************************************/
+
+WiFi_AP_IPConfig  WM_AP_IPconfig;
+WiFi_STA_IPConfig WM_STA_IPconfig;
+
+void initAPIPConfigStruct(WiFi_AP_IPConfig &in_WM_AP_IPconfig)
+{
+  in_WM_AP_IPconfig._ap_static_ip   = APStaticIP;
+  in_WM_AP_IPconfig._ap_static_gw   = APStaticGW;
+  in_WM_AP_IPconfig._ap_static_sn   = APStaticSN;
+}
+
+void initSTAIPConfigStruct(WiFi_STA_IPConfig &in_WM_STA_IPconfig)
+{
+  in_WM_STA_IPconfig._sta_static_ip   = stationIP;
+  in_WM_STA_IPconfig._sta_static_gw   = gatewayIP;
+  in_WM_STA_IPconfig._sta_static_sn   = netMask;
+#if USE_CONFIGURABLE_DNS  
+  in_WM_STA_IPconfig._sta_static_dns1 = dns1IP;
+  in_WM_STA_IPconfig._sta_static_dns2 = dns2IP;
+#endif
+}
+
+void displayIPConfigStruct(WiFi_STA_IPConfig in_WM_STA_IPconfig)
+{
+  LOGERROR3(F("stationIP ="), in_WM_STA_IPconfig._sta_static_ip, ", gatewayIP =", in_WM_STA_IPconfig._sta_static_gw);
+  LOGERROR1(F("netMask ="), in_WM_STA_IPconfig._sta_static_sn);
+#if USE_CONFIGURABLE_DNS
+  LOGERROR3(F("dns1IP ="), in_WM_STA_IPconfig._sta_static_dns1, ", dns2IP =", in_WM_STA_IPconfig._sta_static_dns2);
+#endif
+}
+
+void configWiFi(WiFi_STA_IPConfig in_WM_STA_IPconfig)
+{
+  #if USE_CONFIGURABLE_DNS  
+    // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
+    WiFi.config(in_WM_STA_IPconfig._sta_static_ip, in_WM_STA_IPconfig._sta_static_gw, in_WM_STA_IPconfig._sta_static_sn, in_WM_STA_IPconfig._sta_static_dns1, in_WM_STA_IPconfig._sta_static_dns2);  
+  #else
+    // Set static IP, Gateway, Subnetmask, Use auto DNS1 and DNS2.
+    WiFi.config(in_WM_STA_IPconfig._sta_static_ip, in_WM_STA_IPconfig._sta_static_gw, in_WM_STA_IPconfig._sta_static_sn);
+  #endif 
+}
+
+///////////////////////////////////////////
+
+uint8_t connectMultiWiFi()
 {
 #if ESP32
   // For ESP32, this better be 0 to shorten the connect time
@@ -387,14 +458,10 @@ uint8_t connectMultiWiFi(void)
 
   WiFi.mode(WIFI_STA);
 
-#if !USE_DHCP_IP    
-  #if USE_CONFIGURABLE_DNS  
-    // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
-    WiFi.config(stationIP, gatewayIP, netMask, dns1IP, dns2IP);  
-  #else
-    // Set static IP, Gateway, Subnetmask, Use auto DNS1 and DNS2.
-    WiFi.config(stationIP, gatewayIP, netMask);
-  #endif 
+#if !USE_DHCP_IP
+  // New in v1.4.0
+  configWiFi(WM_STA_IPconfig);
+  //////
 #endif
 
   int i = 0;
@@ -525,16 +592,31 @@ void check_status(void)
   }
 }
 
-void loadConfigData(void)
+void loadConfigData()
 {
   File file = FileFS.open(CONFIG_FILENAME, "r");
   LOGERROR(F("LoadWiFiCfgFile "));
 
+  memset(&WM_config,       0, sizeof(WM_config));
+
+  // New in v1.4.0
+  memset(&WM_STA_IPconfig, 0, sizeof(WM_STA_IPconfig));
+  //////
+    
   if (file)
   {
-    file.readBytes((char *) &WM_config, sizeof(WM_config));
+    file.readBytes((char *) &WM_config,   sizeof(WM_config));
+
+    // New in v1.4.0
+    file.readBytes((char *) &WM_STA_IPconfig, sizeof(WM_STA_IPconfig));
+    //////
+    
     file.close();
     LOGERROR(F("OK"));
+
+    // New in v1.4.0
+    displayIPConfigStruct(WM_STA_IPconfig);
+    //////
   }
   else
   {
@@ -542,14 +624,19 @@ void loadConfigData(void)
   }
 }
     
-void saveConfigData(void)
+void saveConfigData()
 {
   File file = FileFS.open(CONFIG_FILENAME, "w");
   LOGERROR(F("SaveWiFiCfgFile "));
 
   if (file)
   {
-    file.write((uint8_t*) &WM_config, sizeof(WM_config));
+    file.write((uint8_t*) &WM_config,   sizeof(WM_config));
+
+    // New in v1.4.0
+    file.write((uint8_t*) &WM_STA_IPconfig, sizeof(WM_STA_IPconfig));
+    //////
+    
     file.close();
     LOGERROR(F("OK"));
   }
@@ -703,17 +790,16 @@ void wifi_manager()
   //////
   
   //set custom ip for portal
-  //ESP_wifiManager.setAPStaticIPConfig(IPAddress(192, 168, 100, 1), IPAddress(192, 168, 100, 1), IPAddress(255, 255, 255, 0));
+  // New in v1.4.0
+  ESP_wifiManager.setAPStaticIPConfig(WM_AP_IPconfig);
+  //////
   
 #if !USE_DHCP_IP    
-  #if USE_CONFIGURABLE_DNS
-    // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
-    ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
-  #else
-    // Set static IP, Gateway, Subnetmask, Use auto DNS1 and DNS2.
-    ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask);
-  #endif 
-#endif  
+    // Set (static IP, Gateway, Subnetmask, DNS1 and DNS2) or (IP, Gateway, Subnetmask). New in v1.0.5
+    // New in v1.4.0
+    ESP_wifiManager.setSTAStaticIPConfig(WM_STA_IPconfig);
+    //////
+#endif
 
   // New from v1.1.1
 #if USING_CORS_FEATURE
@@ -769,6 +855,11 @@ void wifi_manager()
       }
     }
   
+    // New in v1.4.0
+    ESP_wifiManager.getSTAStaticIPConfig(WM_STA_IPconfig);
+    displayIPConfigStruct(WM_STA_IPconfig);
+    //////
+    
     saveConfigData();
   }
 
@@ -1007,6 +1098,11 @@ void setup()
     FileFS.format();
 #endif
   }
+
+  // New in v1.4.0
+  initAPIPConfigStruct(WM_AP_IPconfig);
+  initSTAIPConfigStruct(WM_STA_IPconfig);
+  //////
   
   if (!readConfigFile())
   {

@@ -10,6 +10,129 @@
 ---
 ---
 
+## Table of Contents
+
+* [Important Note](#important-note)
+  * [Why do we need the new Async ESPAsync_WiFiManager library](#why-do-we-need-the-new-async-espasync_wifimanager-library)
+* [Changelog](#changelog)
+  * [Releases v1.4.1](#releases-v141)
+  * [Releases v1.3.0](#releases-v130)
+  * [Releases v1.2.0](#releases-v120)
+  * [Releases v1.1.2](#releases-v112)
+  * [Releases v1.1.1](#releases-v111)
+  * [Major Releases v1.1.0](#major-releases-v110)
+  * [Releases v1.0.11](#releases-v1011)
+* [Features](#features)
+* [Prerequisites](#prerequisites)
+* [Installation](#installation)
+  * [Use Arduino Library Manager](#use-arduino-library-manager)
+  * [Manual Install](#manual-install)
+  * [VS Code & PlatformIO](#vs-code--platformio)
+* [HOWTO Fix `Multiple Definitions` Linker Error](#howto-fix-multiple-definitions-linker-error)
+* [HOWTO Use analogRead() with ESP32 running WiFi and/or BlueTooth (BT/BLE)](#howto-use-analogread-with-esp32-running-wifi-andor-bluetooth-btble)
+  * [1. ESP32 has 2 ADCs, named ADC1 and ADC2](#1--esp32-has-2-adcs-named-adc1-and-adc2)
+  * [2. ESP32 ADCs functions](#2-esp32-adcs-functions)
+  * [3. ESP32 WiFi uses ADC2 for WiFi functions](#3-esp32-wifi-uses-adc2-for-wifi-functions)
+* [How It Works](#how-it-works)
+* [HOWTO Basic configurations](#howto-basic-configurations)
+  * [1. Using default for every configurable parameter](#1-using-default-for-every-configurable-parameter)
+  * [2. Using many configurable parameters](#2-using-many-configurable-parameters)
+  * [3. Using STA-mode DHCP, but don't like to change to static IP or display in Config Portal](#3-using-sta-mode-dhcp-but-dont-like-to-change-to-static-ip-or-display-in-config-portal) 
+  * [4. Using STA-mode DHCP, but permit to change to static IP and display in Config Portal](#4-using-sta-mode-dhcp-but-permit-to-change-to-static-ip-and-display-in-config-portal)
+  * [5. Using STA-mode StaticIP, and be able to change to DHCP IP and display in Config Portal](#5-using-sta-mode-staticip-and-be-able-to-change-to-dhcp-ip-and-display-in-config-portal)
+  * [6. Using STA-mode StaticIP and configurable DNS, and be able to change to DHCP IP and display in Config Portal](#6-using-sta-mode-staticip-and-configurable-dns-and-be-able-to-change-to-dhcp-ip-and-display-in-config-portal) 
+  * [7. Using STA-mode StaticIP and auto DNS, and be able to change to DHCP IP and display in Config Portal](#7-using-sta-mode-staticip-and-auto-dns-and-be-able-to-change-to-dhcp-ip-and-display-in-config-portal)
+  * [8. Not using NTP to avoid issue with some WebBrowsers, especially in CellPhone or Tablets.](#8-not-using-ntp-to-avoid-issue-with-some-webbrowsers-especially-in-cellphone-or-tablets)
+  * [9. Using NTP feature with CloudFlare. System can hang until you have Internet access for CloudFlare.](#9-using-ntp-feature-with-cloudflare-system-can-hang-until-you-have-internet-access-for-cloudflare) 
+  * [10. Using NTP feature without CloudFlare to avoid system hang if no Internet access for CloudFlare.](#10-using-ntp-feature-without-cloudflare-to-avoid-system-hang-if-no-internet-access-for-cloudflare)
+  * [11. Using random AP-mode channel to avoid conflict](#11-using-random-ap-mode-channel-to-avoid-conflict)
+  * [12. Using fixed AP-mode channel, for example channel 3](#12-using-fixed-ap-mode-channel-for-example-channel-3) 
+  * [13. Setting STA-mode static IP](#13-setting-sta-mode-static-ip)
+  * [14. Using AUTOCONNECT_NO_INVALIDATE feature](#14-using-autoconnect_no_invalidate-feature)
+  * [15. Using CORS (Cross-Origin Resource Sharing) feature](#15-using-cors-cross-origin-resource-sharing-feature) 
+  * [16. Using MultiWiFi auto(Re)connect feature](#16-using-multiwifi-autoreconnect-feature)
+* [HOWTO Open Config Portal](#howto-open-config-portal)
+* [HOWTO Add Dynamic Parameters](#howto-add-dynamic-parameters) 
+  * [1. Determine the variables to be configured via Config Portal (CP)](#1-determine-the-variables-to-be-configured-via-config-portal-cp)
+  * [2. Initialize the variables to prepare for Config Portal (CP)](#2-initialize-the-variables-to-prepare-for-config-portal-cp)
+    * [2.1 Use the following simple constructor for simple variables such as `thingspeakApiKey`, `pinSda` and `pinScl`](#21-use-the-following-simple-constructor-for-simple-variables-such-as-thingspeakapikey-pinsda-and-pinscl-) 
+    * [2.2 For example, to create a new `ESP_WMParameter` object `p_thingspeakApiKey` for `thingspeakApiKey`](#22-for-example-to-create-a-new-esp_wmparameter-object-p_thingspeakapikey-for-thingspeakapikey)
+    * [2.3 Use the more complex following constructor for variables such as `sensorDht22`](#23-use-the-more-complex-following-constructor-for-variables-such-as-sensordht22)
+    * [2.4 For example, to create a new `ESP_WMParameter` object `p_sensorDht22` for `sensorDht22`](#24-for-example-to-create-a-new-esp_wmparameter-object-p_sensordht22-for-sensordht22)
+  * [3. Add the variables to Config Portal (CP)](#3-add-the-variables-to-config-portal-cp) 
+    * [3.1 addParameter() function Prototype:](#31-addparameter-function-prototype)
+    * [3.2 Code to add variables to CP](#32-code-to-add-variables-to-cp)
+  * [4. Save the variables configured in Config Portal (CP)](#4-save-the-variables-configured-in-config-portal-cp) 
+    * [4.1 Getting variables' data from CP](#41-getting-variables-data-from-cp)
+  * [5. Write to FS (SPIFFS, LittleFS, etc.) using JSON format](#5-write-to-fs-spiffs-littlefs-etc-using-json-format)
+    * [5.1 Create a DynamicJsonDocument Object](#51-create-a-dynamicjsondocument-object) 
+    * [5.2 Fill the DynamicJsonDocument Object with data got from Config Portal](#52-fill-the-dynamicjsondocument-object-with-data-got-from-config-portal)
+    * [5.3 Open file to write the Jsonified data](#53-open-file-to-write-the-jsonified-data)
+    * [5.4 Write the Jsonified data to CONFIG_FILE](#54-write-the-jsonified-data-to-config_file) 
+    * [5.5 Close CONFIG_FILE to flush and save the data](#55-close-config_file-to-flush-and-save-the-data)
+  * [6. Read from FS using JSON format](#6-read-from-fs-using-json-format) 
+    * [6.1 Open CONFIG_FILE to read](#61-open-config_file-to-read) 
+    * [6.2 Open CONFIG_FILE to read](62-open-config_file-to-read)
+    * [6.3 Populate the just-read Jsonified data into the DynamicJsonDocument json object](#63-populate-the-just-read-jsonified-data-into-the-dynamicjsondocument-json-object)
+    * [6.4 Parse the Jsonified data from the DynamicJsonDocument json object to store into corresponding parameters](#64-parse-the-jsonified-data-from-the-dynamicjsondocument-json-object-to-store-into-corresponding-parameters) 
+    * [6.5 Then what to do now](#65-then-what-to-do-now)
+* [So, how it works?](#so-how-it-works)
+* [Documentation](#documentation)
+  * [Password protect the configuration Access Point](#password-protect-the-configuration-access-point)
+  * [Callbacks](#callbacks)
+    * [Save settings](#save-settings) 
+  * [ConfigPortal Timeout](#configportal-timeout)
+  * [On Demand ConfigPortal](#on-demand-configportal)
+  * [Custom Parameters](#custom-parameters)
+  * [Custom IP Configuration](#custom-ip-configuration) 
+    * [Custom Access Point IP Configuration](#custom-access-point-ip-configuration)
+    * [Custom Station (client) Static IP Configuration](#custom-station-client-static-ip-configuration)
+  * [Custom HTML, CSS, Javascript](#custom-html-css-javascript) 
+  * [Filter Networks](#filter-networks)
+* [Examples](#examples)
+  * [Medium Complexity](#medium-complexity)
+    * [AutoConnect](examples/AutoConnect)
+    * [AutoConnectWithFeedback](examples/AutoConnectWithFeedback)
+    * [AutoConnectWithFeedbackLED](examples/AutoConnectWithFeedbackLED)
+    * [AutoConnectWithFSParameters](examples/AutoConnectWithFSParameters)
+    * [ConfigOnDoubleReset](examples/ConfigOnDoubleReset)
+    * [ConfigOnDRD_FS_MQTT_Ptr](examples/ConfigOnDRD_FS_MQTT_Ptr)
+    * [ConfigOnStartup](examples/ConfigOnStartup) 
+    * [ConfigOnSwitch](examples/ConfigOnSwitch)
+    * [ConfigOnSwitchFS](examples/ConfigOnSwitchFS)
+    * [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr)
+    * [ConfigPortalParamsOnSwitch](examples/ConfigPortalParamsOnSwitch)
+    * [ESP32_FSWebServer](examples/ESP32_FSWebServer)
+    * [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD)
+    * [ESP_FSWebServer](examples/ESP_FSWebServer)
+    * [ESP_FSWebServer_DRD](examples/ESP_FSWebServer_DRD)
+  * [High Complexity](#high-complexity)
+    * [ConfigOnDRD_FS_MQTT_Ptr_Complex](examples/ConfigOnDRD_FS_MQTT_Ptr_Complex)
+    * [ConfigOnDRD_FS_MQTT_Ptr_Medium](examples/ConfigOnDRD_FS_MQTT_Ptr_Medium)
+  * [Simplest Possible](#simplest-possible)
+    * [AutoConnect_ESP32_minimal](examples/AutoConnect_ESP32_minimal)
+    * [AutoConnect_ESP8266_minimal](examples/AutoConnect_ESP8266_minimal)
+    * [ConfigOnDRD_ESP32_minimal](examples/ConfigOnDRD_ESP32_minimal) 
+    * [ConfigOnDRD_ESP8266_minimal](examples/ConfigOnDRD_ESP8266_minimal)
+* [Example ConfigOnDRD_FS_MQTT_Ptr](#example-configondrd_fs_mqtt_ptr)
+* [Debug Terminal Output Samples](#debug-termimal-output-samples)
+  * [1. ConfigOnSwitchFS_MQTT_Ptr on ESP8266_NODEMCU](#1-configonswitchfs_mqtt_ptr-on-esp32_dev)
+  * [2. ESP32_FSWebServer_DRD on ESP32_DEV](#2-esp32_fswebserver_drd-on-esp32_dev)
+  * [3. ESP32_FSWebServer_DRD on ESP32_DEV using newly-supported LittleFS](#3-esp32_fswebserver_drd-on-esp32_dev-using-newly-supported-littlefs)
+  * [4. ConfigOnDRD_FS_MQTT_Ptr_Complex on ESP32_DEV](#1-configondrd_fs_mqtt_ptr_complex-on-esp32_dev)
+  * [5. ConfigOnDRD_FS_MQTT_Ptr_Medium on ESP8266_NODEMCU](#2-async_configondrd_fs_mqtt_ptr_medium-on-esp8266_nodemcu)
+* [Debug](#debug)
+* [Troubleshooting](#troubleshooting)
+* [Issues](#issues)
+* [Releases](#releases)
+* [Contributions and Thanks](#contributions-and-thanks)
+* [Contributing](#contributing)
+* [License and credits](#license-and-credits)
+* [Copyright](#copyright)
+
+---
+---
+
 ### Important Note
 
 This [**ESP_WiFiManager**](https://github.com/khoih-prog/ESP_WiFiManager) has just been modified to create the new [**ESPAsync_WiFiManager Library**](https://github.com/khoih-prog/ESPAsync_WiFiManager) in order to use the better and more efficient [**ESPAsyncWebServer Library**](https://github.com/me-no-dev/ESPAsyncWebServer), instead of the (ESP8266)WebServer library.
@@ -35,8 +158,29 @@ To appreciate the power of the [ESPAsyncWebServer](https://github.com/me-no-dev/
 
 Thanks to [cancodr](https://github.com/cancodr) for requesting an enhancement in [Issue #29: Is it possible to use AsyncWebServer.h instead of WebServer.h?](https://github.com/khoih-prog/ESP_WiFiManager/issues/29), leading to the new [ESPAsync_WiFiManager Library](https://github.com/khoih-prog/ESPAsync_WiFiManager).
 
+
 ---
 ---
+
+## Changelog
+
+### Major Releases v1.4.1
+
+1. Fix staticIP not saved in examples. See [ESP32 static IP not saved after restarting the device](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues/19)
+2. Add structures and functions to handle AP and STA IPs.
+3. Add complex examples 
+  * [ConfigOnDRD_FS_MQTT_Ptr_Complex](examples/ConfigOnDRD_FS_MQTT_Ptr_Complex) to demo usage of std::map
+  * [ConfigOnDRD_FS_MQTT_Ptr_Medium](examples/ConfigOnDRD_FS_MQTT_Ptr_Medium).
+4. Add simple minimal examples 
+  * [ConfigOnDRD_ESP32_minimal](examples/ConfigOnDRD_ESP32_minimal)
+  * [ConfigOnDRD_ESP8266_minimal](examples/ConfigOnDRD_ESP8266_minimal)
+  * [AutoConnect_ESP32_minimal](examples/AutoConnect_ESP32_minimal)
+  * [AutoConnect_ESP8266_minimal](examples/AutoConnect_ESP8266_minimal)
+5. Fix bug.
+6. Fix compiler warnings.
+7. Modify Version String
+8. Add Table of Contents
+
 
 ### Releases v1.3.0
 
@@ -113,6 +257,8 @@ Thanks to [cancodr](https://github.com/cancodr) for requesting an enhancement in
 
 ---
 ---
+
+## Features
 
 This library is based on, modified, bug-fixed and improved from:
 
@@ -235,7 +381,8 @@ Look in file [**adc_common.c**](https://github.com/espressif/esp-idf/blob/master
 // SSID and PW for Config Portal
 String ssid = "ESP_" + String(ESP_getChipId(), HEX);
 const char* password = "your_password";
-``` 
+```
+
 then connect WebBrowser to configurable ConfigPortal IP address, default is 192.168.4.1
 
 - Choose one of the access points scanned, enter password, click ***Save***.
@@ -556,7 +703,39 @@ bool initialConfig = false;
 IPAddress dns1IP      = gatewayIP;
 IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
 
+// New in v1.4.0
+IPAddress APStaticIP  = IPAddress(192, 168, 100, 1);
+IPAddress APStaticGW  = IPAddress(192, 168, 100, 1);
+IPAddress APStaticSN  = IPAddress(255, 255, 255, 0);
+
 #include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
+
+///////////////////////////////////////////
+// New in v1.4.0
+/******************************************
+ * // Defined in ESPAsync_WiFiManager.h
+typedef struct
+{
+  IPAddress _ap_static_ip;
+  IPAddress _ap_static_gw;
+  IPAddress _ap_static_sn;
+
+}  WiFi_AP_IPConfig;
+
+typedef struct
+{
+  IPAddress _sta_static_ip;
+  IPAddress _sta_static_gw;
+  IPAddress _sta_static_sn;
+#if USE_CONFIGURABLE_DNS  
+  IPAddress _sta_static_dns1;
+  IPAddress _sta_static_dns2;
+#endif
+}  WiFi_STA_IPConfig;
+******************************************/
+
+WiFi_AP_IPConfig  WM_AP_IPconfig;
+WiFi_STA_IPConfig WM_STA_IPconfig;
 ```
 
 ---
@@ -748,7 +927,8 @@ ESP_wifiManager.setConfigPortalChannel(3);
 
 ```cpp
 // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
-ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
+//ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
+ESP_wifiManager.setSTAStaticIPConfig(WM_STA_IPconfig);
 ```
 ---
 
@@ -869,7 +1049,8 @@ You can also change the AP IP by:
 
 ```cpp
 //set custom ip for portal
-ESP_wifiManager.setAPStaticIPConfig(IPAddress(10,0,1,1), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
+//ESP_wifiManager.setAPStaticIPConfig(IPAddress(10,0,1,1), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
+ESP_wifiManager.setAPStaticIPConfig(WM_AP_IPconfig);
 ```
 
 and use fixed / dynamic / random AP channel by:
@@ -1332,7 +1513,7 @@ bool readConfigFile()
 
 and the following step-by-step explanations. 
  
-### 6.1 Open CONFIG_FILE to read
+#### 6.1 Open CONFIG_FILE to read
 
 As simple as this
 
@@ -1351,7 +1532,7 @@ if (!f)
 }
 ```
 
-### 6.2 Open CONFIG_FILE to read
+#### 6.2 Open CONFIG_FILE to read
 
 Now we have to determine the file size to create a buffer large enough to store the to-be-read data
 
@@ -1374,7 +1555,7 @@ f.readBytes(buf.get(), size);
 f.close();
 ```
 
-### 6.3 Populate the just-read Jsonified data into the DynamicJsonDocument json object
+#### 6.3 Populate the just-read Jsonified data into the DynamicJsonDocument json object
 
 We again use the same `DynamicJsonDocument json` object to store the data we've just read fron `CONFIG_FILE`.
 
@@ -1405,7 +1586,7 @@ if ( deserializeError )
 serializeJson(json, Serial);
 ```
 
-### 6.4 Parse the Jsonified data from the DynamicJsonDocument json object to store into corresponding parameters
+#### 6.4 Parse the Jsonified data from the DynamicJsonDocument json object to store into corresponding parameters
 
 
 This is as simple as in the step 5.2, but in reverse direction.
@@ -1447,7 +1628,7 @@ if (json.containsKey(PinSCL_Label))
 ```
 
 
-### 6.5 Then what to do now
+#### 6.5 Then what to do now
 
 **Just use those parameters for whatever purpose you designed them for in step 1:**
 
@@ -1459,26 +1640,6 @@ The application will use DHT sensor (either DHT11 or DHT22) and need to connect 
 ---
 ---
 
-### Examples
-
- 1. [ConfigOnSwitch](examples/ConfigOnSwitch)
- 2. [ConfigOnSwitchFS](examples/ConfigOnSwitchFS)
- 3. [ConfigOnStartup](examples/ConfigOnStartup) 
- 4. [ConfigOnDoubleReset](examples/ConfigOnDoubleReset)  (now support ArduinoJson 6.0.0+ as well as 5.13.5-)
- 5. [ConfigPortalParamsOnSwitch](examples/ConfigPortalParamsOnSwitch)  (now support ArduinoJson 6.0.0+ as well as 5.13.5-)
- 6. [ESP_FSWebServer](examples/ESP_FSWebServer)
- 7. [ESP_FSWebServer_DRD](examples/ESP_FSWebServer_DRD)
- 8. [ESP32_FSWebServer](examples/ESP32_FSWebServer)
- 9. [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD)
-10. [AutoConnect](examples/AutoConnect)
-11. [AutoConnectWithFeedback](examples/AutoConnectWithFeedback)
-12. [AutoConnectWithFeedbackLED](examples/AutoConnectWithFeedbackLED)
-13. [AutoConnectWithFSParameters](examples/AutoConnectWithFSParameters)
-14. [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr)
-15. [ConfigOnDRD_FS_MQTT_Ptr](examples/ConfigOnDRD_FS_MQTT_Ptr). **NEW**
-
----
----
 
 ## So, how it works?
 
@@ -1595,16 +1756,16 @@ void loop()
 
     //set custom ip for portal
     //ESP_wifiManager.setAPStaticIPConfig(IPAddress(192, 168, 100, 1), IPAddress(192, 168, 100, 1), IPAddress(255, 255, 255, 0));
+    // New in v1.4.0
+    ESP_wifiManager.setAPStaticIPConfig(WM_AP_IPconfig);
+    //////
 
 #if !USE_DHCP_IP    
-  #if USE_CONFIGURABLE_DNS
-    // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
-    ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
-  #else
-    // Set static IP, Gateway, Subnetmask, Use auto DNS1 and DNS2.
-    ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask);
-  #endif 
-#endif       
+    // Set (static IP, Gateway, Subnetmask, DNS1 and DNS2) or (IP, Gateway, Subnetmask). New in v1.0.5
+    // New in v1.4.0
+    ESP_wifiManager.setSTAStaticIPConfig(WM_STA_IPconfig);
+    //////
+#endif 
 
   // New from v1.1.1
 #if USING_CORS_FEATURE
@@ -1670,6 +1831,11 @@ void loop()
         }
       }
     
+      // New in v1.4.0
+      ESP_wifiManager.getSTAStaticIPConfig(WM_STA_IPconfig);
+      displayIPConfigStruct(WM_STA_IPconfig);
+      //////
+    
       saveConfigData();
     }
 
@@ -1702,14 +1868,16 @@ You can set a custom IP for both AP (access point, config mode) and STA (station
 This will set your captive portal to a specific IP should you need/want such a feature. Add the following snippet before `startConfigPortal()`
 ```cpp
 //set custom ip for portal
-ESP_wifiManager.setAPStaticIPConfig(IPAddress(10,0,1,1), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
+//ESP_wifiManager.setAPStaticIPConfig(IPAddress(10,0,1,1), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
+ESP_wifiManager.setAPStaticIPConfig(WM_AP_IPconfig);
 ```
 
 ##### Custom Station (client) Static IP Configuration
 
 This will use the specified IP configuration instead of using DHCP in station mode.
 ```cpp
-ESP_wifiManager.setSTAStaticIPConfig(IPAddress(192,168,0,99), IPAddress(192,168,0,1), IPAddress(255,255,255,0));
+//ESP_wifiManager.setSTAStaticIPConfig(IPAddress(192,168,0,99), IPAddress(192,168,0,1), IPAddress(255,255,255,0));
+ESP_wifiManager.setSTAStaticIPConfig(WM_STA_IPconfig);
 ```
 
 #### Custom HTML, CSS, Javascript
@@ -1755,6 +1923,42 @@ Use this function to show (or hide) all networks.
 ```cpp
 ESP_wifiManager.setRemoveDuplicateAPs(false);
 ```
+---
+---
+
+### Examples
+
+#### Medium Complexity
+
+ 1. [AutoConnect](examples/AutoConnect)
+ 2. [AutoConnectWithFeedback](examples/AutoConnectWithFeedback)
+ 3. [AutoConnectWithFeedbackLED](examples/AutoConnectWithFeedbackLED)
+ 4. [AutoConnectWithFSParameters](examples/AutoConnectWithFSParameters)
+ 5. [ConfigOnDoubleReset](examples/ConfigOnDoubleReset)  (now support ArduinoJson 6.0.0+ as well as 5.13.5-)
+ 6. [ConfigOnDRD_FS_MQTT_Ptr](examples/ConfigOnDRD_FS_MQTT_Ptr)
+ 7. [ConfigOnStartup](examples/ConfigOnStartup)
+ 8. [ConfigOnSwitch](examples/ConfigOnSwitch)
+ 9. [ConfigOnSwitchFS](examples/ConfigOnSwitchFS)
+10. [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr)
+11. [ConfigPortalParamsOnSwitch](examples/ConfigPortalParamsOnSwitch)  (now support ArduinoJson 6.0.0+ as well as 5.13.5-)
+12. [ESP32_FSWebServer](examples/ESP32_FSWebServer)
+13. [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD)
+14. [ESP_FSWebServer](examples/ESP_FSWebServer)
+15. [ESP_FSWebServer_DRD](examples/ESP_FSWebServer_DRD)
+
+
+#### High Complexity
+
+ 1. [ConfigOnDRD_FS_MQTT_Ptr_Complex](examples/ConfigOnDRD_FS_MQTT_Ptr_Complex)
+ 2. [ConfigOnDRD_FS_MQTT_Ptr_Medium](examples/ConfigOnDRD_FS_MQTT_Ptr_Medium)
+
+#### Simplest Possible
+
+ 1. [AutoConnect_ESP32_minimal](examples/AutoConnect_ESP32_minimal)
+ 2. [AutoConnect_ESP8266_minimal](examples/AutoConnect_ESP8266_minimal)
+ 3. [ConfigOnDRD_ESP32_minimal](examples/ConfigOnDRD_ESP32_minimal) 
+ 4. [ConfigOnDRD_ESP8266_minimal](examples/ConfigOnDRD_ESP8266_minimal)
+
 ---
 ---
 
@@ -2066,6 +2270,11 @@ IPAddress netMask     = IPAddress(255, 255, 255, 0);
 IPAddress dns1IP      = gatewayIP;
 IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
 
+// New in v1.4.0
+IPAddress APStaticIP  = IPAddress(192, 168, 100, 1);
+IPAddress APStaticGW  = IPAddress(192, 168, 100, 1);
+IPAddress APStaticSN  = IPAddress(255, 255, 255, 0);
+
 #include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
 
 #define HTTP_PORT           80
@@ -2076,9 +2285,74 @@ WiFiClient *client                    = NULL;
 Adafruit_MQTT_Client    *mqtt         = NULL;
 Adafruit_MQTT_Publish   *Temperature  = NULL;
 
-// Forward Declaration
+///////////////////////////////////////////
+// New in v1.4.0
+/******************************************
+ * // Defined in ESPAsync_WiFiManager.h
+typedef struct
+{
+  IPAddress _ap_static_ip;
+  IPAddress _ap_static_gw;
+  IPAddress _ap_static_sn;
 
-uint8_t connectMultiWiFi(void)
+}  WiFi_AP_IPConfig;
+
+typedef struct
+{
+  IPAddress _sta_static_ip;
+  IPAddress _sta_static_gw;
+  IPAddress _sta_static_sn;
+#if USE_CONFIGURABLE_DNS  
+  IPAddress _sta_static_dns1;
+  IPAddress _sta_static_dns2;
+#endif
+}  WiFi_STA_IPConfig;
+******************************************/
+
+WiFi_AP_IPConfig  WM_AP_IPconfig;
+WiFi_STA_IPConfig WM_STA_IPconfig;
+
+void initAPIPConfigStruct(WiFi_AP_IPConfig &in_WM_AP_IPconfig)
+{
+  in_WM_AP_IPconfig._ap_static_ip   = APStaticIP;
+  in_WM_AP_IPconfig._ap_static_gw   = APStaticGW;
+  in_WM_AP_IPconfig._ap_static_sn   = APStaticSN;
+}
+
+void initSTAIPConfigStruct(WiFi_STA_IPConfig &in_WM_STA_IPconfig)
+{
+  in_WM_STA_IPconfig._sta_static_ip   = stationIP;
+  in_WM_STA_IPconfig._sta_static_gw   = gatewayIP;
+  in_WM_STA_IPconfig._sta_static_sn   = netMask;
+#if USE_CONFIGURABLE_DNS  
+  in_WM_STA_IPconfig._sta_static_dns1 = dns1IP;
+  in_WM_STA_IPconfig._sta_static_dns2 = dns2IP;
+#endif
+}
+
+void displayIPConfigStruct(WiFi_STA_IPConfig in_WM_STA_IPconfig)
+{
+  LOGERROR3(F("stationIP ="), in_WM_STA_IPconfig._sta_static_ip, ", gatewayIP =", in_WM_STA_IPconfig._sta_static_gw);
+  LOGERROR1(F("netMask ="), in_WM_STA_IPconfig._sta_static_sn);
+#if USE_CONFIGURABLE_DNS
+  LOGERROR3(F("dns1IP ="), in_WM_STA_IPconfig._sta_static_dns1, ", dns2IP =", in_WM_STA_IPconfig._sta_static_dns2);
+#endif
+}
+
+void configWiFi(WiFi_STA_IPConfig in_WM_STA_IPconfig)
+{
+  #if USE_CONFIGURABLE_DNS  
+    // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
+    WiFi.config(in_WM_STA_IPconfig._sta_static_ip, in_WM_STA_IPconfig._sta_static_gw, in_WM_STA_IPconfig._sta_static_sn, in_WM_STA_IPconfig._sta_static_dns1, in_WM_STA_IPconfig._sta_static_dns2);  
+  #else
+    // Set static IP, Gateway, Subnetmask, Use auto DNS1 and DNS2.
+    WiFi.config(in_WM_STA_IPconfig._sta_static_ip, in_WM_STA_IPconfig._sta_static_gw, in_WM_STA_IPconfig._sta_static_sn);
+  #endif 
+}
+
+///////////////////////////////////////////
+
+uint8_t connectMultiWiFi()
 {
 #if ESP32
   // For ESP32, this better be 0 to shorten the connect time
@@ -2112,14 +2386,10 @@ uint8_t connectMultiWiFi(void)
 
   WiFi.mode(WIFI_STA);
 
-#if !USE_DHCP_IP    
-  #if USE_CONFIGURABLE_DNS  
-    // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
-    WiFi.config(stationIP, gatewayIP, netMask, dns1IP, dns2IP);  
-  #else
-    // Set static IP, Gateway, Subnetmask, Use auto DNS1 and DNS2.
-    WiFi.config(stationIP, gatewayIP, netMask);
-  #endif 
+#if !USE_DHCP_IP
+  // New in v1.4.0
+  configWiFi(WM_STA_IPconfig);
+  //////
 #endif
 
   int i = 0;
@@ -2250,16 +2520,31 @@ void check_status(void)
   }
 }
 
-void loadConfigData(void)
+void loadConfigData()
 {
   File file = FileFS.open(CONFIG_FILENAME, "r");
   LOGERROR(F("LoadWiFiCfgFile "));
 
+  memset(&WM_config,       0, sizeof(WM_config));
+
+  // New in v1.4.0
+  memset(&WM_STA_IPconfig, 0, sizeof(WM_STA_IPconfig));
+  //////
+    
   if (file)
   {
-    file.readBytes((char *) &WM_config, sizeof(WM_config));
+    file.readBytes((char *) &WM_config,   sizeof(WM_config));
+
+    // New in v1.4.0
+    file.readBytes((char *) &WM_STA_IPconfig, sizeof(WM_STA_IPconfig));
+    //////
+    
     file.close();
     LOGERROR(F("OK"));
+
+    // New in v1.4.0
+    displayIPConfigStruct(WM_STA_IPconfig);
+    //////
   }
   else
   {
@@ -2267,14 +2552,19 @@ void loadConfigData(void)
   }
 }
     
-void saveConfigData(void)
+void saveConfigData()
 {
   File file = FileFS.open(CONFIG_FILENAME, "w");
   LOGERROR(F("SaveWiFiCfgFile "));
 
   if (file)
   {
-    file.write((uint8_t*) &WM_config, sizeof(WM_config));
+    file.write((uint8_t*) &WM_config,   sizeof(WM_config));
+
+    // New in v1.4.0
+    file.write((uint8_t*) &WM_STA_IPconfig, sizeof(WM_STA_IPconfig));
+    //////
+    
     file.close();
     LOGERROR(F("OK"));
   }
@@ -2428,17 +2718,16 @@ void wifi_manager()
   //////
   
   //set custom ip for portal
-  //ESP_wifiManager.setAPStaticIPConfig(IPAddress(192, 168, 100, 1), IPAddress(192, 168, 100, 1), IPAddress(255, 255, 255, 0));
+  // New in v1.4.0
+  ESP_wifiManager.setAPStaticIPConfig(WM_AP_IPconfig);
+  //////
   
 #if !USE_DHCP_IP    
-  #if USE_CONFIGURABLE_DNS
-    // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
-    ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
-  #else
-    // Set static IP, Gateway, Subnetmask, Use auto DNS1 and DNS2.
-    ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask);
-  #endif 
-#endif  
+    // Set (static IP, Gateway, Subnetmask, DNS1 and DNS2) or (IP, Gateway, Subnetmask). New in v1.0.5
+    // New in v1.4.0
+    ESP_wifiManager.setSTAStaticIPConfig(WM_STA_IPconfig);
+    //////
+#endif
 
   // New from v1.1.1
 #if USING_CORS_FEATURE
@@ -2494,6 +2783,11 @@ void wifi_manager()
       }
     }
   
+    // New in v1.4.0
+    ESP_wifiManager.getSTAStaticIPConfig(WM_STA_IPconfig);
+    displayIPConfigStruct(WM_STA_IPconfig);
+    //////
+    
     saveConfigData();
   }
 
@@ -2732,6 +3026,11 @@ void setup()
     FileFS.format();
 #endif
   }
+
+  // New in v1.4.0
+  initAPIPConfigStruct(WM_AP_IPconfig);
+  initSTAIPConfigStruct(WM_STA_IPconfig);
+  //////
   
   if (!readConfigFile())
   {
@@ -2806,7 +3105,6 @@ void loop()
   // this is just for checking if we are connected to WiFi
   check_status();
 }
-
 ```
 
 ---
@@ -2814,11 +3112,13 @@ void loop()
 
 ### Debug Termimal Output Samples
 
-1. This is terminal debug output when running [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr) on  ***ESP8266 NodeMCU 1.0.***. Config Portal was requested to input and save MQTT Credentials. The boards then connected to Adafruit MQTT Server successfully.
+#### 1. [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr) on ESP8266_NODEMCU
+
+This is terminal debug output when running [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr) on  ***ESP8266_NODEMCU***. Config Portal was requested to input and save MQTT Credentials. The boards then connected to Adafruit MQTT Server successfully.
 
 ```
 Starting ConfigOnSwichFS_MQTT_Ptr using LittleFS on ESP8266_NODEMCU
-ESP_WiFiManager Version v1.3.0
+ESP_WiFiManager Version v1.4.1
 Configuration file not found
 Failed to read configuration file, using default values
 [WM] RFC925 Hostname = ConfigOnSwichFS-MQTT
@@ -2924,11 +3224,13 @@ TWWWW WTWWWW WWTWWW WWWTWW WWWWTW
 ```
 ---
 
-2. This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD)  on  ***ESP32 ESP32_DEV using SPIFFS.***. Config Portal was requested by DRD to input and save Credentials. The boards then connected to WiFi AP **HueNet1** using new Static IP successfully. WiFi AP **HueNet1** is then lost, and board **autoreconnects** itself to backup WiFi AP **HueNet2**.
+#### 2. [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD) on ESP32_DEV
+
+This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD)  on  ***ESP32 ESP32_DEV using SPIFFS.***. Config Portal was requested by DRD to input and save Credentials. The boards then connected to WiFi AP **HueNet1** using new Static IP successfully. WiFi AP **HueNet1** is then lost, and board **autoreconnects** itself to backup WiFi AP **HueNet2**.
 
 ```cpp
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using SPIFFS on ESP32_DEV
-ESP_WiFiManager Version v1.3.0
+ESP_WiFiManager Version v1.4.1
 ESP_DoubleResetDetector Version v1.1.0
 FS File: /ConfigSW.json, size: 150B
 FS File: /CanadaFlag_1.png, size: 40.25KB
@@ -2987,11 +3289,13 @@ HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH
 
 ---
 
-3. This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD)  on  ***ESP32 ESP32_DEV using newly-supported LittleFS.***. Config Portal was requested by DRD to input and save Credentials. The boards then connected to WiFi AP **HueNet1** using new Static IP successfully.
+#### 3. [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD) on ESP32_DEV using newly-supported LittleFS
+
+This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD)  on  ***ESP32 ESP32_DEV using newly-supported LittleFS.***. Config Portal was requested by DRD to input and save Credentials. The boards then connected to WiFi AP **HueNet1** using new Static IP successfully.
 
 ```
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager Version v1.3.0
+ESP_WiFiManager Version v1.4.1
 ESP_DoubleResetDetector Version v1.1.0
 FS File: /CanadaFlag_1.png, size: 40.25KB
 FS File: /CanadaFlag_2.png, size: 8.12KB
@@ -3039,6 +3343,253 @@ HHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHH
 HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH
 HHHHHHHHHH HHHHHHHHHH HHH
 ```
+
+---
+
+#### 4. [ConfigOnDRD_FS_MQTT_Ptr_Complex](examples/ConfigOnDRD_FS_MQTT_Ptr_Complex) on ESP32_DEV
+
+This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](examples/ConfigOnDRD_FS_MQTT_Ptr_Complex) on  **ESP32 ESP32_DEV using LittleFS.**. Config Portal was then requested by DRD to input and save MQTT Credentials. The boards then connected to Adafruit MQTT Server successfully.
+
+##### 4.1 With Config Data => Run normally
+
+```
+Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
+ESP_WiFiManager v1.4.1
+ESP_DoubleResetDetector Version v1.1.0
+{"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
+Config File successfully parsed
+LittleFS Flag read = 0xd0d04321
+No doubleResetDetected
+Saving config file...
+Saving config file OK
+[WM] LoadWiFiCfgFile 
+[WM] OK
+[WM] stationIP = 192.168.2.235 , gatewayIP = 192.168.2.1
+[WM] netMask = 255.255.255.0
+[WM] dns1IP = 192.168.2.1 , dns2IP = 8.8.8.8
+[WM] * Add SSID =  HueNet1 , PW =  12345678
+[WM] * Add SSID =  HueNet2 , PW =  12345678
+ConnectMultiWiFi in setup
+[WM] ConnectMultiWiFi with :
+[WM] * Additional SSID =  HueNet1 , PW =  12345678
+[WM] * Additional SSID =  HueNet2 , PW =  12345678
+[WM] Connecting MultiWifi...
+[WM] WiFi connected after time:  1
+[WM] SSID: HueNet1 ,RSSI= -35
+[WM] Channel: 2 ,IP address: 192.168.2.235
+W
+Creating new WiFi client object : OK
+Creating new MQTT object : OK
+AIO_SERVER = io.adafruit.com, AIO_SERVERPORT = 1883
+AIO_USERNAME = user_name, AIO_KEY = aio_key
+Creating new MQTT_Pub_Topic,  Temperature = user_name/feeds/Temperature
+Creating new Temperature object : OK
+Temperature MQTT_Pub_Topic = user_name/feeds/Temperature
+Connecting to MQTT (3 attempts)...
+MQTT connection successful!
+TStop doubleResetDetecting
+Saving config file...
+Saving config file OK
+WWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
+```
+
+#### 4.2 DRD => Config Portal
+
+```
+Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
+ESP_WiFiManager v1.4.1
+ESP_DoubleResetDetector Version v1.1.0
+{"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
+Config File successfully parsed
+LittleFS Flag read = 0xd0d01234
+doubleResetDetected
+Saving config file...
+Saving config file OK
+Open Config Portal without Timeout: Double Reset Detected
+
+Config Portal requested.
+[WM] RFC925 Hostname = ConfigOnSwichFS-MQTT
+Opening Configuration Portal. No timeout : DRD or No stored Credentials..
+[WM] Adding parameter AIO_KEY_Label
+[WM] Adding parameter AIO_SERVER_Label
+[WM] Adding parameter AIO_SERVERPORT_Label
+[WM] Adding parameter AIO_USERNAME_Label
+[WM] setAPStaticIPConfig
+[WM] setSTAStaticIPConfig
+[WM] Set CORS Header to :  Your Access-Control-Allow-Origin
+[WM] WiFi.waitForConnectResult Done
+[WM] SET AP
+[WM] Configuring AP SSID = ESP_9ABF498
+[WM] AP PWD = your_password
+[WM] AP Channel = 4
+[WM] Custom AP IP/GW/Subnet =  192.168.100.1 192.168.100.1 255.255.255.0
+[WM] AP IP address = 192.168.100.1
+[WM] HTTP server started
+[WM] ESP_WiFiManager::startConfigPortal : Enter loop
+```
+
+#### 4.3 Config Portal Done
+
+```
+[WM] Connecting to new AP
+[WM] Previous settings invalidated
+[WM] Custom STA IP/GW/Subnet
+[WM] DNS1 and DNS2 set
+[WM] setWifiStaticIP IP = 192.168.2.235
+[WM] Connect to new WiFi using new IP parameters
+[WM] Connected after waiting (s) : 0.60
+[WM] Local ip = 192.168.2.235
+[WM] Connection result:  WL_CONNECTED
+Connected...yeey :)
+Local IP: 192.168.2.235
+[WM] * Add SSID =  HueNet1 , PW =  12345678
+[WM] * Add SSID =  HueNet2 , PW =  12345678
+[WM] getSTAStaticIPConfig
+[WM] stationIP = 192.168.2.235 , gatewayIP = 192.168.2.1
+[WM] netMask = 255.255.255.0
+[WM] dns1IP = 192.168.2.1 , dns2IP = 8.8.8.8
+[WM] SaveWiFiCfgFile 
+[WM] OK
+Saving Config File
+{
+  "AIO_KEY_Label": "aio_key",
+  "AIO_SERVER_Label": "io.adafruit.com",
+  "AIO_SERVERPORT_Label": "1883",
+  "AIO_USERNAME_Label": "user_name"
+}
+Config File successfully saved
+
+Creating new WiFi client object : OK
+Creating new MQTT object : OK
+AIO_SERVER = io.adafruit.com, AIO_SERVERPORT = 1883
+AIO_USERNAME = user_name, AIO_KEY = aio_key
+Creating new MQTT_Pub_Topic,  Temperature = user_name/feeds/Temperature
+Creating new Temperature object : OK
+Temperature MQTT_Pub_Topic = user_name/feeds/Temperature
+[WM] freeing allocated params!
+WConnecting to MQTT (3 attempts)...
+MQTT connection successful!
+TWWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
+```
+
+---
+
+#### 5. [ConfigOnDRD_FS_MQTT_Ptr_Medium](examples/ConfigOnDRD_FS_MQTT_Ptr_Medium) on ESP8266_NODEMCU
+
+This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](examples/ConfigOnDRD_FS_MQTT_Ptr_Complex) on  **ESP8266_NODEMCU using LittleFS.**. Config Portal was then requested by DRD to input and save MQTT Credentials. The boards then connected to Adafruit MQTT Server successfully.
+
+##### 5.1 With Config Data => Run normally
+
+```
+Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU
+ESP_WiFiManager v1.4.1
+ESP_DoubleResetDetector Version v1.1.0
+{"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
+Config File successfully parsed
+LittleFS Flag read = 0xd0d04321
+No doubleResetDetected
+Saving config file...
+Saving config file OK
+[WM] LoadWiFiCfgFile 
+[WM] OK
+[WM] stationIP = 192.168.2.188 , gatewayIP = 192.168.2.1
+[WM] netMask = 255.255.255.0
+[WM] dns1IP = 192.168.2.1 , dns2IP = 8.8.8.8
+[WM] * Add SSID =  HueNet1 , PW =  12345678
+[WM] * Add SSID =  HueNet2 , PW =  12345678
+ConnectMultiWiFi in setup
+[WM] ConnectMultiWiFi with :
+[WM] * Additional SSID =  HueNet1 , PW =  12345678
+[WM] * Additional SSID =  HueNet2 , PW =  12345678
+[WM] Connecting MultiWifi...
+[WM] WiFi connected after time:  1
+[WM] SSID: HueNet1 ,RSSI= -32
+[WM] Channel: 2 ,IP address: 192.168.2.188
+W
+Creating new WiFi client object : OK
+Creating new MQTT object : OK
+AIO_SERVER = io.adafruit.com, AIO_SERVERPORT = 1883
+AIO_USERNAME = user_name, AIO_KEY = aio_key
+Creating new MQTT_Pub_Topic,  Temperature = user_name/feeds/Temperature
+Creating new Temperature object : OK
+Temperature MQTT_Pub_Topic = user_name/feeds/Temperature
+Connecting to MQTT (3 attempts)...
+MQTT connection successful!
+TWWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
+```
+
+#### 5.2 DRD => Config Portal
+
+```
+Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU
+ESP_WiFiManager v1.4.1
+ESP_DoubleResetDetector Version v1.1.0
+{"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
+Config File successfully parsed
+LittleFS Flag read = 0xd0d01234
+doubleResetDetected
+Saving config file...
+Saving config file OK
+Open Config Portal without Timeout: Double Reset Detected
+
+Config Portal requested.
+[WM] RFC925 Hostname = ConfigOnSwichFS-MQTT
+Opening Configuration Portal. No timeout : DRD or No stored Credentials..
+[WM] Adding parameter AIO_SERVER_Label
+[WM] Adding parameter AIO_SERVERPORT_Label
+[WM] Adding parameter AIO_USERNAME_Label
+[WM] Adding parameter AIO_KEY_Label
+[WM] setAPStaticIPConfig
+[WM] setSTAStaticIPConfig
+[WM] Set CORS Header to :  Your Access-Control-Allow-Origin
+[WM] WiFi.waitForConnectResult Done
+[WM] SET AP_STA
+[WM] Configuring AP SSID = ESP_702FF3
+[WM] AP PWD = your_password
+[WM] AP Channel = 3
+[WM] Custom AP IP/GW/Subnet =  192.168.100.1 192.168.100.1 255.255.255.0
+[WM] AP IP address = 192.168.100.1
+[WM] HTTP server started
+[WM] ESP_WiFiManager::startConfigPortal : Enter loop
+```
+
+#### 5.3 Config Portal Done
+
+```
+[WM] Connecting to new AP
+[WM] Already connected. Bailing out.
+Connected...yeey :)
+Local IP: 192.168.2.166
+[WM] * Add SSID =  HueNet1 , PW =  12345678
+[WM] * Add SSID =  HueNet2 , PW =  12345678
+[WM] getSTAStaticIPConfig
+[WM] stationIP = 192.168.2.185 , gatewayIP = 192.168.2.1
+[WM] netMask = 255.255.255.0
+[WM] dns1IP = 192.168.2.1 , dns2IP = 8.8.8.8
+[WM] SaveWiFiCfgFile 
+[WM] OK
+Saving Config File
+{
+  "AIO_SERVER_Label": "io.adafruit.com",
+  "AIO_SERVERPORT_Label": "1883",
+  "AIO_USERNAME_Label": "user_name",
+  "AIO_KEY_Label": "aio_key"
+}
+Config File successfully saved
+
+Creating new WiFi client object : OK
+Creating new MQTT object : OK
+AIO_SERVER = io.adafruit.com, AIO_SERVERPORT = 1883
+AIO_USERNAME = user_name, AIO_KEY = aio_key
+Creating new MQTT_Pub_Topic,  Temperature = user_name/feeds/Temperature
+Creating new Temperature object : OK
+Temperature MQTT_Pub_Topic = user_name/feeds/Temperature
+[WM] freeing allocated params!
+WConnecting to MQTT (3 attempts)...
+MQTT connection successful!
+TWWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
+```
+
 ---
 ---
 
@@ -3075,6 +3626,25 @@ Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiF
 
 ---
 ---
+
+## Releases
+
+### Major Releases v1.4.1
+
+1. Fix staticIP not saved in examples. See [ESP32 static IP not saved after restarting the device](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues/19)
+2. Add structures and functions to handle AP and STA IPs.
+3. Add complex examples 
+  * [ConfigOnDRD_FS_MQTT_Ptr_Complex](examples/ConfigOnDRD_FS_MQTT_Ptr_Complex) to demo usage of std::map
+  * [ConfigOnDRD_FS_MQTT_Ptr_Medium](examples/ConfigOnDRD_FS_MQTT_Ptr_Medium).
+4. Add simple minimal examples 
+  * [ConfigOnDRD_ESP32_minimal](examples/ConfigOnDRD_ESP32_minimal)
+  * [ConfigOnDRD_ESP8266_minimal](examples/ConfigOnDRD_ESP8266_minimal)
+  * [AutoConnect_ESP32_minimal](examples/AutoConnect_ESP32_minimal)
+  * [AutoConnect_ESP8266_minimal](examples/AutoConnect_ESP8266_minimal)
+5. Fix bug.
+6. Fix compiler warnings.
+7. Modify Version String
+8. Add Table of Contents
 
 ### Releases v1.3.0
 
@@ -3220,7 +3790,7 @@ See [KenTaylor's version](https://github.com/kentaylor/WiFiManager) for previous
     <td align="center"><a href="https://github.com/Invento3D"><img src="https://github.com/Invento3D.png" width="100px;" alt="Invento3D"/><br /><sub><b>HenrikW</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/MaPoLom"><img src="https://github.com/MaPoLom.png" width="100px;" alt="MaPoLom"/><br /><sub><b>Maurice Poos</b></sub></a><br /></td>
   </tr>
-  <tr>    
+  <tr>
     <td align="center"><a href="https://github.com/thewhiterabbit"><img src="https://github.com/thewhiterabbit.png" width="100px;" alt="thewhiterabbit"/><br /><sub><b>Vague Rabbit</b></sub></a><br /></td>
   </tr> 
 </table>
