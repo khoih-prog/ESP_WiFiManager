@@ -121,7 +121,7 @@
   * [3. ESP32_FSWebServer_DRD on ESP32_DEV using newly-supported LittleFS](#3-esp32_fswebserver_drd-on-esp32_dev-using-newly-supported-littlefs)
   * [4. ConfigOnDRD_FS_MQTT_Ptr_Complex on ESP32_DEV](#4-configondrd_fs_mqtt_ptr_complex-on-esp32_dev)
     * [4.1 With Config Data => Run normally](#41-with-config-data--run-normally)
-    * [4.2 DRD => Config Portal](42-drd--config-portal)
+    * [4.2 DRD => Config Portal](#42-drd--config-portal)
     * [4.3 Config Portal Done](#43-config-portal-done)
   * [5. ConfigOnDRD_FS_MQTT_Ptr_Medium on ESP8266_NODEMCU](#5-configondrd_fs_mqtt_ptr_medium-on-esp8266_nodemcu)
     * [5.1 With Config Data => Run normally](#51-with-config-data--run-normally)
