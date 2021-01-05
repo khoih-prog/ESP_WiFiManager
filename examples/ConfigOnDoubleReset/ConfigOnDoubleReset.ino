@@ -575,7 +575,7 @@ void setup()
   Serial.print("\nStarting ConfigOnDoubleReset with DoubleResetDetect using " + String(FS_Name));
   Serial.println(" on " + String(ARDUINO_BOARD));
   Serial.println("ESP_WiFiManager Version " + String(ESP_WIFIMANAGER_VERSION));
-  Serial.println("ESP_DoubleResetDetector Version " + String(ESP_DOUBLE_RESET_DETECTOR_VERSION));
+  Serial.println("ESP_DoubleResetDetector Version " + String(ESP_DOUBLERESETDETECTOR_VERSION));
 
   Serial.setDebugOutput(false);
 
