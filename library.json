@@ -1,7 +1,7 @@
 {
   "name": "ESP_WifiManager",
-  "version": "1.4.1",
-  "keywords": "wifi, wi-fi, WiFiManager, esp8266, esp32, Communication, iot",
+  "version": "1.4.2",
+  "keywords": "wifi, wi-fi, WiFiManager, esp8266, esp32, Communication, iot, credentials, multiwifi, persistent, config-portal",
   "description": "ESP32, ESP8266 MultiWiFi Connection Manager with enhanced GUI and fallback web ConfigPortal. This Library is used for configuring ESP32, ESP8266 modules MultiWiFi Credentials at runtime. You can also specify static DNS servers, personalized HostName, fixed or random AP channel. Now with MultiWiFi auto(Re)connect feature and configurable CORS Header.",
   "authors":
   {
@@ -25,15 +25,9 @@
   "dependencies": 
   [
     {
-      "owner": "khoih-prog",
-      "name": "ESP_DoubleResetDetector",
-      "version": ">=1.1.0",
-      "platforms": ["espressif8266", "espressif32"]
-    },
-    {
       "owner": "khoih.prog",
       "name": "ESP_DoubleResetDetector",
-      "version": ">=1.1.0",
+      "version": ">=1.1.1",
       "platforms": ["espressif8266", "espressif32"]
     },
     {

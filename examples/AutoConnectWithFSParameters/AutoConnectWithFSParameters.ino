@@ -10,7 +10,7 @@
   
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.4.1
+  Version: 1.4.2
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -33,6 +33,7 @@
   1.2.0   K Hoang      09/10/2020 Restore cpp code besides Impl.h code to use if linker error. Fix bug.
   1.3.0   K Hoang      04/12/2020 Add LittleFS support to ESP32 using LITTLEFS Library
   1.4.1   K Hoang      22/12/2020 Fix staticIP not saved. Add functions. Add complex examples. Sync with ESPAsync_WiFiManager
+  1.4.2   K Hoang      14/01/2021 Fix examples' bug not using saved WiFi Credentials after losing all WiFi connections.
  *****************************************************************************************************************************/
 #if !( defined(ESP8266) ||  defined(ESP32) )
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
@@ -255,7 +256,7 @@ char mqtt_server  [MQTT_SERVER_MAX_LEN];
 char mqtt_port    [MQTT_SERVER_PORT_LEN]    = "8080";
 
 // Function Prototypes
-uint8_t connectMultiWiFi(void);
+uint8_t connectMultiWiFi();
 
 ///////////////////////////////////////////
 // New in v1.4.0
@@ -394,33 +395,33 @@ uint8_t connectMultiWiFi()
 bool shouldSaveConfig = false;
 
 //callback notifying us of the need to save config
-void saveConfigCallback(void)
+void saveConfigCallback()
 {
-  Serial.println("Should save config");
+  Serial.println(F("Should save config"));
   shouldSaveConfig = true;
 }
 
-bool loadFileFSConfigFile(void)
+bool loadFileFSConfigFile()
 {
   //clean FS, for testing
   //FileFS.format();
 
   //read configuration from FS json
-  Serial.println("Mounting FS...");
+  Serial.println(F("Mounting FS..."));
 
   if (FileFS.begin())
   {
-    Serial.println("Mounted file system");
+    Serial.println(F("Mounted FS"));
 
     if (FileFS.exists(configFileName))
     {
       //file exists, reading and loading
-      Serial.println("Reading config file");
+      Serial.println(F("Reading config file"));
       File configFile = FileFS.open(configFileName, "r");
 
       if (configFile)
       {
-        Serial.print("Opened config file, size = ");
+        Serial.print(F("Opened config file, size = "));
         size_t configFileSize = configFile.size();
         Serial.println(configFileSize);
 
@@ -429,7 +430,7 @@ bool loadFileFSConfigFile(void)
 
         configFile.readBytes(buf.get(), configFileSize);
 
-        Serial.print("\nJSON parseObject() result : ");
+        Serial.print(F("\nJSON parseObject() result : "));
 
 #if (ARDUINOJSON_VERSION_MAJOR >= 6)
         DynamicJsonDocument json(1024);
@@ -437,12 +438,12 @@ bool loadFileFSConfigFile(void)
 
         if ( deserializeError )
         {
-          Serial.println("failed");
+          Serial.println(F("failed"));
           return false;
         }
         else
         {
-          Serial.println("OK");
+          Serial.println(F("OK"));
 
           if (json["blynk_server"])
             strncpy(blynk_server, json["blynk_server"], sizeof(blynk_server));
@@ -470,7 +471,7 @@ bool loadFileFSConfigFile(void)
 
         if (json.success())
         {
-          Serial.println("OK");
+          Serial.println(F("OK"));
 
           if (json["blynk_server"])
             strncpy(blynk_server, json["blynk_server"], sizeof(blynk_server));
@@ -489,7 +490,7 @@ bool loadFileFSConfigFile(void)
         }
         else
         {
-          Serial.println("failed");
+          Serial.println(F("failed"));
           return false;
         }
         //json.printTo(Serial);
@@ -502,15 +503,15 @@ bool loadFileFSConfigFile(void)
   }
   else
   {
-    Serial.println("failed to mount FS");
+    Serial.println(F("failed to mount FS"));
     return false;
   }
   return true;
 }
 
-bool saveFileFSConfigFile(void)
+bool saveFileFSConfigFile()
 {
-  Serial.println("Saving config");
+  Serial.println(F("Saving config"));
 
 #if (ARDUINOJSON_VERSION_MAJOR >= 6)
   DynamicJsonDocument json(1024);
@@ -530,7 +531,7 @@ bool saveFileFSConfigFile(void)
 
   if (!configFile)
   {
-    Serial.println("Failed to open config file for writing");
+    Serial.println(F("Failed to open config file for writing"));
 
     return false;
   }
@@ -553,14 +554,14 @@ bool saveFileFSConfigFile(void)
   return true;
 }
 
-void heartBeatPrint(void)
+void heartBeatPrint()
 {
   static int num = 1;
 
   if (WiFi.status() == WL_CONNECTED)
-    Serial.print("H");        // H means connected to WiFi
+    Serial.print(F("H"));        // H means connected to WiFi
   else
-    Serial.print("F");        // F means not connected to WiFi
+    Serial.print(F("F"));        // F means not connected to WiFi
 
   if (num == 80)
   {
@@ -569,7 +570,7 @@ void heartBeatPrint(void)
   }
   else if (num++ % 10 == 0)
   {
-    Serial.print(" ");
+    Serial.print(F(" "));
   }
 }
 
@@ -579,11 +580,11 @@ void toggleLED()
   digitalWrite(PIN_LED, !digitalRead(PIN_LED));
 }
 
-void check_WiFi(void)
+void check_WiFi()
 {
   if ( (WiFi.status() != WL_CONNECTED) )
   {
-    Serial.println("\nWiFi lost. Call connectMultiWiFi in loop");
+    Serial.println(F("\nWiFi lost. Call connectMultiWiFi in loop"));
     connectMultiWiFi();
   }
 }  
@@ -624,7 +625,7 @@ void check_status()
   }
 }
 
-void loadConfigData()
+bool loadConfigData()
 {
   File file = FileFS.open(CONFIG_FILENAME, "r");
   LOGERROR(F("LoadWiFiCfgFile "));
@@ -649,10 +650,14 @@ void loadConfigData()
     // New in v1.4.0
     displayIPConfigStruct(WM_STA_IPconfig);
     //////
+
+    return true;
   }
   else
   {
     LOGERROR(F("failed"));
+
+    return false;
   }
 }
     
@@ -686,7 +691,7 @@ void setup()
   
   Serial.print("\nStarting AutoConnectWithFSParams using " + String(FS_Name));
   Serial.println(" on " + String(ARDUINO_BOARD));
-  Serial.println("ESP_WiFiManager Version " + String(ESP_WIFIMANAGER_VERSION));
+  Serial.println(ESP_WIFIMANAGER_VERSION);
 
   if (FORMAT_FILESYSTEM) 
     FileFS.format();
@@ -780,16 +785,31 @@ void setup()
   Router_Pass = ESP_wifiManager.WiFi_Pass();
 
   //Remove this line if you do not want to see WiFi password printed
-  Serial.println("\nStored: SSID = " + Router_SSID + ", Pass = " + Router_Pass);
+  Serial.println("ESP Self-Stored: SSID = " + Router_SSID + ", Pass = " + Router_Pass);
 
-  if (Router_SSID != "")
+  bool configDataLoaded = false;
+
+  // From v1.1.0, Don't permit NULL password
+  if ( (Router_SSID != "") && (Router_Pass != "") )
   {
+    LOGERROR3(F("* Add SSID = "), Router_SSID, F(", PW = "), Router_Pass);
+    wifiMulti.addAP(Router_SSID.c_str(), Router_Pass.c_str());
+    
     ESP_wifiManager.setConfigPortalTimeout(120); //If no access point name has been previously entered disable timeout.
-    Serial.println("Got stored Credentials. Timeout 120s");
+    Serial.println(F("Got ESP Self-Stored Credentials. Timeout 120s for Config Portal"));
+  }
+  else if (loadConfigData())
+  {
+    configDataLoaded = true;
+    
+    ESP_wifiManager.setConfigPortalTimeout(120); //If no access point name has been previously entered disable timeout.
+    Serial.println(F("Got stored Credentials. Timeout 120s for Config Portal")); 
   }
   else
   {
-    Serial.println("No stored Credentials. No timeout");
+    // Enter CP only if no stored SSID on flash and file 
+    Serial.println(F("Open Config Portal without Timeout: No stored Credentials."));
+    initialConfig = true;
   }
 
   String chipID = String(ESP_getChipId(), HEX);
@@ -799,19 +819,16 @@ void setup()
   AP_SSID = "ESP_" + chipID + "_AutoConnectAP";
   AP_PASS = "MyESP_" + chipID;
 
-  // From v1.1.0, Don't permit NULL password
-  if ( (Router_SSID == "") || (Router_Pass == "") )
+  if (initialConfig)
   {
-    Serial.println("We haven't got any access point credentials, so get them now");
-
-    initialConfig = true;
+    Serial.println(F("We haven't got any access point credentials, so get them now"));
 
     // Starts an access point
     //if (!ESP_wifiManager.startConfigPortal((const char *) ssid.c_str(), password))
     if ( !ESP_wifiManager.startConfigPortal(AP_SSID.c_str(), AP_PASS.c_str()) )
-      Serial.println("Not connected to WiFi but continuing anyway.");
+      Serial.println(F("Not connected to WiFi but continuing anyway."));
     else
-      Serial.println("WiFi connected...yeey :)");
+      Serial.println(F("WiFi connected...yeey :)"));
 
     // Stored  for later usage, from v1.1.0, but clear first
     memset(&WM_config, 0, sizeof(WM_config));
@@ -856,7 +873,8 @@ void setup()
   if (!initialConfig)
   {
     // Load stored data, the addAP ready for MultiWiFi reconnection
-    loadConfigData();
+    if (!configDataLoaded)
+      loadConfigData();
 
     for (uint8_t i = 0; i < NUM_WIFI_CREDENTIALS; i++)
     {
@@ -870,19 +888,19 @@ void setup()
 
     if ( WiFi.status() != WL_CONNECTED ) 
     {
-      Serial.println("ConnectMultiWiFi in setup");
+      Serial.println(F("ConnectMultiWiFi in setup"));
      
       connectMultiWiFi();
     }
   }
 
-  Serial.print("After waiting ");
+  Serial.print(F("After waiting "));
   Serial.print((float) (millis() - startedAt) / 1000L);
-  Serial.print(" secs more in setup(), connection result is ");
+  Serial.print(F(" secs more in setup(), connection result is "));
 
   if (WiFi.status() == WL_CONNECTED)
   {
-    Serial.print("connected. Local IP: ");
+    Serial.print(F("connected. Local IP: "));
     Serial.println(WiFi.localIP());
   }
   else
@@ -902,7 +920,7 @@ void setup()
     saveFileFSConfigFile();
   }
 
-  Serial.print("Local IP = ");
+  Serial.print(F("Local IP = "));
   Serial.println(WiFi.localIP());
 }
 

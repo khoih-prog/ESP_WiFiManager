@@ -14,7 +14,11 @@
 
 * [Important Note](#important-note)
   * [Why do we need the new Async ESPAsync_WiFiManager library](#why-do-we-need-the-new-async-espasync_wifimanager-library)
+* [Why do we need this ESP_WiFiManager library](#why-do-we-need-this-esp_wifimanager-library)
+  * [Features](#features)
+  * [Currently supported Boards](#currently-supported-boards)
 * [Changelog](#changelog)
+  * [Releases v1.4.2](#releases-v142)
   * [Major Releases v1.4.1](#major-releases-v141)
   * [Releases v1.3.0](#releases-v130)
   * [Releases v1.2.0](#releases-v120)
@@ -22,7 +26,11 @@
   * [Releases v1.1.1](#releases-v111)
   * [Major Releases v1.1.0](#major-releases-v110)
   * [Releases v1.0.11](#releases-v1011)
-* [Features](#features)
+  * [Releases v1.0.10](#releases-v1010)
+  * [Releases v1.0.9](#releases-v109)
+  * [Releases v1.0.8](#releases-v108)
+  * [Releases v1.0.7](#releases-v107)
+  * [Releases v1.0.6](#releases-v106)
 * [Prerequisites](#prerequisites)
 * [Installation](#installation)
   * [Use Arduino Library Manager](#use-arduino-library-manager)
@@ -165,11 +173,54 @@ To appreciate the power of the [ESPAsyncWebServer](https://github.com/me-no-dev/
 
 Thanks to [cancodr](https://github.com/cancodr) for requesting an enhancement in [Issue #29: Is it possible to use AsyncWebServer.h instead of WebServer.h?](https://github.com/khoih-prog/ESP_WiFiManager/issues/29), leading to the new [ESPAsync_WiFiManager Library](https://github.com/khoih-prog/ESPAsync_WiFiManager).
 
+---
+---
+
+### Why do we need this [ESP_WiFiManager library](https://github.com/khoih-prog/ESP_WiFiManager)
+
+#### Features
+
+This is a WiFiManager Library for configuring/auto(re)connecting **ESP8266/ESP32** modules to the best or available MultiWiFi APs at runtime. Configuration data to be saved in either LittleFS, SPIFFS or EEPROM. Default Credentials as well as Dynamic custom parameters can be added and modified easily. DoubleResetDetector is used to force Config Portal opening even if the Credentials are still valid.
+ 
+This library is designed to help you to eliminate `hardcoding` your Wifi credentials for ESP8266 and ESP32, and updating/reflashing every time you need to change them.
+
+With version `v131.0` or later, you can use:
+
+1. `LittleFS for ESP32`
+
+With version `v1.1.0` or later, you can configure:
+
+1. `Multiple WiFi Credentials (SSID, Password) and system will autoconnect to the best and available WiFi SSID.`
+
+
+#### Currently supported Boards
+
+This [**ESP_WiFiManager** library](https://github.com/khoih-prog/ESP_WiFiManager) currently supports these following boards:
+
+ 1. **ESP8266 and ESP32-based boards using EEPROM, SPIFFS or LittleFS**.
+ 
+---
+
+This library is based on, modified, bug-fixed and improved from:
+
+1. [`Tzapu WiFiManager`](https://github.com/tzapu/WiFiManager)
+2. [`Ken Taylor WiFiManager`](https://github.com/kentaylor/WiFiManager)
+
+to add support to `ESP32` besides `ESP8266`.
+
+This is an `ESP32 / ESP8266` WiFi Connection manager with fallback web ConfigPortal.
+It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating as an access point.
+
 
 ---
 ---
 
 ## Changelog
+
+### Releases v1.4.2
+
+1. Fix examples' bug not using saved WiFi Credentials after losing all WiFi connections.
+2. Fix compiler warnings.
 
 ### Major Releases v1.4.1
 
@@ -262,20 +313,6 @@ Thanks to [cancodr](https://github.com/cancodr) for requesting an enhancement in
 1. Add function getConfigPortalPW()
 2. Add 4 new complicated examples compatible with ArduinoJson 6.0.0+ :[AutoConnect](examples/AutoConnect), [AutoConnectWithFeedback](examples/AutoConnectWithFeedback), [AutoConnectWithFeedbackLED](examples/AutoConnectWithFeedbackLED) and [AutoConnectWithFSParameters](examples/AutoConnectWithFSParameters)
 
----
----
-
-## Features
-
-This library is based on, modified, bug-fixed and improved from:
-
-1. [`Tzapu WiFiManager`](https://github.com/tzapu/WiFiManager)
-2. [`Ken Taylor WiFiManager`](https://github.com/kentaylor/WiFiManager)
-
-to add support to `ESP32` besides `ESP8266`.
-
-This is an `ESP32 / ESP8266` WiFi Connection manager with fallback web ConfigPortal.
-It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating as an access point.
 
 ---
 ---
@@ -285,7 +322,7 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
  1. [`Arduino IDE 1.8.13+` for Arduino](https://www.arduino.cc/en/Main/Software)
  2. [`ESP8266 Core 2.7.4+`](https://github.com/esp8266/Arduino) for ESP8266-based boards.
  3. [`ESP32 Core 1.0.4+`](https://github.com/espressif/arduino-esp32) for ESP32-based boards
- 4. [`ESP_DoubleResetDetector v1.1.0+`](https://github.com/khoih-prog/ESP_DoubleResetDetector) if using DRD feature. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_DoubleResetDetector.svg?)](https://www.ardu-badge.com/ESP_DoubleResetDetector). Use v1.1.0+ if using LittleFS for EP32.
+ 4. [`ESP_DoubleResetDetector v1.1.1+`](https://github.com/khoih-prog/ESP_DoubleResetDetector) if using DRD feature. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_DoubleResetDetector.svg?)](https://www.ardu-badge.com/ESP_DoubleResetDetector). Use v1.1.0+ if using LittleFS for EP32.
  5. [`LittleFS_esp32 v1.0.5+`](https://github.com/lorol/LITTLEFS) for ESP32-based boards using LittleFS.
 
 ---
@@ -307,7 +344,7 @@ The best and easiest way is to use `Arduino Library Manager`. Search for `ESP_Wi
 
 1. Install [VS Code](https://code.visualstudio.com/)
 2. Install [PlatformIO](https://platformio.org/platformio-ide)
-3. Install [**ESP_WiFiManager** library](https://platformio.org/lib/show/6915/ESP_WiFiManager) by using [Library Manager](https://platformio.org/lib/show/6915/ESP_WiFiManager/installation). Search for **ESP_WiFiManager** in [Platform.io Author's Libraries](https://platformio.org/lib/search?query=author:%22Khoi%20Hoang%22)
+3. Install [**Latest ESP_WiFiManager** library](https://platformio.org/lib/show/11301/ESP_WiFiManager) or [**Outdated ESP_WiFiManager** library](https://platformio.org/lib/show/6915/ESP_WiFiManager) by using [Library Manager](https://platformio.org/lib/show/11301/ESP_WiFiManager/installation). Search for **ESP_WiFiManager** in [Platform.io Author's Libraries](https://platformio.org/lib/search?query=author:%22Khoi%20Hoang%22)
 4. Use included [platformio.ini](platformio/platformio.ini) file from examples to ensure that all dependent libraries will installed automatically. Please visit documentation for the other options and examples at [Project Configuration File](https://docs.platformio.org/page/projectconf.html)
 
 ---
@@ -1771,7 +1808,7 @@ void loop()
   // is configuration portal requested?
   if ((digitalRead(TRIGGER_PIN) == LOW) || (digitalRead(TRIGGER_PIN2) == LOW))
   {
-    Serial.println("\nConfiguration portal requested.");
+    Serial.println(F("\nConfiguration portal requested."));
     digitalWrite(PIN_LED, LED_ON); // turn the LED on by making the voltage LOW to tell us we are in configuration mode.
 
     //Local intialization. Once its business is done, there is no need to keep it around
@@ -1786,16 +1823,16 @@ void loop()
 
     //set custom ip for portal
     //ESP_wifiManager.setAPStaticIPConfig(IPAddress(192, 168, 100, 1), IPAddress(192, 168, 100, 1), IPAddress(255, 255, 255, 0));
-    // New in v1.4.0
-    ESP_wifiManager.setAPStaticIPConfig(WM_AP_IPconfig);
-    //////
 
 #if !USE_DHCP_IP    
-    // Set (static IP, Gateway, Subnetmask, DNS1 and DNS2) or (IP, Gateway, Subnetmask). New in v1.0.5
-    // New in v1.4.0
-    ESP_wifiManager.setSTAStaticIPConfig(WM_STA_IPconfig);
-    //////
-#endif 
+  #if USE_CONFIGURABLE_DNS  
+    // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
+    ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);  
+  #else
+    // Set static IP, Gateway, Subnetmask, Use auto DNS1 and DNS2.
+    ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask);
+  #endif 
+#endif       
 
   // New from v1.1.1
 #if USING_CORS_FEATURE
@@ -1804,30 +1841,46 @@ void loop()
 
     //Check if there is stored WiFi router/password credentials.
     //If not found, device will remain in configuration mode until switched off via webserver.
-    Serial.print("Opening configuration portal. ");
+    Serial.println(F("Opening configuration portal. "));
+    
     Router_SSID = ESP_wifiManager.WiFi_SSID();
     Router_Pass = ESP_wifiManager.WiFi_Pass();
-    
+
+    //Remove this line if you do not want to see WiFi password printed
+    Serial.println("ESP Self-Stored: SSID = " + Router_SSID + ", Pass = " + Router_Pass);
+   
     // From v1.1.0, Don't permit NULL password
     if ( (Router_SSID != "") && (Router_Pass != "") )
     {
+      LOGERROR3(F("* Add SSID = "), Router_SSID, F(", PW = "), Router_Pass);
+      wifiMulti.addAP(Router_SSID.c_str(), Router_Pass.c_str());
+      
       ESP_wifiManager.setConfigPortalTimeout(120); //If no access point name has been previously entered disable timeout.
-      Serial.println("Got stored Credentials. Timeout 120s");
+      Serial.println(F("Got ESP Self-Stored Credentials. Timeout 120s for Config Portal"));
+    }
+    else if (loadConfigData())
+    {      
+      ESP_wifiManager.setConfigPortalTimeout(120); //If no access point name has been previously entered disable timeout.
+      Serial.println(F("Got stored Credentials. Timeout 120s for Config Portal")); 
     }
     else
-      Serial.println("No stored Credentials. No timeout");
-
+    {
+      // Enter CP only if no stored SSID on flash and file 
+      Serial.println(F("Open Config Portal without Timeout: No stored Credentials."));
+      initialConfig = true;
+    }
+    
     //Starts an access point
     //and goes into a blocking loop awaiting configuration
     if (!ESP_wifiManager.startConfigPortal((const char *) ssid.c_str(), password))
     {
-      Serial.println("Not connected to WiFi but continuing anyway.");
+      Serial.println(F("Not connected to WiFi but continuing anyway."));
     }
     else
     {
       //if you get here you have connected to the WiFi
-      Serial.println("connected...yeey :)");
-      Serial.print("Local IP: ");
+      Serial.println(F("connected...yeey :)"));
+      Serial.print(F("Local IP: "));
       Serial.println(WiFi.localIP());
     }
 
@@ -1862,11 +1915,11 @@ void loop()
       }
     
       // New in v1.4.0
-      ESP_wifiManager.getSTAStaticIPConfig(WM_STA_IPconfig);
-      displayIPConfigStruct(WM_STA_IPconfig);
-      //////
+    ESP_wifiManager.getSTAStaticIPConfig(WM_STA_IPconfig);
+    displayIPConfigStruct(WM_STA_IPconfig);
+    //////
     
-      saveConfigData();
+    saveConfigData();
     }
 
     digitalWrite(PIN_LED, LED_OFF); // Turn led off as we are not in configuration mode.
@@ -1874,7 +1927,6 @@ void loop()
 
   // put your main code here, to run repeatedly
   check_status();
-
 }
 ```
 
@@ -2454,7 +2506,7 @@ void toggleLED()
   digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
 }
 
-void heartBeatPrint(void)
+void heartBeatPrint()
 {
   static int num = 1;
 
@@ -2474,7 +2526,7 @@ void heartBeatPrint(void)
   }
 }
 
-void publishMQTT(void)
+void publishMQTT()
 {
     float some_number = 25.0 + (float) ( millis() % 100 ) /  100;
 
@@ -2494,7 +2546,7 @@ void publishMQTT(void)
     }
 }
 
-void check_WiFi(void)
+void check_WiFi()
 {
   if ( (WiFi.status() != WL_CONNECTED) )
   {
@@ -2503,7 +2555,7 @@ void check_WiFi(void)
   }
 }  
 
-void check_status(void)
+void check_status()
 {
   static ulong checkstatus_timeout  = 0;
   static ulong LEDstatus_timeout    = 0;
@@ -2550,7 +2602,7 @@ void check_status(void)
   }
 }
 
-void loadConfigData()
+bool loadConfigData()
 {
   File file = FileFS.open(CONFIG_FILENAME, "r");
   LOGERROR(F("LoadWiFiCfgFile "));
@@ -2575,10 +2627,14 @@ void loadConfigData()
     // New in v1.4.0
     displayIPConfigStruct(WM_STA_IPconfig);
     //////
+
+    return true;
   }
   else
   {
     LOGERROR(F("failed"));
+
+    return false;
   }
 }
     
@@ -2604,7 +2660,7 @@ void saveConfigData()
   }
 }
 
-void deleteOldInstances(void)
+void deleteOldInstances()
 {
   // Delete previous instances
   if (mqtt)
@@ -2624,7 +2680,7 @@ void deleteOldInstances(void)
   }  
 }
 
-void createNewInstances(void)
+void createNewInstances()
 {
   if (!client)
   {
@@ -2691,7 +2747,7 @@ void wifi_manager()
   {
     //If valid AP credential and not DRD, set timeout 120s.
     ESP_wifiManager.setConfigPortalTimeout(120);
-    Serial.println("Got stored Credentials. Timeout 120s");
+    Serial.println(F("Got stored Credentials. Timeout 120s"));
   }
   else
   {
@@ -3028,10 +3084,12 @@ void setup()
   Serial.begin(115200);
   while (!Serial);
 
+  delay(200);
+
   Serial.print("\nStarting ConfigOnDRD_FS_MQTT_Ptr using " + String(FS_Name));
   Serial.println(" on " + String(ARDUINO_BOARD));
-  Serial.println("ESP_WiFiManager Version " + String(ESP_WIFIMANAGER_VERSION));
-  Serial.println("ESP_DoubleResetDetector Version " + String(ESP_DOUBLE_RESET_DETECTOR_VERSION));
+  Serial.println(ESP_WIFIMANAGER_VERSION);
+  Serial.println(ESP_DOUBLE_RESET_DETECTOR_VERSION);
 
   Serial.setDebugOutput(false);
 
@@ -3113,7 +3171,7 @@ void setup()
     }
     else if ( WiFi.status() != WL_CONNECTED ) 
     {
-      Serial.println("ConnectMultiWiFi in setup");
+      Serial.println(F("ConnectMultiWiFi in setup"));
      
       connectMultiWiFi();
     }
@@ -3148,13 +3206,13 @@ This is terminal debug output when running [ConfigOnSwitchFS_MQTT_Ptr](examples/
 
 ```
 Starting ConfigOnSwichFS_MQTT_Ptr using LittleFS on ESP8266_NODEMCU
-ESP_WiFiManager Version v1.4.1
+ESP_WiFiManager Version v1.4.2
 Configuration file not found
 Failed to read configuration file, using default values
 [WM] RFC925 Hostname = ConfigOnSwichFS-MQTT
 [WM] setSTAStaticIPConfig for USE_CONFIGURABLE_DNS
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
-Stored: SSID = HueNet, Pass = 12345678
+ESP Self-Stored: SSID = HueNet, Pass = 12345678
 [WM] * Add SSID =  HueNet , PW =  12345678
 Got stored Credentials. Timeout 120s for Config Portal
 Starting configuration portal.
@@ -3260,8 +3318,8 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```cpp
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using SPIFFS on ESP32_DEV
-ESP_WiFiManager Version v1.4.1
-ESP_DoubleResetDetector Version v1.1.0
+ESP_WiFiManager Version v1.4.2
+ESP_DoubleResetDetector Version v1.1.1
 FS File: /ConfigSW.json, size: 150B
 FS File: /CanadaFlag_1.png, size: 40.25KB
 FS File: /CanadaFlag_2.png, size: 8.12KB
@@ -3277,7 +3335,7 @@ FS File: /wifi_cred.dat, size: 192B
 [WM] setAPStaticIPConfig
 [WM] setSTAStaticIPConfig for USE_CONFIGURABLE_DNS
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
-Stored: SSID = HueNet2, Pass = 12345678
+ESP Self-Stored: SSID = HueNet2, Pass = 12345678
 [WM] * Add SSID =  HueNet2 , PW =  12345678
 Got stored Credentials. Timeout 120s for Config Portal
 SPIFFS Flag read = 0xd0d04321
@@ -3325,8 +3383,8 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager Version v1.4.1
-ESP_DoubleResetDetector Version v1.1.0
+ESP_WiFiManager Version v1.4.2
+ESP_DoubleResetDetector Version v1.1.1
 FS File: /CanadaFlag_1.png, size: 40.25KB
 FS File: /CanadaFlag_2.png, size: 8.12KB
 FS File: /CanadaFlag_3.jpg, size: 10.89KB
@@ -3342,7 +3400,7 @@ FS File: /wifi_cred.dat, size: 192B
 [WM] setAPStaticIPConfig
 [WM] setSTAStaticIPConfig for USE_CONFIGURABLE_DNS
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
-Stored: SSID = HueNet1, Pass = 12345678
+ESP Self-Stored: SSID = HueNet1, Pass = 12345678
 [WM] * Add SSID =  HueNet1 , PW =  12345678
 Got stored Credentials. Timeout 120s for Config Portal
 LittleFS Flag read = 0xd0d01234
@@ -3384,8 +3442,8 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.4.1
-ESP_DoubleResetDetector Version v1.1.0
+ESP_WiFiManager v1.4.2
+ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
 LittleFS Flag read = 0xd0d04321
@@ -3427,8 +3485,8 @@ WWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.4.1
-ESP_DoubleResetDetector Version v1.1.0
+ESP_WiFiManager v1.4.2
+ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
 LittleFS Flag read = 0xd0d01234
@@ -3512,8 +3570,8 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU
-ESP_WiFiManager v1.4.1
-ESP_DoubleResetDetector Version v1.1.0
+ESP_WiFiManager v1.4.2
+ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
 LittleFS Flag read = 0xd0d04321
@@ -3552,8 +3610,8 @@ TWWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU
-ESP_WiFiManager v1.4.1
-ESP_DoubleResetDetector Version v1.1.0
+ESP_WiFiManager v1.4.2
+ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
 LittleFS Flag read = 0xd0d01234
@@ -3658,6 +3716,11 @@ Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiF
 ---
 
 ## Releases
+
+### Releases v1.4.2
+
+1. Fix examples' bug not using saved WiFi Credentials after losing all WiFi connections.
+2. Fix compiler warnings.
 
 ### Major Releases v1.4.1
 

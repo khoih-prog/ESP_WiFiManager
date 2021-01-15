@@ -27,7 +27,7 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
   
-  Version: 1.4.1
+  Version: 1.4.2
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -50,6 +50,7 @@
   1.2.0   K Hoang      09/10/2020 Restore cpp code besides Impl.h code to use if linker error. Fix bug.
   1.3.0   K Hoang      04/12/2020 Add LittleFS support to ESP32 using LITTLEFS Library
   1.4.1   K Hoang      22/12/2020 Fix staticIP not saved. Add functions. Add complex examples. Sync with ESPAsync_WiFiManager
+  1.4.2   K Hoang      14/01/2021 Fix examples' bug not using saved WiFi Credentials after losing all WiFi connections.
  *****************************************************************************************************************************/
 /*****************************************************************************************************************************
    How To Use:
@@ -176,19 +177,6 @@ bool initialConfig = false;
 
 // Use USE_DHCP_IP == true for dynamic DHCP IP, false to use static IP which you have to change accordingly to your network
 #if (defined(USE_STATIC_IP_CONFIG_IN_CP) && !USE_STATIC_IP_CONFIG_IN_CP)
-// Force DHCP to be true
-#if defined(USE_DHCP_IP)
-#undef USE_DHCP_IP
-#endif
-#define USE_DHCP_IP     true
-#else
-// You can select DHCP or Static IP here
-//#define USE_DHCP_IP     true
-#define USE_DHCP_IP     false
-#endif
-
-// Use USE_DHCP_IP == true for dynamic DHCP IP, false to use static IP which you have to change accordingly to your network
-#if (defined(USE_STATIC_IP_CONFIG_IN_CP) && !USE_STATIC_IP_CONFIG_IN_CP)
   // Force DHCP to be true
   #if defined(USE_DHCP_IP)
     #undef USE_DHCP_IP
@@ -196,8 +184,8 @@ bool initialConfig = false;
   #define USE_DHCP_IP     true
 #else
   // You can select DHCP or Static IP here
-  //#define USE_DHCP_IP     true
-  #define USE_DHCP_IP     false
+  #define USE_DHCP_IP     true
+  //#define USE_DHCP_IP     false
 #endif
 
 #if ( USE_DHCP_IP || ( defined(USE_STATIC_IP_CONFIG_IN_CP) && !USE_STATIC_IP_CONFIG_IN_CP ) )
@@ -241,7 +229,7 @@ WebServer server(HTTP_PORT);
 File fsUploadFile;
 
 // Function Prototypes
-uint8_t connectMultiWiFi(void);
+uint8_t connectMultiWiFi();
 
 ///////////////////////////////////////////
 // New in v1.4.0
@@ -290,10 +278,10 @@ void initSTAIPConfigStruct(WiFi_STA_IPConfig &in_WM_STA_IPconfig)
 
 void displayIPConfigStruct(WiFi_STA_IPConfig in_WM_STA_IPconfig)
 {
-  LOGERROR3(F("stationIP ="), in_WM_STA_IPconfig._sta_static_ip, ", gatewayIP =", in_WM_STA_IPconfig._sta_static_gw);
+  LOGERROR3(F("stationIP ="), in_WM_STA_IPconfig._sta_static_ip, F(", gatewayIP ="), in_WM_STA_IPconfig._sta_static_gw);
   LOGERROR1(F("netMask ="), in_WM_STA_IPconfig._sta_static_sn);
 #if USE_CONFIGURABLE_DNS
-  LOGERROR3(F("dns1IP ="), in_WM_STA_IPconfig._sta_static_dns1, ", dns2IP =", in_WM_STA_IPconfig._sta_static_dns2);
+  LOGERROR3(F("dns1IP ="), in_WM_STA_IPconfig._sta_static_dns1, F(", dns2IP ="), in_WM_STA_IPconfig._sta_static_dns2);
 #endif
 }
 
@@ -376,36 +364,36 @@ uint8_t connectMultiWiFi()
   return status;
 }
 
-void heartBeatPrint(void)
+void heartBeatPrint()
 {
   static int num = 1;
 
   if (WiFi.status() == WL_CONNECTED)
-    DBG_OUTPUT_PORT.print("H");        // H means connected to WiFi
+    Serial.print(F("H"));        // H means connected to WiFi
   else
-    DBG_OUTPUT_PORT.print("F");        // F means not connected to WiFi
+    Serial.print(F("F"));        // F means not connected to WiFi
 
   if (num == 80)
   {
-    DBG_OUTPUT_PORT.println();
+    Serial.println();
     num = 1;
   }
   else if (num++ % 10 == 0)
   {
-    DBG_OUTPUT_PORT.print(" ");
+    Serial.print(F(" "));
   }
 }
 
-void check_WiFi(void)
+void check_WiFi()
 {
   if ( (WiFi.status() != WL_CONNECTED) )
   {
-    DBG_OUTPUT_PORT.println("\nWiFi lost. Call connectMultiWiFi in loop");
+    Serial.println(F("\nWiFi lost. Call connectMultiWiFi in loop"));
     connectMultiWiFi();
   }
 }  
 
-void check_status(void)
+void check_status()
 {
   static ulong checkstatus_timeout  = 0;
   static ulong checkwifi_timeout    = 0;
@@ -512,7 +500,7 @@ String getContentType(String filename)
 
 bool handleFileRead(String path) 
 {
-  DBG_OUTPUT_PORT.println("handleFileRead: " + path);
+  Serial.println("handleFileRead: " + path);
   
   if (path.endsWith("/")) 
   {
@@ -555,13 +543,13 @@ void handleFileUpload()
       filename = "/" + filename;
     }
     
-    DBG_OUTPUT_PORT.print("handleFileUpload Name: "); DBG_OUTPUT_PORT.println(filename);
+    Serial.print(F("handleFileUpload Name: ")); Serial.println(filename);
     fsUploadFile = filesystem->open(filename, "w");
     filename.clear();
   } 
   else if (upload.status == UPLOAD_FILE_WRITE) 
   {
-    //DBG_OUTPUT_PORT.print("handleFileUpload Data: "); DBG_OUTPUT_PORT.println(upload.currentSize);
+    //Serial.print(F("handleFileUpload Data: ")); Serial.println(upload.currentSize);
     if (fsUploadFile) 
     {
       fsUploadFile.write(upload.buf, upload.currentSize);
@@ -573,7 +561,7 @@ void handleFileUpload()
     {
       fsUploadFile.close();
     }
-    DBG_OUTPUT_PORT.print("handleFileUpload Size: "); DBG_OUTPUT_PORT.println(upload.totalSize);
+    Serial.print(F("handleFileUpload Size: ")); Serial.println(upload.totalSize);
   }
 }
 
@@ -584,7 +572,7 @@ void handleFileDelete()
     return server.send(500, "text/plain", "BAD ARGS");
   }
   String path = server.arg(0);
-  DBG_OUTPUT_PORT.println("handleFileDelete: " + path);
+  Serial.println("handleFileDelete: " + path);
   
   if (path == "/") 
   {
@@ -609,7 +597,7 @@ void handleFileCreate()
   }
   
   String path = server.arg(0);
-  DBG_OUTPUT_PORT.println("handleFileCreate: " + path);
+  Serial.println("handleFileCreate: " + path);
   
   if (path == "/") 
   {
@@ -644,7 +632,7 @@ void handleFileList()
   }
 
   String path = server.arg("dir");
-  DBG_OUTPUT_PORT.println("handleFileList: " + path);
+  Serial.println("handleFileList: " + path);
   
   File root = FileFS.open(path);
   path = String();
@@ -673,12 +661,12 @@ void handleFileList()
   
   output += "]";
 
-  DBG_OUTPUT_PORT.println("handleFileList: " + output);
+  Serial.println("handleFileList: " + output);
 
   server.send(200, "text/json", output);
 }
 
-void loadConfigData()
+bool loadConfigData()
 {
   File file = FileFS.open(CONFIG_FILENAME, "r");
   LOGERROR(F("LoadWiFiCfgFile "));
@@ -703,10 +691,14 @@ void loadConfigData()
     // New in v1.4.0
     displayIPConfigStruct(WM_STA_IPconfig);
     //////
+
+    return true;
   }
   else
   {
     LOGERROR(F("failed"));
+
+    return false;
   }
 }
     
@@ -734,14 +726,14 @@ void saveConfigData()
 
 void setup()
 {
-  DBG_OUTPUT_PORT.begin(115200);
+  Serial.begin(115200);
   while (!DBG_OUTPUT_PORT);
   
-  DBG_OUTPUT_PORT.print("\nStarting ESP32_FSWebServer with DoubleResetDetect using " + String(FS_Name));
-  DBG_OUTPUT_PORT.println(" on " + String(ARDUINO_BOARD));
-  DBG_OUTPUT_PORT.println("ESP_WiFiManager Version " + String(ESP_WIFIMANAGER_VERSION));
+  Serial.print("\nStarting ESP32_FSWebServer with DoubleResetDetect using " + String(FS_Name));
+  Serial.println(" on " + String(ARDUINO_BOARD));
+  Serial.println(ESP_WIFIMANAGER_VERSION);
 
-  DBG_OUTPUT_PORT.setDebugOutput(false);
+  Serial.setDebugOutput(false);
 
   if (FORMAT_FILESYSTEM) 
     FileFS.format();
@@ -749,8 +741,8 @@ void setup()
   // Format SPIFFS if not yet
   if (!FileFS.begin(true))
   {
-    DBG_OUTPUT_PORT.print(FS_Name);
-    DBG_OUTPUT_PORT.println(F(" failed! AutoFormatting."));
+    Serial.print(FS_Name);
+    Serial.println(F(" failed! AutoFormatting."));
   }
   
   File root = FileFS.open("/");
@@ -759,11 +751,11 @@ void setup()
   {
     String fileName = file.name();
     size_t fileSize = file.size();
-    DBG_OUTPUT_PORT.printf("FS File: %s, size: %s\n", fileName.c_str(), formatBytes(fileSize).c_str());
+    Serial.printf("FS File: %s, size: %s\n", fileName.c_str(), formatBytes(fileSize).c_str());
     file = root.openNextFile();
   }
   
-  DBG_OUTPUT_PORT.println();
+  Serial.println();
 
   unsigned long startedAt = millis();
 
@@ -809,60 +801,65 @@ void setup()
   Router_Pass = ESP_wifiManager.WiFi_Pass();
 
   //Remove this line if you do not want to see WiFi password printed
-  DBG_OUTPUT_PORT.println("Stored: SSID = " + Router_SSID + ", Pass = " + Router_Pass);
+  Serial.println("ESP Self-Stored: SSID = " + Router_SSID + ", Pass = " + Router_Pass);
 
   // SSID to uppercase
   ssid.toUpperCase();
 
-  // From v1.1.0, Don't permit NULL password
-  if ( (Router_SSID == "") || (Router_Pass == "") )
+  bool configDataLoaded = loadConfigData();
+
+  if (!configDataLoaded)
   {
-    DBG_OUTPUT_PORT.println("We haven't got any access point credentials, so get them now");
-
-    initialConfig = true;
-
-    // Starts an access point
-    if (!ESP_wifiManager.startConfigPortal((const char *) ssid.c_str(), password))
-      DBG_OUTPUT_PORT.println("Not connected to WiFi but continuing anyway.");
-    else
-      DBG_OUTPUT_PORT.println("WiFi connected...yeey :)");
-
-    // Stored  for later usage, from v1.1.0, but clear first
-    memset(&WM_config, 0, sizeof(WM_config));
-    
-    for (uint8_t i = 0; i < NUM_WIFI_CREDENTIALS; i++)
+    // From v1.1.0, Don't permit NULL password
+    if ( (Router_SSID == "") || (Router_Pass == "") )
     {
-      String tempSSID = ESP_wifiManager.getSSID(i);
-      String tempPW   = ESP_wifiManager.getPW(i);
+      Serial.println(F("We haven't got any access point credentials, so get them now"));
   
-      if (strlen(tempSSID.c_str()) < sizeof(WM_config.WiFi_Creds[i].wifi_ssid) - 1)
-        strcpy(WM_config.WiFi_Creds[i].wifi_ssid, tempSSID.c_str());
+      initialConfig = true;
+  
+      // Starts an access point
+      if (!ESP_wifiManager.startConfigPortal((const char *) ssid.c_str(), password))
+        Serial.println(F("Not connected to WiFi but continuing anyway."));
       else
-        strncpy(WM_config.WiFi_Creds[i].wifi_ssid, tempSSID.c_str(), sizeof(WM_config.WiFi_Creds[i].wifi_ssid) - 1);
-
-      if (strlen(tempPW.c_str()) < sizeof(WM_config.WiFi_Creds[i].wifi_pw) - 1)
-        strcpy(WM_config.WiFi_Creds[i].wifi_pw, tempPW.c_str());
-      else
-        strncpy(WM_config.WiFi_Creds[i].wifi_pw, tempPW.c_str(), sizeof(WM_config.WiFi_Creds[i].wifi_pw) - 1);  
-
-      // Don't permit NULL SSID and password len < MIN_AP_PASSWORD_SIZE (8)
-      if ( (String(WM_config.WiFi_Creds[i].wifi_ssid) != "") && (strlen(WM_config.WiFi_Creds[i].wifi_pw) >= MIN_AP_PASSWORD_SIZE) )
+        Serial.println(F("WiFi connected...yeey :)"));
+  
+      // Stored  for later usage, from v1.1.0, but clear first
+      memset(&WM_config, 0, sizeof(WM_config));
+      
+      for (uint8_t i = 0; i < NUM_WIFI_CREDENTIALS; i++)
       {
-        LOGERROR3(F("* Add SSID = "), WM_config.WiFi_Creds[i].wifi_ssid, F(", PW = "), WM_config.WiFi_Creds[i].wifi_pw );
-        wifiMulti.addAP(WM_config.WiFi_Creds[i].wifi_ssid, WM_config.WiFi_Creds[i].wifi_pw);
-      }
-    }
-
-    // New in v1.4.0
-    ESP_wifiManager.getSTAStaticIPConfig(WM_STA_IPconfig);
-    displayIPConfigStruct(WM_STA_IPconfig);
-    //////
+        String tempSSID = ESP_wifiManager.getSSID(i);
+        String tempPW   = ESP_wifiManager.getPW(i);
     
-    saveConfigData();
-  }
-  else
-  {
-    wifiMulti.addAP(Router_SSID.c_str(), Router_Pass.c_str());
+        if (strlen(tempSSID.c_str()) < sizeof(WM_config.WiFi_Creds[i].wifi_ssid) - 1)
+          strcpy(WM_config.WiFi_Creds[i].wifi_ssid, tempSSID.c_str());
+        else
+          strncpy(WM_config.WiFi_Creds[i].wifi_ssid, tempSSID.c_str(), sizeof(WM_config.WiFi_Creds[i].wifi_ssid) - 1);
+  
+        if (strlen(tempPW.c_str()) < sizeof(WM_config.WiFi_Creds[i].wifi_pw) - 1)
+          strcpy(WM_config.WiFi_Creds[i].wifi_pw, tempPW.c_str());
+        else
+          strncpy(WM_config.WiFi_Creds[i].wifi_pw, tempPW.c_str(), sizeof(WM_config.WiFi_Creds[i].wifi_pw) - 1);  
+  
+        // Don't permit NULL SSID and password len < MIN_AP_PASSWORD_SIZE (8)
+        if ( (String(WM_config.WiFi_Creds[i].wifi_ssid) != "") && (strlen(WM_config.WiFi_Creds[i].wifi_pw) >= MIN_AP_PASSWORD_SIZE) )
+        {
+          LOGERROR3(F("* Add SSID = "), WM_config.WiFi_Creds[i].wifi_ssid, F(", PW = "), WM_config.WiFi_Creds[i].wifi_pw );
+          wifiMulti.addAP(WM_config.WiFi_Creds[i].wifi_ssid, WM_config.WiFi_Creds[i].wifi_pw);
+        }
+      }
+  
+      // New in v1.4.0
+      ESP_wifiManager.getSTAStaticIPConfig(WM_STA_IPconfig);
+      displayIPConfigStruct(WM_STA_IPconfig);
+      //////
+      
+      saveConfigData();
+    }
+    else
+    {
+      wifiMulti.addAP(Router_SSID.c_str(), Router_Pass.c_str());
+    }
   }
 
   startedAt = millis();
@@ -870,7 +867,8 @@ void setup()
   if (!initialConfig)
   {
     // Load stored data, the addAP ready for MultiWiFi reconnection
-    loadConfigData();
+    if (!configDataLoaded)
+      loadConfigData();
 
     for (uint8_t i = 0; i < NUM_WIFI_CREDENTIALS; i++)
     {
@@ -884,23 +882,23 @@ void setup()
 
     if ( WiFi.status() != WL_CONNECTED ) 
     {
-      DBG_OUTPUT_PORT.println("ConnectMultiWiFi in setup");
+      Serial.println(F("ConnectMultiWiFi in setup"));
      
       connectMultiWiFi();
     }
   }
 
-  DBG_OUTPUT_PORT.print("After waiting ");
-  DBG_OUTPUT_PORT.print((float) (millis() - startedAt) / 1000L);
-  DBG_OUTPUT_PORT.print(" secs more in setup(), connection result is ");
+  Serial.print(F("After waiting "));
+  Serial.print((float) (millis() - startedAt) / 1000L);
+  Serial.print(F(" secs more in setup(), connection result is "));
 
   if (WiFi.status() == WL_CONNECTED)
   {
-    DBG_OUTPUT_PORT.print("connected. Local IP: ");
-    DBG_OUTPUT_PORT.println(WiFi.localIP());
+    Serial.print(F("connected. Local IP: "));
+    Serial.println(WiFi.localIP());
   }
   else
-    DBG_OUTPUT_PORT.println(ESP_wifiManager.getStatus(WiFi.status()));
+    Serial.println(ESP_wifiManager.getStatus(WiFi.status()));
 
   //SERVER INIT
   //list directory
@@ -952,19 +950,19 @@ void setup()
 
   server.begin();
   
-  DBG_OUTPUT_PORT.print("HTTP server started @ ");
-  DBG_OUTPUT_PORT.println(WiFi.localIP());
+  Serial.print(F("HTTP server started @ "));
+  Serial.println(WiFi.localIP());
 
   MDNS.begin(host);
   // Add service to MDNS-SD
   MDNS.addService("http", "tcp", HTTP_PORT);
 
-  DBG_OUTPUT_PORT.print("Open http://");
-  DBG_OUTPUT_PORT.print(host);
-  DBG_OUTPUT_PORT.println(".local/edit to see the file browser");
+  Serial.print(F("Open http://"));
+  Serial.print(host);
+  Serial.println(F(".local/edit to see the file browser"));
 }
 
-void loop(void) 
+void loop() 
 { 
   server.handleClient();
 
