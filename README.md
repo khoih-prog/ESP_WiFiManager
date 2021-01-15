@@ -154,7 +154,7 @@ This [**ESP_WiFiManager**](https://github.com/khoih-prog/ESP_WiFiManager) has ju
 
 The new [**ESPAsync_WiFiManager** library](https://github.com/khoih-prog/ESPAsync_WiFiManager) is based on and sync'ed with [**ESP_WiFiManager**](https://github.com/khoih-prog/ESP_WiFiManager). Therefore, all the features currently supported by this [**ESP_WiFiManager**](https://github.com/khoih-prog/ESP_WiFiManager) will be available to the new library. The code change is to port to the new library is also very negligible, **mostly just changing the Class name from ESP_WiFiManager to ESPAsync_WiFiManager.**
 
-#### Why do we need the new Async [ESPAsync_WiFiManager library](https://github.com/khoih-prog/ESPAsync_WiFiManager)
+### Why do we need the new Async [ESPAsync_WiFiManager library](https://github.com/khoih-prog/ESPAsync_WiFiManager)
 
 - Using asynchronous network means that you can handle **more than one connection at the same time**
 - **You are called once the request is ready and parsed**
@@ -1139,7 +1139,7 @@ Once WiFi network information is saved in the `ESP32 / ESP8266`, it will try to 
 
 These illustrating steps is based on the example [ConfigOnSwitchFS](examples/ConfigOnSwitchFS)
 
-####  1. Determine the variables to be configured via Config Portal (CP)
+###  1. Determine the variables to be configured via Config Portal (CP)
 
 The application will:
 
@@ -1179,7 +1179,7 @@ int pinScl                          = PIN_D1;     // Pin D1 mapped to pin GPIO5 
 
 ---
 
-####  2. Initialize the variables to prepare for Config Portal (CP)
+###  2. Initialize the variables to prepare for Config Portal (CP)
 
 The example [ConfigOnSwitchFS](examples/ConfigOnSwitchFS) will open the CP whenever a SW press is detected in loop(). So the code to add `dynamic variables` will be there, just after the CP `ESP_WiFiManager` class initialization to create `ESP_wifiManager` object.
 
@@ -1299,7 +1299,7 @@ if (sensorDht22)
 
 ---
 
-####  3. Add the variables to Config Portal (CP)
+###  3. Add the variables to Config Portal (CP)
 
 Adding those `ESP_WMParameter` objects created in Step 2 using the function `addParameter()` of object `ESP_wifiManager`
 
@@ -1326,7 +1326,7 @@ ESP_wifiManager.addParameter(&p_pinScl);
 
 ---
 
-####  4. Save the variables configured in Config Portal (CP)
+###  4. Save the variables configured in Config Portal (CP)
 
 When the CP exits, we have to store the parameters' values that users input via CP to use later.
 
@@ -1362,7 +1362,7 @@ writeConfigFile();
 
 ---
 
-#### 5. Write to FS (SPIFFS, LittleFS, etc.) using JSON format
+### 5. Write to FS (SPIFFS, LittleFS, etc.) using JSON format
 
 First, you have to familiarize yourself with `ArduinoJson` library, its functions, the disruptive differences between `ArduinoJson version 5.x.x-` and `v6.0.0+`. The best documentation can be found at [The best JSON library for embedded C++](https://arduinojson.org/).
 
@@ -1492,7 +1492,7 @@ f.close();
 But **HOWTO use the saved data in the next startup** ???? That's in next step 6.
 
 
-#### 6. Read from FS using JSON format
+### 6. Read from FS using JSON format
 
 
 Now, you have familiarized yourself with ArduinoJson library, its functions. We'll discuss HOWTO read data from the CONFIG_FILE in Jsonified format, then HOWTO parse the to use.
@@ -1754,7 +1754,7 @@ If you're already connected to a listed WiFi AP and don't want to change anythin
 
 ## Documentation
 
-#### Password protect the configuration Access Point
+### Password protect the configuration Access Point
 
 You can password protect the ConfigPortal AP.  Simply add an SSID as the first parameter and the password as a second parameter to `startConfigPortal`. See the above examples.
 A short password seems to have unpredictable results so use one that's around 8 characters or more in length.
@@ -1764,9 +1764,9 @@ The guidelines are that a wifi password must consist of 8 to 63 ASCII-encoded ch
 ESP_wifiManager.startConfigPortal( SSID , password )
 ```
 
-#### Callbacks
+### Callbacks
 
-##### Save settings
+#### Save settings
 
 This gets called when custom parameters have been set **AND** a connection has been established. Use it to set a flag, so when all the configuration finishes, you can save the extra parameters somewhere.
 
@@ -1935,17 +1935,17 @@ See  [ConfigOnSwitch](examples/ConfigOnSwitch) example for a more complex versio
 ---
 ---
 
-#### Custom Parameters
+### Custom Parameters
 
 Many applications need configuration parameters like `MQTT host and port`, [Blynk](http://www.blynk.cc) or [emoncms](http://emoncms.org) tokens, etc. While it is possible to use `ESP_WiFiManager` to collect additional parameters it is better to read these parameters from a web service once `ESP_WiFiManager` has been used to connect to the internet.
 
 To capture other parameters with `ESP_WiFiManager` is a lot more involved than all the other features and requires adding custom HTML to your form. If you want to do it with `ESP_WiFiManager` see the example [ConfigOnSwitchFS](examples/ConfigOnSwitchFS)
 
-#### Custom IP Configuration
+### Custom IP Configuration
 
 You can set a custom IP for both AP (access point, config mode) and STA (station mode, client mode, normal project state)
 
-##### Custom Access Point IP Configuration
+#### Custom Access Point IP Configuration
 
 This will set your captive portal to a specific IP should you need/want such a feature. Add the following snippet before `startConfigPortal()`
 ```cpp
@@ -1954,7 +1954,7 @@ This will set your captive portal to a specific IP should you need/want such a f
 ESP_wifiManager.setAPStaticIPConfig(WM_AP_IPconfig);
 ```
 
-##### Custom Station (client) Static IP Configuration
+#### Custom Station (client) Static IP Configuration
 
 This will use the specified IP configuration instead of using DHCP in station mode.
 ```cpp
@@ -1962,7 +1962,7 @@ This will use the specified IP configuration instead of using DHCP in station mo
 ESP_wifiManager.setSTAStaticIPConfig(WM_STA_IPconfig);
 ```
 
-#### Custom HTML, CSS, Javascript
+### Custom HTML, CSS, Javascript
 
 There are various ways in which you can inject custom HTML, CSS or Javascript into the ConfigPortal.
 
@@ -1988,7 +1988,7 @@ Just add the bit you want added as the last parameter to the custom parameter co
 ESP_WMParameter custom_mqtt_server("server", "mqtt server", "iot.eclipse", 40, " readonly");
 ```
 
-#### Filter Networks
+### Filter Networks
 
 You can filter networks based on signal quality and show/hide duplicate networks.
 
