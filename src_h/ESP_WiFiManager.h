@@ -15,7 +15,7 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.4.2
+  Version: 1.4.3
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -39,11 +39,12 @@
   1.3.0   K Hoang      04/12/2020 Add LittleFS support to ESP32 using LITTLEFS Library
   1.4.1   K Hoang      22/12/2020 Fix staticIP not saved. Add functions. Add complex examples. Sync with ESPAsync_WiFiManager
   1.4.2   K Hoang      14/01/2021 Fix examples' bug not using saved WiFi Credentials after losing all WiFi connections.
+  1.4.3   K Hoang      23/01/2021 Fix examples' bug not saving Static IP in certain cases.
  *****************************************************************************************************************************/
 
 #pragma once
 
-#define ESP_WIFIMANAGER_VERSION     "ESP_WiFiManager v1.4.2"
+#define ESP_WIFIMANAGER_VERSION     "ESP_WiFiManager v1.4.3"
 
 #include "ESP_WiFiManager_Debug.h"
 
@@ -283,13 +284,13 @@ class ESP_WiFiManager
     ~ESP_WiFiManager();
 
     // Update feature from v1.0.11. Can use with STA staticIP now
-    boolean       autoConnect();
-    boolean       autoConnect(char const *apName, char const *apPassword = NULL);
+    bool          autoConnect();
+    bool          autoConnect(char const *apName, char const *apPassword = NULL);
     //////
 
     //if you want to start the config portal
-    boolean       startConfigPortal();
-    boolean       startConfigPortal(char const *apName, char const *apPassword = NULL);
+    bool          startConfigPortal();
+    bool          startConfigPortal(char const *apName, char const *apPassword = NULL);
 
     // get the AP name of the config portal, so it can be used in the callback
     String        getConfigPortalSSID();
@@ -308,7 +309,7 @@ class ESP_WiFiManager
     void          setConnectTimeout(unsigned long seconds);
 
 
-    void          setDebugOutput(boolean debug);
+    void          setDebugOutput(bool debug);
     //defaults to not showing anything under 8% signal quality if called
     void          setMinimumSignalQuality(int quality = 8);
     
@@ -340,7 +341,7 @@ class ESP_WiFiManager
     //called when AP mode and config portal is started
     void          setAPCallback(void(*func)(ESP_WiFiManager*));
     //called when settings have been changed and connection was successful
-    void          setSaveConfigCallback(void(*func)(void));
+    void          setSaveConfigCallback(void(*func)());
 
 #if USE_DYNAMIC_PARAMS
     //adds a custom parameter
@@ -351,38 +352,38 @@ class ESP_WiFiManager
 #endif
 
     //if this is set, it will exit after config, even if connection is unsucessful.
-    void          setBreakAfterConfig(boolean shouldBreak);
+    void          setBreakAfterConfig(bool shouldBreak);
     //if this is set, try WPS setup when starting (this will delay config portal for up to 2 mins)
     //TODO
     //if this is set, customise style
     void          setCustomHeadElement(const char* element);
     //if this is true, remove duplicated Access Points - defaut true
-    void          setRemoveDuplicateAPs(boolean removeDuplicates);
+    void          setRemoveDuplicateAPs(bool removeDuplicates);
     //Scan for WiFiNetworks in range and sort by signal strength
     //space for indices array allocated on the heap and should be freed when no longer required
     int           scanWifiNetworks(int **indicesptr);
 
     // return SSID of router in STA mode got from config portal. NULL if no user's input //KH
-    String				getSSID(void) 
+    String				getSSID() 
     {
       return _ssid;
     }
 
     // return password of router in STA mode got from config portal. NULL if no user's input //KH
-    String				getPW(void) 
+    String				getPW() 
     {
       return _pass;
     }
     
     // New from v1.1.0
     // return SSID of router in STA mode got from config portal. NULL if no user's input //KH
-    String				getSSID1(void) 
+    String				getSSID1() 
     {
       return _ssid1;
     }
 
     // return password of router in STA mode got from config portal. NULL if no user's input //KH
-    String				getPW1(void) 
+    String				getPW1() 
     {
       return _pass1;
     }
@@ -419,7 +420,7 @@ class ESP_WiFiManager
       LOGWARN1(F("Set CORS Header to : "), _CORS_Header);
     }
     
-    const char* getCORSHeader(void)
+    const char* getCORSHeader()
     {
       return _CORS_Header;
     }
@@ -437,7 +438,7 @@ class ESP_WiFiManager
     String getStoredWiFiPass();
 #endif
 
-    String WiFi_SSID(void)
+    String WiFi_SSID()
     {
 #ifdef ESP8266
       return WiFi.SSID();
@@ -446,7 +447,7 @@ class ESP_WiFiManager
 #endif
     }
 
-    String WiFi_Pass(void)
+    String WiFi_Pass()
     {
 #ifdef ESP8266
       return WiFi.psk();
@@ -455,7 +456,7 @@ class ESP_WiFiManager
 #endif
     }
 
-    void setHostname(void)
+    void setHostname()
     {
       if (RFC952_hostname[0] != 0)
       {
@@ -527,9 +528,9 @@ class ESP_WiFiManager
     
     int           _paramsCount            = 0;
     int           _minimumQuality         = -1;
-    boolean       _removeDuplicateAPs     = true;
-    boolean       _shouldBreakAfterConfig = false;
-    boolean       _tryWPS                 = false;
+    bool          _removeDuplicateAPs     = true;
+    bool          _shouldBreakAfterConfig = false;
+    bool          _tryWPS                 = false;
 
     const char*   _customHeadElement      = "";
 
@@ -542,10 +543,10 @@ class ESP_WiFiManager
     //////
     
     // New v1.0.8
-    void          setWifiStaticIP(void);
+    void          setWifiStaticIP();
     
     // New v1.1.0
-    int           reconnectWifi(void);
+    int           reconnectWifi();
     //////
     
     // New v1.0.11
@@ -563,7 +564,7 @@ class ESP_WiFiManager
     void          handleScan();
     void          handleReset();
     void          handleNotFound();
-    boolean       captivePortal();
+    bool          captivePortal();
     
     void          reportStatus(String &page);
 
@@ -572,16 +573,16 @@ class ESP_WiFiManager
 
     //helpers
     int           getRSSIasQuality(int RSSI);
-    boolean       isIp(String str);
+    bool          isIp(String str);
     String        toStringIp(IPAddress ip);
 
-    boolean       connect;
-    boolean       stopConfigPortal = false;
+    bool          connect;
+    bool          stopConfigPortal = false;
     
-    boolean       _debug = false;     //true;
+    bool          _debug = false;     //true;
 
     void(*_apcallback)  (ESP_WiFiManager*)  = NULL;
-    void(*_savecallback)(void)              = NULL;
+    void(*_savecallback)()              = NULL;
 
 #if USE_DYNAMIC_PARAMS
     int                    _max_params;

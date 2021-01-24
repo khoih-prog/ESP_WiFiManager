@@ -13,7 +13,7 @@
   
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.4.2
+  Version: 1.4.3
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -37,6 +37,7 @@
   1.3.0   K Hoang      04/12/2020 Add LittleFS support to ESP32 using LITTLEFS Library
   1.4.1   K Hoang      22/12/2020 Fix staticIP not saved. Add functions. Add complex examples. Sync with ESPAsync_WiFiManager
   1.4.2   K Hoang      14/01/2021 Fix examples' bug not using saved WiFi Credentials after losing all WiFi connections.
+  1.4.3   K Hoang      23/01/2021 Fix examples' bug not saving Static IP in certain cases.
  *****************************************************************************************************************************/
 /****************************************************************************************************************************
   This example will open a Config Portal when there is no stored WiFi Credentials or when a DRD is detected.
@@ -54,6 +55,8 @@
 #if !( defined(ESP8266) ||  defined(ESP32) )
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
+
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.4.3"
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -319,7 +322,7 @@ bool initialConfig = false;
 #define USE_DHCP_IP     false
 #endif
 
-#if ( USE_DHCP_IP || ( defined(USE_STATIC_IP_CONFIG_IN_CP) && !USE_STATIC_IP_CONFIG_IN_CP ) )
+#if ( USE_DHCP_IP )
 // Use DHCP
 #warning Using DHCP IP
 IPAddress stationIP   = IPAddress(0, 0, 0, 0);
@@ -638,6 +641,8 @@ void saveConfigData()
   {
     file.write((uint8_t*) &WM_config,   sizeof(WM_config));
 
+    displayIPConfigStruct(WM_STA_IPconfig);
+
     // New in v1.4.0
     file.write((uint8_t*) &WM_STA_IPconfig, sizeof(WM_STA_IPconfig));
     //////
@@ -862,7 +867,6 @@ void wifi_manager()
   
     // New in v1.4.0
     ESP_wifiManager.getSTAStaticIPConfig(WM_STA_IPconfig);
-    displayIPConfigStruct(WM_STA_IPconfig);
     //////
     
     saveConfigData();
@@ -1077,10 +1081,16 @@ void setup()
 
   delay(200);
 
-  Serial.print("\nStarting ConfigOnDRD_FS_MQTT_Ptr using " + String(FS_Name));
-  Serial.println(" on " + String(ARDUINO_BOARD));
+  Serial.print(F("\nStarting ConfigOnDRD_FS_MQTT_Ptr using ")); Serial.print(FS_Name);
+  Serial.println(F(" on ")); Serial.println(ARDUINO_BOARD);
   Serial.println(ESP_WIFIMANAGER_VERSION);
   Serial.println(ESP_DOUBLE_RESET_DETECTOR_VERSION);
+
+  if ( ESP_WIFIMANAGER_VERSION < ESP_WIFIMANAGER_VERSION_MIN_TARGET )
+  {
+    Serial.print(F("Warning. Must use this example on Version equal or later than : "));
+    Serial.println(ESP_WIFIMANAGER_VERSION_MIN_TARGET);
+  }
 
   Serial.setDebugOutput(false);
 

@@ -12,10 +12,11 @@
 void setup()
 {
   Serial.begin(115200); while (!Serial); delay(200);
-  Serial.print("\nStarting AutoConnect_ESP8266_minimal on " + String(ARDUINO_BOARD)); Serial.println(ESP_WIFIMANAGER_VERSION);
+  Serial.print(F("\nStarting AutoConnect_ESP8266_minimal on ")); Serial.println(ARDUINO_BOARD); 
+  Serial.println(ESP_WIFIMANAGER_VERSION);
   ESP_WiFiManager ESP_wifiManager("AutoConnectAP");
   ESP_wifiManager.autoConnect("AutoConnectAP");
-  if (WiFi.status() == WL_CONNECTED) { Serial.print("Connected. Local IP: "); Serial.println(WiFi.localIP()); }
+  if (WiFi.status() == WL_CONNECTED) { Serial.print(F("Connected. Local IP: ")); Serial.println(WiFi.localIP()); }
   else { Serial.println(ESP_wifiManager.getStatus(WiFi.status())); }
 }
 void loop() {  }
