@@ -18,6 +18,7 @@
   * [Features](#features)
   * [Currently supported Boards](#currently-supported-boards)
 * [Changelog](#changelog)
+  * [Releases v1.5.0](#releases-v150)
   * [Releases v1.4.3](#releases-v143)
   * [Releases v1.4.2](#releases-v142)
   * [Major Releases v1.4.1](#major-releases-v141)
@@ -37,6 +38,20 @@
   * [Use Arduino Library Manager](#use-arduino-library-manager)
   * [Manual Install](#manual-install)
   * [VS Code & PlatformIO](#vs-code--platformio)
+* [HOWTO Install esp32-s2 core for ESP32-S2 (Saola, AI-Thinker ESP-12K) boards into Arduino IDE)](#howto-install-esp32-s2-core-for-esp32-s2-saola-ai-thinker-esp-12k-boards-into-arduino-ide)
+  * [1. Save the original esp32 core](#1-save-the-original-esp32-core)
+  * [2. Download esp32-s2 core](#2-download-esp32-s2-core)
+    * [2.1 Download zip](#21-download-zip)
+    * [2.2 Unzip](#22-unzip)
+    * [2.3 Update esp32-s2 core directories](#23-update-esp32-s2-core-directories)
+  * [3. Download tools](#3-download-tools) 
+    * [3.1 Download Toolchain for Xtensa (ESP32-S2) based on GCC](#31-download-toolchain-for-xtensa-esp32-s2-based-on-gcc)
+    * [3.2 Download esptool](#32-download-esptool)
+    * [3.3 Unzip](#33-unzip)
+  * [4. Update tools](#4-update-tools)
+    * [4.1 Update Toolchain](#41-update-toolchain)
+    * [4.2 Update esptool](#42-update-esptool)
+  * [5. esp32-s2 WebServer Library Patch](#5-esp32-s2-webserver-library-patch)
 * [Note for Platform IO using ESP32 LittleFS](#note-for-platform-io-using-esp32-littlefs)
 * [HOWTO Fix `Multiple Definitions` Linker Error](#howto-fix-multiple-definitions-linker-error)
 * [HOWTO Use analogRead() with ESP32 running WiFi and/or BlueTooth (BT/BLE)](#howto-use-analogread-with-esp32-running-wifi-andor-bluetooth-btble)
@@ -218,6 +233,11 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
 
 ## Changelog
 
+### Release v1.5.0
+
+1. Add support to **ESP32-S2 (ESP32-S2 Saola, AI-Thinker ESP-12K, ESP32S2 Dev Module, UM FeatherS2, UM ProS2, microS2, etc.)**
+2. Add [**Instructions to install ESP32-S2 core**](#howto-install-esp32-s2-core-for-esp32-s2-saola-ai-thinker-esp-12k-boards-into-arduino-ide)
+
 ### Releases v1.4.3
 
 1. Fix examples' bug not saving Static IP in certain cases.
@@ -326,10 +346,11 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
 ## Prerequisites
 
  1. [`Arduino IDE 1.8.13+` for Arduino](https://www.arduino.cc/en/Main/Software)
- 2. [`ESP8266 Core 2.7.4+`](https://github.com/esp8266/Arduino) for ESP8266-based boards.
- 3. [`ESP32 Core 1.0.4+`](https://github.com/espressif/arduino-esp32) for ESP32-based boards
- 4. [`ESP_DoubleResetDetector v1.1.1+`](https://github.com/khoih-prog/ESP_DoubleResetDetector) if using DRD feature. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_DoubleResetDetector.svg?)](https://www.ardu-badge.com/ESP_DoubleResetDetector). Use v1.1.0+ if using LittleFS for EP32.
- 5. [`LittleFS_esp32 v1.0.5+`](https://github.com/lorol/LITTLEFS) for ESP32-based boards using LittleFS.
+ 2. [`ESP8266 Core 2.7.4+`](https://github.com/esp8266/Arduino) for ESP8266-based boards. [![Latest release](https://img.shields.io/github/release/esp8266/Arduino.svg)](https://github.com/esp8266/Arduino/releases/latest/)
+ 3. [`ESP32 Core 1.0.4+`](https://github.com/espressif/arduino-esp32) for ESP32-based boards. [Latest stable release ![Release Version](https://img.shields.io/github/release/espressif/arduino-esp32.svg?style=plastic)
+ 4. [`ESP32S2 Core 1.0.4+`](https://github.com/espressif/arduino-esp32/tree/esp32s2) for ESP32S2-based boards.
+ 5. [`ESP_DoubleResetDetector v1.1.1+`](https://github.com/khoih-prog/ESP_DoubleResetDetector) if using DRD feature. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_DoubleResetDetector.svg?)](https://www.ardu-badge.com/ESP_DoubleResetDetector). Use v1.1.0+ if using LittleFS for ESP32.
+ 6. [`LittleFS_esp32 v1.0.5+`](https://github.com/lorol/LITTLEFS) for ESP32-based boards using LittleFS. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/LittleFS_esp32.svg?)](https://www.ardu-badge.com/LittleFS_esp32)
 
 ---
 
@@ -352,6 +373,113 @@ The best and easiest way is to use `Arduino Library Manager`. Search for `ESP_Wi
 2. Install [PlatformIO](https://platformio.org/platformio-ide)
 3. Install [**Latest ESP_WiFiManager** library](https://platformio.org/lib/show/11301/ESP_WiFiManager) or [**Outdated ESP_WiFiManager** library](https://platformio.org/lib/show/6915/ESP_WiFiManager) by using [Library Manager](https://platformio.org/lib/show/11301/ESP_WiFiManager/installation). Search for **ESP_WiFiManager** in [Platform.io Author's Libraries](https://platformio.org/lib/search?query=author:%22Khoi%20Hoang%22)
 4. Use included [platformio.ini](platformio/platformio.ini) file from examples to ensure that all dependent libraries will installed automatically. Please visit documentation for the other options and examples at [Project Configuration File](https://docs.platformio.org/page/projectconf.html)
+
+---
+---
+
+## HOWTO Install esp32-s2 core for ESP32-S2 (Saola, AI-Thinker ESP-12K) boards into Arduino IDE
+
+
+These are instructions demonstrating the steps to install esp32-s2 core on Ubuntu machines. For Windows or other OS'es, just follow the the similar principles and steps.
+
+Assuming you already installed Arduino IDE ESP32 core and the installed directory is
+
+`/home/your_account/.arduino15/packages/esp32`
+
+
+### 1. Save the original esp32 core
+
+First, copy the whole original esp32 core to another safe place. Then delete all the sub-directories of
+
+`/home/your_account/.arduino15/packages/esp32/hardware/esp32/1.0.4`
+
+---
+
+### 2. Download esp32-s2 core
+
+#### 2.1 Download zip
+
+Download [**esp32-s2 core**](https://github.com/espressif/arduino-esp32/tree/esp32s2) in the `zip` format: 
+
+`arduino-esp32-esp32s2.zip`
+
+#### 2.2 Unzip
+
+<p align="center">
+    <img src="https://github.com/khoih-prog/ESP_WiFiManager_Lite/blob/main/Images/esp32_s2_Core_Unzipped.png">
+</p>
+
+#### 2.3 Update esp32-s2 core directories
+
+Copy all subdirectories of esp32-s2 core into `/home/your_account/.arduino15/packages/esp32/hardware/esp32/1.0.4`
+
+---
+
+### 3 Download tools
+
+
+#### 3.1 Download Toolchain for Xtensa (ESP32-S2) based on GCC
+
+Download [**esp32-s2 Toolchain**](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/api-guides/tools/idf-tools.html#xtensa-esp32s2-elf) corresponding to your environment (linux-amd64, win64, etc.).
+
+For example `xtensa-esp32s2-elf-gcc8_4_0-esp-2020r3-linux-amd64.tar.gz`, then un-archive.
+
+
+<p align="center">
+    <img src="https://github.com/khoih-prog/ESP_WiFiManager_Lite/blob/main/Images/esp32_s2_Toolchain.png">
+</p>
+
+#### 3.2 Download esptool
+
+
+Download [esptool](https://github.com/espressif/esptool/releases) int the `zip` format:
+
+`esptool-3.0.zip`
+
+#### 3.3 Unzip
+
+<p align="center">
+    <img src="https://github.com/khoih-prog/ESP_WiFiManager_Lite/blob/main/Images/esp32_s2_esptool.png">
+</p>
+
+---
+
+### 4. Update tools
+
+#### 4.1 Update Toolchain
+
+Copy whole `xtensa-esp32s2-elf` directory into `/home/your_account/.arduino15/packages/esp32/hardware/esp32/1.0.4/tools`
+
+
+#### 4.2 Update esptool
+
+Rename `esptool-3.0` directory to `esptool`
+
+
+Copy whole `esptool` directory into `/home/your_account/.arduino15/packages/esp32/hardware/esp32/1.0.4/tools`
+
+
+<p align="center">
+    <img src="https://github.com/khoih-prog/ESP_WiFiManager_Lite/blob/main/Images/esp32_s2_tools.png">
+</p>
+
+
+### 5. esp32-s2 WebServer Library Patch
+
+If you haven't installed a new version with [WebServer.handleClient delay PR #4350](https://github.com/espressif/arduino-esp32/pull/4350) or haven't applied the above mentioned PR, you have to use the following patch.
+
+
+**To be able to run Config Portal on ESP32-S2 boards**, you have to copy the files in [esp32-s2 WebServer Patch](esp32s2_WebServer_Patch/) directory into esp32-s2 WebServer library directory (~/.arduino15/packages/esp32/hardware/esp32/1.0.4/libraries/WebServer).
+
+Supposing the esp32-s2 version is 1.0.4, these files `WebServer.h/cpp` must be copied into the directory to replace:
+
+- `~/.arduino15/packages/esp32/hardware/esp32/1.0.4/libraries/WebServer/src/WebServer.h`
+- `~/.arduino15/packages/esp32/hardware/esp32/1.0.4/libraries/WebServer/src/WebServer.cpp`
+
+
+---
+
+That's it. You're now ready to compile and test for ESP32-S2 now
 
 ---
 ---
@@ -2069,7 +2197,7 @@ ESP_wifiManager.setRemoveDuplicateAPs(false);
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.4.3"
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.5.0"
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -2444,14 +2572,19 @@ void configWiFi(WiFi_STA_IPConfig in_WM_STA_IPconfig)
 uint8_t connectMultiWiFi()
 {
 #if ESP32
-  // For ESP32, this better be 0 to shorten the connect time
-  #define WIFI_MULTI_1ST_CONNECT_WAITING_MS       0
+  // For ESP32, this better be 0 to shorten the connect time. 
+  // For ESP32-S2, must be > 500
+  #if ( ARDUINO_ESP32S2_DEV || ARDUINO_FEATHERS2 || ARDUINO_PROS2 || ARDUINO_MICROS2 )
+    #define WIFI_MULTI_1ST_CONNECT_WAITING_MS           500L
+  #else
+    #define WIFI_MULTI_1ST_CONNECT_WAITING_MS           0L
+  #endif
 #else
   // For ESP8266, this better be 2200 to enable connect the 1st time
-  #define WIFI_MULTI_1ST_CONNECT_WAITING_MS       2200L
+  #define WIFI_MULTI_1ST_CONNECT_WAITING_MS             2200L
 #endif
 
-#define WIFI_MULTI_CONNECT_WAITING_MS           100L
+#define WIFI_MULTI_CONNECT_WAITING_MS                   100L
   
   uint8_t status;
 
@@ -3095,7 +3228,7 @@ void setup()
   delay(200);
 
   Serial.print(F("\nStarting ConfigOnDRD_FS_MQTT_Ptr using ")); Serial.print(FS_Name);
-  Serial.println(F(" on ")); Serial.println(ARDUINO_BOARD);
+  Serial.print(F(" on ")); Serial.println(ARDUINO_BOARD);
   Serial.println(ESP_WIFIMANAGER_VERSION);
   Serial.println(ESP_DOUBLE_RESET_DETECTOR_VERSION);
 
@@ -3220,7 +3353,7 @@ This is terminal debug output when running [ConfigOnSwitchFS_MQTT_Ptr](examples/
 
 ```
 Starting ConfigOnSwichFS_MQTT_Ptr using LittleFS on ESP8266_NODEMCU
-ESP_WiFiManager v1.4.3
+ESP_WiFiManager v1.5.0
 Configuration file not found
 Failed to read configuration file, using default values
 [WM] RFC925 Hostname = ConfigOnSwichFS-MQTT
@@ -3332,7 +3465,7 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```cpp
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using SPIFFS on ESP32_DEV
-ESP_WiFiManager v1.4.3
+ESP_WiFiManager v1.5.0
 ESP_DoubleResetDetector Version v1.1.1
 FS File: /ConfigSW.json, size: 150B
 FS File: /CanadaFlag_1.png, size: 40.25KB
@@ -3397,7 +3530,7 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.4.3
+ESP_WiFiManager v1.5.0
 ESP_DoubleResetDetector Version v1.1.1
 FS File: /CanadaFlag_1.png, size: 40.25KB
 FS File: /CanadaFlag_2.png, size: 8.12KB
@@ -3456,7 +3589,7 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.4.3
+ESP_WiFiManager v1.5.0
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3499,7 +3632,7 @@ WWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.4.3
+ESP_WiFiManager v1.5.0
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3584,7 +3717,7 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU
-ESP_WiFiManager v1.4.3
+ESP_WiFiManager v1.5.0
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3624,7 +3757,7 @@ TWWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU
-ESP_WiFiManager v1.4.3
+ESP_WiFiManager v1.5.0
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3730,6 +3863,11 @@ Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiF
 ---
 
 ## Releases
+
+### Release v1.5.0
+
+1. Add support to **ESP32-S2 (ESP32-S2 Saola, AI-Thinker ESP-12K, ESP32S2 Dev Module, UM FeatherS2, UM ProS2, microS2, etc.)**
+2. Add [**Instructions to install ESP32-S2 core**](#howto-install-esp32-s2-core-for-esp32-s2-saola-ai-thinker-esp-12k-boards-into-arduino-ide)
 
 ### Releases v1.4.3
 

@@ -15,7 +15,7 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.4.3
+  Version: 1.5.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -39,7 +39,8 @@
   1.3.0   K Hoang      04/12/2020 Add LittleFS support to ESP32 using LITTLEFS Library
   1.4.1   K Hoang      22/12/2020 Fix staticIP not saved. Add functions. Add complex examples. Sync with ESPAsync_WiFiManager
   1.4.2   K Hoang      14/01/2021 Fix examples' bug not using saved WiFi Credentials after losing all WiFi connections.
-  1.4.3   K Hoang      23/01/2021 Fix examples' bug not saving Static IP in certain cases. *****************************************************************************************************************************/
+  1.4.3   K Hoang      23/01/2021 Fix examples' bug not saving Static IP in certain cases.
+  1.5.0   K Hoang      12/02/2021 Add support to new ESP32-S2 *****************************************************************************************************************************/
 
 #include "ESP_WiFiManager_Debug.h"
 #include "ESP_WiFiManager.h"
@@ -429,7 +430,7 @@ void ESP_WiFiManager::setupConfigPortal()
 
 //////////////////////////////////////////
 
-boolean ESP_WiFiManager::autoConnect()
+bool ESP_WiFiManager::autoConnect()
 {
 #ifdef ESP8266
   String ssid = "ESP_" + String(ESP.getChipId());
@@ -455,7 +456,7 @@ boolean ESP_WiFiManager::autoConnect()
 
 //////////////////////////////////////////
 
-boolean ESP_WiFiManager::autoConnect(char const *apName, char const *apPassword)
+bool ESP_WiFiManager::autoConnect(char const *apName, char const *apPassword)
 {
 #if AUTOCONNECT_NO_INVALIDATE
   LOGINFO(F("\nAutoConnect using previously saved SSID/PW, but keep previous settings"));
@@ -490,7 +491,7 @@ boolean ESP_WiFiManager::autoConnect(char const *apName, char const *apPassword)
 
 //////////////////////////////////////////
 
-boolean  ESP_WiFiManager::startConfigPortal()
+bool  ESP_WiFiManager::startConfigPortal()
 {
 #ifdef ESP8266
   String ssid = "ESP_" + String(ESP.getChipId());
@@ -504,7 +505,7 @@ boolean  ESP_WiFiManager::startConfigPortal()
 
 //////////////////////////////////////////
 
-boolean  ESP_WiFiManager::startConfigPortal(char const *apName, char const *apPassword)
+bool  ESP_WiFiManager::startConfigPortal(char const *apName, char const *apPassword)
 {
   //setup AP
   int connRes = WiFi.waitForConnectResult();
@@ -552,6 +553,11 @@ boolean  ESP_WiFiManager::startConfigPortal(char const *apName, char const *apPa
     dnsServer->processNextRequest();
     //HTTP
     server->handleClient();
+  
+#if ( ARDUINO_ESP32S2_DEV || ARDUINO_FEATHERS2 || ARDUINO_PROS2 || ARDUINO_MICROS2 )    
+    // Fix ESP32-S2 issue with WebServer (https://github.com/espressif/arduino-esp32/issues/4348)
+    delay(1);
+#endif
 
     if (connect)
     {
@@ -559,28 +565,6 @@ boolean  ESP_WiFiManager::startConfigPortal(char const *apName, char const *apPa
       delay(2000);
 
       LOGERROR(F("Connecting to new AP"));
-
-#if 0
-
-      // New Mod from v1.1.0
-      int wifiConnected = reconnectWifi();
-          
-      if ( wifiConnected == WL_CONNECTED )
-      {
-        //notify that configuration has changed and any optional parameters should be saved
-        if (_savecallback != NULL)
-        {
-          //todo: check if any custom parameters actually exist, and check if they really changed maybe
-          _savecallback();
-        }
-        
-        break;
-      }
-      
-      WiFi.mode(WIFI_AP); // Dual mode becomes flaky if not connected to a WiFi network.
-      //////
-
-#else
 
       // using user-provided  _ssid, _pass in place of system-stored ssid and pass
       if (connectWifi(_ssid, _pass) != WL_CONNECTED)
@@ -599,8 +583,6 @@ boolean  ESP_WiFiManager::startConfigPortal(char const *apName, char const *apPa
         }
         break;
       }
-
-#endif
 
       if (_shouldBreakAfterConfig)
       {
@@ -652,7 +634,7 @@ boolean  ESP_WiFiManager::startConfigPortal(char const *apName, char const *apPa
 
 //////////////////////////////////////////
 
-void ESP_WiFiManager::setWifiStaticIP(void)
+void ESP_WiFiManager::setWifiStaticIP()
 { 
 #if USE_CONFIGURABLE_DNS
   if (_WiFi_STA_IPconfig._sta_static_ip)
@@ -700,7 +682,7 @@ void ESP_WiFiManager::setWifiStaticIP(void)
 //////////////////////////////////////////
 
 // New from v1.1.0
-int ESP_WiFiManager::reconnectWifi(void)
+int ESP_WiFiManager::reconnectWifi()
 {
   int connectResult;
   
@@ -816,7 +798,7 @@ uint8_t ESP_WiFiManager::waitForConnectResult()
   {
     LOGERROR(F("Waiting WiFi connection with time out"));
     unsigned long start = millis();
-    boolean keepConnecting = true;
+    bool keepConnecting = true;
     uint8_t status;
 
     while (keepConnecting)
@@ -933,7 +915,7 @@ void ESP_WiFiManager::setConnectTimeout(unsigned long seconds)
 
 //////////////////////////////////////////
 
-void ESP_WiFiManager::setDebugOutput(boolean debug)
+void ESP_WiFiManager::setDebugOutput(bool debug)
 {
   _debug = debug;
 }
@@ -1035,7 +1017,7 @@ void ESP_WiFiManager::setMinimumSignalQuality(int quality)
 
 //////////////////////////////////////////
 
-void ESP_WiFiManager::setBreakAfterConfig(boolean shouldBreak)
+void ESP_WiFiManager::setBreakAfterConfig(bool shouldBreak)
 {
   _shouldBreakAfterConfig = shouldBreak;
 }
@@ -1838,7 +1820,7 @@ void ESP_WiFiManager::handleNotFound()
    Redirect to captive portal if we got a request for another domain.
    Return true in that case so the page handler do not try to handle the request again.
 */
-boolean ESP_WiFiManager::captivePortal()
+bool ESP_WiFiManager::captivePortal()
 {
   if (!isIp(server->hostHeader()))
   {
@@ -1864,7 +1846,7 @@ void ESP_WiFiManager::setAPCallback(void(*func)(ESP_WiFiManager* myWiFiManager))
 //////////////////////////////////////////
 
 //start up save config callback
-void ESP_WiFiManager::setSaveConfigCallback(void(*func)(void))
+void ESP_WiFiManager::setSaveConfigCallback(void(*func)())
 {
   _savecallback = func;
 }
@@ -1877,7 +1859,7 @@ void ESP_WiFiManager::setCustomHeadElement(const char* element) {
 }
 
 //if this is true, remove duplicated Access Points - defaut true
-void ESP_WiFiManager::setRemoveDuplicateAPs(boolean removeDuplicates)
+void ESP_WiFiManager::setRemoveDuplicateAPs(bool removeDuplicates)
 {
   _removeDuplicateAPs = removeDuplicates;
 }
@@ -2016,7 +1998,7 @@ int ESP_WiFiManager::getRSSIasQuality(int RSSI)
 //////////////////////////////////////////
 
 /** Is this an IP? */
-boolean ESP_WiFiManager::isIp(String str)
+bool ESP_WiFiManager::isIp(String str)
 {
   for (unsigned int i = 0; i < str.length(); i++)
   {

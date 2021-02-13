@@ -15,7 +15,7 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.4.3
+  Version: 1.5.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -40,11 +40,21 @@
   1.4.1   K Hoang      22/12/2020 Fix staticIP not saved. Add functions. Add complex examples. Sync with ESPAsync_WiFiManager
   1.4.2   K Hoang      14/01/2021 Fix examples' bug not using saved WiFi Credentials after losing all WiFi connections.
   1.4.3   K Hoang      23/01/2021 Fix examples' bug not saving Static IP in certain cases.
+  1.5.0   K Hoang      12/02/2021 Add support to new ESP32-S2
  *****************************************************************************************************************************/
 
 #pragma once
 
-#define ESP_WIFIMANAGER_VERSION     "ESP_WiFiManager v1.4.3"
+#ifndef ESP_WiFiManager_h
+#define ESP_WiFiManager_h
+
+#if !( defined(ESP8266) ||  defined(ESP32) )
+  #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
+#elif ( ARDUINO_ESP32S2_DEV || ARDUINO_FEATHERS2 || ARDUINO_PROS2 || ARDUINO_MICROS2 )
+  #warning Using ESP32_S2. You have to follow library instructions to install esp32-s2 core and WebServer Patch
+#endif
+
+#define ESP_WIFIMANAGER_VERSION     "ESP_WiFiManager v1.5.0"
 
 #include "ESP_WiFiManager_Debug.h"
 
@@ -460,13 +470,16 @@ class ESP_WiFiManager
     {
       if (RFC952_hostname[0] != 0)
       {
-#ifdef ESP8266
+#if ESP8266      
         WiFi.hostname(RFC952_hostname);
-#else		//ESP32
+#else
+
+  #if !( ARDUINO_ESP32S2_DEV || ARDUINO_FEATHERS2 || ARDUINO_PROS2 || ARDUINO_MICROS2 )
         // See https://github.com/espressif/arduino-esp32/issues/2537
         WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
         WiFi.setHostname(RFC952_hostname);
-#endif
+  #endif      
+#endif        
       }
     }
 
@@ -605,4 +618,6 @@ class ESP_WiFiManager
 };
 
 #include "ESP_WiFiManager-Impl.h"
+
+#endif    // ESP_WiFiManager_h
 

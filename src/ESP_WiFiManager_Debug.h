@@ -15,7 +15,7 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.4.3
+  Version: 1.5.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -40,12 +40,13 @@
   1.4.1   K Hoang      22/12/2020 Fix staticIP not saved. Add functions. Add complex examples. Sync with ESPAsync_WiFiManager
   1.4.2   K Hoang      14/01/2021 Fix examples' bug not using saved WiFi Credentials after losing all WiFi connections.
   1.4.3   K Hoang      23/01/2021 Fix examples' bug not saving Static IP in certain cases.
+  1.5.0   K Hoang      12/02/2021 Add support to new ESP32-S2
  *****************************************************************************************************************************/
 
 #pragma once
 
-//#ifndef ESP_WiFiManager_Debug_H
-//#define ESP_WiFiManager_Debug_H
+#ifndef ESP_WiFiManager_Debug_H
+#define ESP_WiFiManager_Debug_H
 
 #ifdef WIFIMGR_DEBUG_PORT
   #define DBG_PORT      WIFIMGR_DEBUG_PORT
@@ -88,4 +89,4 @@
 #define LOGDEBUG2(x,y,z)    if(_WIFIMGR_LOGLEVEL_>3) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.print(y); DBG_PORT.print(" "); DBG_PORT.println(z); }
 #define LOGDEBUG3(x,y,z,w)  if(_WIFIMGR_LOGLEVEL_>3) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.print(y); DBG_PORT.print(" "); DBG_PORT.print(z); DBG_PORT.print(" "); DBG_PORT.println(w); }
 
-//#endif    //ESP_WiFiManager_Debug_H
+#endif    //ESP_WiFiManager_Debug_H

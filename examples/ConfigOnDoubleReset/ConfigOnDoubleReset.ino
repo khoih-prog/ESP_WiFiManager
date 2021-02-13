@@ -13,7 +13,7 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.4.3
+  Version: 1.5.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -38,6 +38,7 @@
   1.4.1   K Hoang      22/12/2020 Fix staticIP not saved. Add functions. Add complex examples. Sync with ESPAsync_WiFiManager
   1.4.2   K Hoang      14/01/2021 Fix examples' bug not using saved WiFi Credentials after losing all WiFi connections.
   1.4.3   K Hoang      23/01/2021 Fix examples' bug not saving Static IP in certain cases.
+  1.5.0   K Hoang      12/02/2021 Add support to new ESP32-S2
  *****************************************************************************************************************************/
 /****************************************************************************************************************************
    This example will open a configuration portal when the reset button is pressed twice.
@@ -62,11 +63,12 @@
    This example, originally relied on the Double Reset Detector library from https://github.com/datacute/DoubleResetDetector
    To support ESP32, use ESP_DoubleResetDetector library from //https://github.com/khoih-prog/ESP_DoubleResetDetector
  *****************************************************************************************************************************/
+ 
 #if !( defined(ESP8266) ||  defined(ESP32) )
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.4.3"
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.5.0"
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -210,8 +212,8 @@ DoubleResetDetector* drd;//////
 const int PIN_LED = 2; // D4 on NodeMCU and WeMos. GPIO2/ADC12 of ESP32. Controls the onboard LED.
 
 // SSID and PW for Config Portal
-String ssid = "ESP_" + String(ESP_getChipId(), HEX);
-const char* password = "your_password";
+String ssid       = "ESP_" + String(ESP_getChipId(), HEX);
+String password;
 
 // SSID and PW for your Router
 String Router_SSID;
@@ -394,14 +396,19 @@ void configWiFi(WiFi_STA_IPConfig in_WM_STA_IPconfig)
 uint8_t connectMultiWiFi()
 {
 #if ESP32
-  // For ESP32, this better be 0 to shorten the connect time
-  #define WIFI_MULTI_1ST_CONNECT_WAITING_MS       0
+  // For ESP32, this better be 0 to shorten the connect time. 
+  // For ESP32-S2, must be > 500
+  #if ( ARDUINO_ESP32S2_DEV || ARDUINO_FEATHERS2 || ARDUINO_PROS2 || ARDUINO_MICROS2 )
+    #define WIFI_MULTI_1ST_CONNECT_WAITING_MS           500L
+  #else
+    #define WIFI_MULTI_1ST_CONNECT_WAITING_MS           0L
+  #endif
 #else
   // For ESP8266, this better be 2200 to enable connect the 1st time
-  #define WIFI_MULTI_1ST_CONNECT_WAITING_MS       2200L
+  #define WIFI_MULTI_1ST_CONNECT_WAITING_MS             2200L
 #endif
 
-#define WIFI_MULTI_CONNECT_WAITING_MS           100L
+#define WIFI_MULTI_CONNECT_WAITING_MS                   100L
   
   uint8_t status;
 
@@ -433,6 +440,7 @@ uint8_t connectMultiWiFi()
 
   int i = 0;
   status = wifiMulti.run();
+
   delay(WIFI_MULTI_1ST_CONNECT_WAITING_MS);
 
   while ( ( i++ < 20 ) && ( status != WL_CONNECTED ) )
@@ -585,7 +593,7 @@ void setup()
   delay(200);
 
   Serial.print(F("\nStarting ConfigOnDoubleReset with DoubleResetDetect using ")); Serial.print(FS_Name);
-  Serial.println(F(" on ")); Serial.println(ARDUINO_BOARD);
+  Serial.print(F(" on ")); Serial.println(ARDUINO_BOARD);
   Serial.println(ESP_WIFIMANAGER_VERSION);
   Serial.println(ESP_DOUBLE_RESET_DETECTOR_VERSION);
 
@@ -663,8 +671,9 @@ void setup()
   //Remove this line if you do not want to see WiFi password printed
   Serial.println("ESP Self-Stored: SSID = " + Router_SSID + ", Pass = " + Router_Pass);
 
-  // SSID to uppercase
+  // SSID/PWD to uppercase
   ssid.toUpperCase();
+  password   = "My" + ssid;
 
   bool configDataLoaded = false;
 
@@ -711,7 +720,7 @@ void setup()
     //ESP_wifiManager.setConfigPortalTimeout(600);
 
     // Starts an access point
-    if (!ESP_wifiManager.startConfigPortal((const char *) ssid.c_str(), password))
+    if (!ESP_wifiManager.startConfigPortal((const char *) ssid.c_str(), (const char *) password.c_str()))
       Serial.println(F("Not connected to WiFi but continuing anyway."));
     else
     {

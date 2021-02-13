@@ -65,7 +65,7 @@
   #error This code is intended to run on the ESP8266 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.4.3"
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.5.0"
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -288,14 +288,19 @@ void configWiFi(WiFi_STA_IPConfig in_WM_STA_IPconfig)
 uint8_t connectMultiWiFi()
 {
 #if ESP32
-  // For ESP32, this better be 0 to shorten the connect time
-  #define WIFI_MULTI_1ST_CONNECT_WAITING_MS       0
+  // For ESP32, this better be 0 to shorten the connect time. 
+  // For ESP32-S2, must be > 500
+  #if ( ARDUINO_ESP32S2_DEV || ARDUINO_FEATHERS2 || ARDUINO_PROS2 || ARDUINO_MICROS2 )
+    #define WIFI_MULTI_1ST_CONNECT_WAITING_MS           500L
+  #else
+    #define WIFI_MULTI_1ST_CONNECT_WAITING_MS           0L
+  #endif
 #else
   // For ESP8266, this better be 2200 to enable connect the 1st time
-  #define WIFI_MULTI_1ST_CONNECT_WAITING_MS       2200L
+  #define WIFI_MULTI_1ST_CONNECT_WAITING_MS             2200L
 #endif
 
-#define WIFI_MULTI_CONNECT_WAITING_MS           100L
+#define WIFI_MULTI_CONNECT_WAITING_MS                   100L
   
   uint8_t status;
 
@@ -726,7 +731,7 @@ void setup()
   delay(200);
 
   Serial.print(F("\nStarting ESP_FSWebServer using ")); Serial.print(FS_Name);
-  Serial.println(F(" on ")); Serial.println(ARDUINO_BOARD);
+  Serial.print(F(" on ")); Serial.println(ARDUINO_BOARD);
   Serial.println(ESP_WIFIMANAGER_VERSION);
 
   if ( ESP_WIFIMANAGER_VERSION < ESP_WIFIMANAGER_VERSION_MIN_TARGET )

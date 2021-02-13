@@ -15,7 +15,7 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.4.3
+  Version: 1.5.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -40,12 +40,13 @@
   1.4.1   K Hoang      22/12/2020 Fix staticIP not saved. Add functions. Add complex examples. Sync with ESPAsync_WiFiManager
   1.4.2   K Hoang      14/01/2021 Fix examples' bug not using saved WiFi Credentials after losing all WiFi connections.
   1.4.3   K Hoang      23/01/2021 Fix examples' bug not saving Static IP in certain cases.
+  1.5.0   K Hoang      12/02/2021 Add support to new ESP32-S2
  *****************************************************************************************************************************/
 
 #pragma once
 
-//#ifndef ESP_WiFiManager_Impl_h
-//#define ESP_WiFiManager_Impl_h
+#ifndef ESP_WiFiManager_Impl_h
+#define ESP_WiFiManager_Impl_h
 
 
 //////////////////////////////////////////
@@ -556,6 +557,11 @@ bool  ESP_WiFiManager::startConfigPortal(char const *apName, char const *apPassw
     dnsServer->processNextRequest();
     //HTTP
     server->handleClient();
+  
+#if ( ARDUINO_ESP32S2_DEV || ARDUINO_FEATHERS2 || ARDUINO_PROS2 || ARDUINO_MICROS2 )    
+    // Fix ESP32-S2 issue with WebServer (https://github.com/espressif/arduino-esp32/issues/4348)
+    delay(1);
+#endif
 
     if (connect)
     {
@@ -563,28 +569,6 @@ bool  ESP_WiFiManager::startConfigPortal(char const *apName, char const *apPassw
       delay(2000);
 
       LOGERROR(F("Connecting to new AP"));
-
-#if 0
-
-      // New Mod from v1.1.0
-      int wifiConnected = reconnectWifi();
-          
-      if ( wifiConnected == WL_CONNECTED )
-      {
-        //notify that configuration has changed and any optional parameters should be saved
-        if (_savecallback != NULL)
-        {
-          //todo: check if any custom parameters actually exist, and check if they really changed maybe
-          _savecallback();
-        }
-        
-        break;
-      }
-      
-      WiFi.mode(WIFI_AP); // Dual mode becomes flaky if not connected to a WiFi network.
-      //////
-
-#else
 
       // using user-provided  _ssid, _pass in place of system-stored ssid and pass
       if (connectWifi(_ssid, _pass) != WL_CONNECTED)
@@ -603,8 +587,6 @@ bool  ESP_WiFiManager::startConfigPortal(char const *apName, char const *apPassw
         }
         break;
       }
-
-#endif
 
       if (_shouldBreakAfterConfig)
       {
@@ -2097,4 +2079,4 @@ String ESP_WiFiManager::getStoredWiFiPass()
 #endif
 
 
-//#endif    //ESP_WiFiManager_Impl_h
+#endif    //ESP_WiFiManager_Impl_h
