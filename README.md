@@ -233,7 +233,7 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
 
 ## Changelog
 
-### Release v1.5.0
+### Releases v1.5.0
 
 1. Add support to **ESP32-S2 (ESP32-S2 Saola, AI-Thinker ESP-12K, ESP32S2 Dev Module, UM FeatherS2, UM ProS2, microS2, etc.)**
 2. Add [**Instructions to install ESP32-S2 core**](#howto-install-esp32-s2-core-for-esp32-s2-saola-ai-thinker-esp-12k-boards-into-arduino-ide)
@@ -406,7 +406,7 @@ Download [**esp32-s2 core**](https://github.com/espressif/arduino-esp32/tree/esp
 #### 2.2 Unzip
 
 <p align="center">
-    <img src="https://github.com/khoih-prog/ESP_WiFiManager_Lite/blob/main/Images/esp32_s2_Core_Unzipped.png">
+    <img src="https://github.com/khoih-prog/ESP_WiFiManager/blob/master/Images/esp32_s2_Core_Unzipped.png">
 </p>
 
 #### 2.3 Update esp32-s2 core directories
@@ -426,7 +426,7 @@ For example `xtensa-esp32s2-elf-gcc8_4_0-esp-2020r3-linux-amd64.tar.gz`, then un
 
 
 <p align="center">
-    <img src="https://github.com/khoih-prog/ESP_WiFiManager_Lite/blob/main/Images/esp32_s2_Toolchain.png">
+    <img src="https://github.com/khoih-prog/ESP_WiFiManager/blob/master/Images/esp32_s2_Toolchain.png">
 </p>
 
 #### 3.2 Download esptool
@@ -439,7 +439,7 @@ Download [esptool](https://github.com/espressif/esptool/releases) int the `zip` 
 #### 3.3 Unzip
 
 <p align="center">
-    <img src="https://github.com/khoih-prog/ESP_WiFiManager_Lite/blob/main/Images/esp32_s2_esptool.png">
+    <img src="https://github.com/khoih-prog/ESP_WiFiManager/blob/master/Images/esp32_s2_esptool.png">
 </p>
 
 ---
@@ -460,7 +460,7 @@ Copy whole `esptool` directory into `/home/your_account/.arduino15/packages/esp3
 
 
 <p align="center">
-    <img src="https://github.com/khoih-prog/ESP_WiFiManager_Lite/blob/main/Images/esp32_s2_tools.png">
+    <img src="https://github.com/khoih-prog/ESP_WiFiManager/blob/master/Images/esp32_s2_tools.png">
 </p>
 
 
@@ -3864,7 +3864,7 @@ Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiF
 
 ## Releases
 
-### Release v1.5.0
+### Releases v1.5.0
 
 1. Add support to **ESP32-S2 (ESP32-S2 Saola, AI-Thinker ESP-12K, ESP32S2 Dev Module, UM FeatherS2, UM ProS2, microS2, etc.)**
 2. Add [**Instructions to install ESP32-S2 core**](#howto-install-esp32-s2-core-for-esp32-s2-saola-ai-thinker-esp-12k-boards-into-arduino-ide)
