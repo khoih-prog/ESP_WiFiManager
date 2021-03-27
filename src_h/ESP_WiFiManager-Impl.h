@@ -15,7 +15,7 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.5.0
+  Version: 1.5.1
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -41,6 +41,7 @@
   1.4.2   K Hoang      14/01/2021 Fix examples' bug not using saved WiFi Credentials after losing all WiFi connections.
   1.4.3   K Hoang      23/01/2021 Fix examples' bug not saving Static IP in certain cases.
   1.5.0   K Hoang      12/02/2021 Add support to new ESP32-S2
+  1.5.1   K Hoang      26/03/2021 Fix compiler error if setting Compiler Warnings to All. Retest with esp32 core v1.0.6
  *****************************************************************************************************************************/
 
 #pragma once
@@ -1826,9 +1827,11 @@ void ESP_WiFiManager::handleNotFound()
 */
 bool ESP_WiFiManager::captivePortal()
 {
+  LOGDEBUG1(F("captivePortal: hostHeader = "), server->hostHeader());
+  
   if (!isIp(server->hostHeader()))
   {
-    LOGDEBUG(F("Request redirected to captive portal"));
+    LOGDEBUG1(F("Request redirected to captive portal : "), server->client().localIP());
     
     server->sendHeader(F("Location"), (String)F("http://") + toStringIp(server->client().localIP()), true);
     server->send(302, FPSTR(WM_HTTP_HEAD_CT2), ""); // Empty content inhibits Content-length header so we have to close the socket ourselves.

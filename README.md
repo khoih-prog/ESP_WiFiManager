@@ -18,6 +18,7 @@
   * [Features](#features)
   * [Currently supported Boards](#currently-supported-boards)
 * [Changelog](#changelog)
+  * [Releases v1.5.1](#releases-v151)
   * [Releases v1.5.0](#releases-v150)
   * [Releases v1.4.3](#releases-v143)
   * [Releases v1.4.2](#releases-v142)
@@ -200,7 +201,7 @@ This is a WiFiManager Library for configuring/auto(re)connecting **ESP8266/ESP32
  
 This library is designed to help you to eliminate `hardcoding` your Wifi credentials for ESP8266 and ESP32, and updating/reflashing every time you need to change them.
 
-With version `v131.0` or later, you can use:
+With version `v1.3.0` or later, you can use:
 
 1. `LittleFS for ESP32`
 
@@ -232,6 +233,11 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
 ---
 
 ## Changelog
+
+### Releases v1.5.1
+
+1. Fix compiler error if setting `Compiler Warnings` to `All`. 
+2. Modify multiWiFi-related timings to work with latest esp32 core v1.0.6
 
 ### Releases v1.5.0
 
@@ -347,7 +353,7 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
 
  1. [`Arduino IDE 1.8.13+` for Arduino](https://www.arduino.cc/en/Main/Software)
  2. [`ESP8266 Core 2.7.4+`](https://github.com/esp8266/Arduino) for ESP8266-based boards. [![Latest release](https://img.shields.io/github/release/esp8266/Arduino.svg)](https://github.com/esp8266/Arduino/releases/latest/)
- 3. [`ESP32 Core 1.0.4+`](https://github.com/espressif/arduino-esp32) for ESP32-based boards. [Latest stable release ![Release Version](https://img.shields.io/github/release/espressif/arduino-esp32.svg?style=plastic)
+ 3. [`ESP32 Core 1.0.6+`](https://github.com/espressif/arduino-esp32) for ESP32-based boards. [![Release Version]](https://img.shields.io/github/release/espressif/arduino-esp32.svg?style=plastic)
  4. [`ESP32S2 Core 1.0.4+`](https://github.com/espressif/arduino-esp32/tree/esp32s2) for ESP32S2-based boards.
  5. [`ESP_DoubleResetDetector v1.1.1+`](https://github.com/khoih-prog/ESP_DoubleResetDetector) if using DRD feature. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_DoubleResetDetector.svg?)](https://www.ardu-badge.com/ESP_DoubleResetDetector). Use v1.1.0+ if using LittleFS for ESP32.
  6. [`LittleFS_esp32 v1.0.5+`](https://github.com/lorol/LITTLEFS) for ESP32-based boards using LittleFS. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/LittleFS_esp32.svg?)](https://www.ardu-badge.com/LittleFS_esp32)
@@ -2197,7 +2203,7 @@ ESP_wifiManager.setRemoveDuplicateAPs(false);
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.5.0"
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.5.1"
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -2577,7 +2583,8 @@ uint8_t connectMultiWiFi()
   #if ( ARDUINO_ESP32S2_DEV || ARDUINO_FEATHERS2 || ARDUINO_PROS2 || ARDUINO_MICROS2 )
     #define WIFI_MULTI_1ST_CONNECT_WAITING_MS           500L
   #else
-    #define WIFI_MULTI_1ST_CONNECT_WAITING_MS           0L
+    // For ESP32 core v1.0.6, must be >= 500
+    #define WIFI_MULTI_1ST_CONNECT_WAITING_MS           800L
   #endif
 #else
   // For ESP8266, this better be 2200 to enable connect the 1st time
@@ -3353,7 +3360,7 @@ This is terminal debug output when running [ConfigOnSwitchFS_MQTT_Ptr](examples/
 
 ```
 Starting ConfigOnSwichFS_MQTT_Ptr using LittleFS on ESP8266_NODEMCU
-ESP_WiFiManager v1.5.0
+ESP_WiFiManager v1.5.1
 Configuration file not found
 Failed to read configuration file, using default values
 [WM] RFC925 Hostname = ConfigOnSwichFS-MQTT
@@ -3465,7 +3472,7 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```cpp
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using SPIFFS on ESP32_DEV
-ESP_WiFiManager v1.5.0
+ESP_WiFiManager v1.5.1
 ESP_DoubleResetDetector Version v1.1.1
 FS File: /ConfigSW.json, size: 150B
 FS File: /CanadaFlag_1.png, size: 40.25KB
@@ -3530,7 +3537,7 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.5.0
+ESP_WiFiManager v1.5.1
 ESP_DoubleResetDetector Version v1.1.1
 FS File: /CanadaFlag_1.png, size: 40.25KB
 FS File: /CanadaFlag_2.png, size: 8.12KB
@@ -3589,7 +3596,7 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.5.0
+ESP_WiFiManager v1.5.1
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3632,7 +3639,7 @@ WWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.5.0
+ESP_WiFiManager v1.5.1
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3717,7 +3724,7 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU
-ESP_WiFiManager v1.5.0
+ESP_WiFiManager v1.5.1
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3757,7 +3764,7 @@ TWWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU
-ESP_WiFiManager v1.5.0
+ESP_WiFiManager v1.5.1
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3863,6 +3870,11 @@ Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiF
 ---
 
 ## Releases
+
+### Releases v1.5.1
+
+1. Fix compiler error if setting `Compiler Warnings` to `All`. 
+2. Modify multiWiFi-related timings to work with latest esp32 core v1.0.6
 
 ### Releases v1.5.0
 

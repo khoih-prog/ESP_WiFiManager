@@ -13,7 +13,7 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.5.0
+  Version: 1.5.1
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -39,6 +39,7 @@
   1.4.2   K Hoang      14/01/2021 Fix examples' bug not using saved WiFi Credentials after losing all WiFi connections.
   1.4.3   K Hoang      23/01/2021 Fix examples' bug not saving Static IP in certain cases.
   1.5.0   K Hoang      12/02/2021 Add support to new ESP32-S2
+  1.5.1   K Hoang      26/03/2021 Fix compiler error if setting Compiler Warnings to All. Retest with esp32 core v1.0.6
  *****************************************************************************************************************************/
 /****************************************************************************************************************************
    This example will open a configuration portal when the reset button is pressed twice.
@@ -68,10 +69,10 @@
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.5.0"
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.5.1"
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
-#define _WIFIMGR_LOGLEVEL_    3
+#define _WIFIMGR_LOGLEVEL_    4
 
 #include <FS.h>
 
@@ -317,8 +318,8 @@ IPAddress dns1IP      = gatewayIP;
 IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
 
 // New in v1.4.0
-IPAddress APStaticIP  = IPAddress(192, 168, 100, 1);
-IPAddress APStaticGW  = IPAddress(192, 168, 100, 1);
+IPAddress APStaticIP  = IPAddress(192, 168, 4, 1);
+IPAddress APStaticGW  = IPAddress(192, 168, 4, 1);
 IPAddress APStaticSN  = IPAddress(255, 255, 255, 0);
 
 #include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
@@ -401,7 +402,8 @@ uint8_t connectMultiWiFi()
   #if ( ARDUINO_ESP32S2_DEV || ARDUINO_FEATHERS2 || ARDUINO_PROS2 || ARDUINO_MICROS2 )
     #define WIFI_MULTI_1ST_CONNECT_WAITING_MS           500L
   #else
-    #define WIFI_MULTI_1ST_CONNECT_WAITING_MS           0L
+    // For ESP32 core v1.0.6, must be >= 500
+    #define WIFI_MULTI_1ST_CONNECT_WAITING_MS           800L
   #endif
 #else
   // For ESP8266, this better be 2200 to enable connect the 1st time
@@ -597,7 +599,7 @@ void setup()
   Serial.println(ESP_WIFIMANAGER_VERSION);
   Serial.println(ESP_DOUBLE_RESET_DETECTOR_VERSION);
 
-  if ( ESP_WIFIMANAGER_VERSION < ESP_WIFIMANAGER_VERSION_MIN_TARGET )
+  if ( String(ESP_WIFIMANAGER_VERSION) < ESP_WIFIMANAGER_VERSION_MIN_TARGET )
   {
     Serial.print(F("Warning. Must use this example on Version equal or later than : "));
     Serial.println(ESP_WIFIMANAGER_VERSION_MIN_TARGET);
