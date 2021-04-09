@@ -238,6 +238,7 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
 ### Releases v1.5.2
 
 1. Fix example misleading messages. Check [**Minor: examples/Async_ESP32_FSWebServer/ wrongly uses FileFS.begin(true)** #47](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues/47)
+2. Tested with [**ESP32 Core 1.0.6**](https://github.com/espressif/arduino-esp32) and [**LittleFS_esp32 v1.0.6**](https://github.com/lorol/LITTLEFS)
 
 ### Releases v1.5.1
 
@@ -3895,6 +3896,7 @@ Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiF
 ### Releases v1.5.2
 
 1. Fix example misleading messages. Check [**Minor: examples/Async_ESP32_FSWebServer/ wrongly uses FileFS.begin(true)** #47](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues/47)
+2. Tested with [**ESP32 Core 1.0.6**](https://github.com/espressif/arduino-esp32) and [**LittleFS_esp32 v1.0.6**](https://github.com/lorol/LITTLEFS)
 
 ### Releases v1.5.1
 
