@@ -27,7 +27,7 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
   
-  Version: 1.5.1
+  Version: 1.5.2
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -54,6 +54,7 @@
   1.4.3   K Hoang      23/01/2021 Fix examples' bug not saving Static IP in certain cases.
   1.5.0   K Hoang      12/02/2021 Add support to new ESP32-S2
   1.5.1   K Hoang      26/03/2021 Fix compiler error if setting Compiler Warnings to All. Retest with esp32 core v1.0.6
+  1.5.2   K Hoang      08/04/2021 Fix example misleading messages.
  *****************************************************************************************************************************/
 /*****************************************************************************************************************************
    How To Use:
@@ -67,7 +68,7 @@
   #error This code is intended to run on the ESP32 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.5.1"
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.5.2"
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -759,11 +760,27 @@ void setup()
   if (FORMAT_FILESYSTEM) 
     FileFS.format();
 
-  // Format SPIFFS if not yet
+  // Format FileFS if not yet
   if (!FileFS.begin(true))
   {
-    Serial.print(FS_Name);
-    Serial.println(F(" failed! AutoFormatting."));
+    Serial.println(F("SPIFFS/LittleFS failed! Already tried formatting."));
+  
+    if (!FileFS.begin())
+    {     
+      // prevents debug info from the library to hide err message.
+      delay(100);
+      
+#if USE_LITTLEFS
+      Serial.println(F("LittleFS failed!. Please use SPIFFS or EEPROM. Stay forever"));
+#else
+      Serial.println(F("SPIFFS failed!. Please use LittleFS or EEPROM. Stay forever"));
+#endif
+
+      while (true)
+      {
+        delay(1);
+      }
+    }
   }
   
   File root = FileFS.open("/");

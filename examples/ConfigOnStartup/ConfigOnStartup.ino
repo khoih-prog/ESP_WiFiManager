@@ -13,7 +13,7 @@
   
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.5.1
+  Version: 1.5.2
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -40,6 +40,7 @@
   1.4.3   K Hoang      23/01/2021 Fix examples' bug not saving Static IP in certain cases.
   1.5.0   K Hoang      12/02/2021 Add support to new ESP32-S2
   1.5.1   K Hoang      26/03/2021 Fix compiler error if setting Compiler Warnings to All. Retest with esp32 core v1.0.6
+  1.5.2   K Hoang      08/04/2021 Fix example misleading messages.
  *****************************************************************************************************************************/
 /****************************************************************************************************************************
    This example will open a configuration portal for 60 seconds when first powered up if the boards has stored WiFi Credentials.
@@ -60,7 +61,7 @@
   #error This code is intended to run only on the ESP8266 and ESP32 boards ! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.5.1"
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.5.2"
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -557,14 +558,30 @@ void setup()
   if (!FileFS.begin(true))
 #else
   if (!FileFS.begin())
-#endif  
+#endif
   {
-    Serial.print(FS_Name);
-    Serial.println(F(" failed! AutoFormatting."));
-    
 #ifdef ESP8266
     FileFS.format();
 #endif
+
+    Serial.println(F("SPIFFS/LittleFS failed! Already tried formatting."));
+  
+    if (!FileFS.begin())
+    {     
+      // prevents debug info from the library to hide err message.
+      delay(100);
+      
+#if USE_LITTLEFS
+      Serial.println(F("LittleFS failed!. Please use SPIFFS or EEPROM. Stay forever"));
+#else
+      Serial.println(F("SPIFFS failed!. Please use LittleFS or EEPROM. Stay forever"));
+#endif
+
+      while (true)
+      {
+        delay(1);
+      }
+    }
   }
 
   digitalWrite(PIN_LED, LED_ON); // turn the LED on by making the voltage LOW to tell us we are in configuration mode.

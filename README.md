@@ -18,6 +18,7 @@
   * [Features](#features)
   * [Currently supported Boards](#currently-supported-boards)
 * [Changelog](#changelog)
+  * [Releases v1.5.2](#releases-v152)
   * [Releases v1.5.1](#releases-v151)
   * [Releases v1.5.0](#releases-v150)
   * [Releases v1.4.3](#releases-v143)
@@ -234,6 +235,10 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
 
 ## Changelog
 
+### Releases v1.5.2
+
+1. Fix example misleading messages. Check [**Minor: examples/Async_ESP32_FSWebServer/ wrongly uses FileFS.begin(true)** #47](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues/47)
+
 ### Releases v1.5.1
 
 1. Fix compiler error if setting `Compiler Warnings` to `All`. 
@@ -356,7 +361,7 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
  3. [`ESP32 Core 1.0.6+`](https://github.com/espressif/arduino-esp32) for ESP32-based boards. ![Release Version](https://img.shields.io/github/release/espressif/arduino-esp32.svg?style=plastic)
  4. [`ESP32S2 Core 1.0.4+`](https://github.com/espressif/arduino-esp32/tree/esp32s2) for ESP32S2-based boards.
  5. [`ESP_DoubleResetDetector v1.1.1+`](https://github.com/khoih-prog/ESP_DoubleResetDetector) if using DRD feature. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_DoubleResetDetector.svg?)](https://www.ardu-badge.com/ESP_DoubleResetDetector). Use v1.1.0+ if using LittleFS for ESP32.
- 6. [`LittleFS_esp32 v1.0.5+`](https://github.com/lorol/LITTLEFS) for ESP32-based boards using LittleFS. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/LittleFS_esp32.svg?)](https://www.ardu-badge.com/LittleFS_esp32)
+ 6. [`LittleFS_esp32 v1.0.6+`](https://github.com/lorol/LITTLEFS) for ESP32-based boards using LittleFS. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/LittleFS_esp32.svg?)](https://www.ardu-badge.com/LittleFS_esp32). **Notice**: This [`LittleFS_esp32 library`](https://github.com/lorol/LITTLEFS) has been integrated to Arduino [esp32 core v2.0.0](https://github.com/espressif/arduino-esp32/tree/master/libraries/LITTLEFS).
 
 ---
 
@@ -2203,7 +2208,7 @@ ESP_wifiManager.setRemoveDuplicateAPs(false);
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.5.1"
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.5.2"
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -3259,14 +3264,30 @@ void setup()
   if (!FileFS.begin(true))
 #else
   if (!FileFS.begin())
-#endif  
+#endif
   {
-    Serial.print(FS_Name);
-    Serial.println(F(" failed! AutoFormatting."));
-    
 #ifdef ESP8266
     FileFS.format();
 #endif
+
+    Serial.println(F("SPIFFS/LittleFS failed! Already tried formatting."));
+  
+    if (!FileFS.begin())
+    {     
+      // prevents debug info from the library to hide err message.
+      delay(100);
+      
+#if USE_LITTLEFS
+      Serial.println(F("LittleFS failed!. Please use SPIFFS or EEPROM. Stay forever"));
+#else
+      Serial.println(F("SPIFFS failed!. Please use LittleFS or EEPROM. Stay forever"));
+#endif
+
+      while (true)
+      {
+        delay(1);
+      }
+    }
   }
 
   // New in v1.4.0
@@ -3360,7 +3381,7 @@ This is terminal debug output when running [ConfigOnSwitchFS_MQTT_Ptr](examples/
 
 ```
 Starting ConfigOnSwichFS_MQTT_Ptr using LittleFS on ESP8266_NODEMCU
-ESP_WiFiManager v1.5.1
+ESP_WiFiManager v1.5.2
 Configuration file not found
 Failed to read configuration file, using default values
 [WM] RFC925 Hostname = ConfigOnSwichFS-MQTT
@@ -3472,7 +3493,7 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```cpp
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using SPIFFS on ESP32_DEV
-ESP_WiFiManager v1.5.1
+ESP_WiFiManager v1.5.2
 ESP_DoubleResetDetector Version v1.1.1
 FS File: /ConfigSW.json, size: 150B
 FS File: /CanadaFlag_1.png, size: 40.25KB
@@ -3537,7 +3558,7 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.5.1
+ESP_WiFiManager v1.5.2
 ESP_DoubleResetDetector Version v1.1.1
 FS File: /CanadaFlag_1.png, size: 40.25KB
 FS File: /CanadaFlag_2.png, size: 8.12KB
@@ -3596,7 +3617,7 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.5.1
+ESP_WiFiManager v1.5.2
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3639,7 +3660,7 @@ WWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.5.1
+ESP_WiFiManager v1.5.2
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3724,7 +3745,7 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU
-ESP_WiFiManager v1.5.1
+ESP_WiFiManager v1.5.2
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3764,7 +3785,7 @@ TWWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU
-ESP_WiFiManager v1.5.1
+ESP_WiFiManager v1.5.2
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3870,6 +3891,10 @@ Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiF
 ---
 
 ## Releases
+
+### Releases v1.5.2
+
+1. Fix example misleading messages. Check [**Minor: examples/Async_ESP32_FSWebServer/ wrongly uses FileFS.begin(true)** #47](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues/47)
 
 ### Releases v1.5.1
 
