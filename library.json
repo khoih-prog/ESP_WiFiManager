@@ -1,8 +1,8 @@
 {
-  "name": "ESPAsync_WiFiManager",
-  "version": "1.6.3",
-  "keywords": "wifi, wi-fi, WiFiManager, esp8266, esp32, esp32-s2, AsyncWebServer, Async-WebServer, Async-WiFiManager, MultiWiFi, Async, Communication, Credentials, Manager, Config-Portal, DoubleReset, iot",
-  "description": "ESP32 (including ESP32-S2), ESP8266 WiFi Connection Manager using AsyncWebServer, with enhanced GUI and fallback Web ConfigPortal. This Library is used for configuring ESP32 (including ESP32-S2), ESP8266 modules WiFi Credentials at runtime. You can also specify static DNS servers, personalized HostName, fixed or random AP channel. Now with MultiWiFi auto(Re)connect feature and configurable CORS Header.",
+  "name": "ESP_WifiManager",
+  "version": "1.5.3",
+  "keywords": "wifi, wi-fi, MultiWiFi, multi-wifi, WiFiManager, esp8266, esp32, esp32-s2, Communication, iot, credentials, persistent, config-portal, DoubleReset, MultiReset, DoubleResetDetector, littlefs-esp32, spiffs, eeprom, dns-server",
+  "description": "Library to configure MultiWiFi/Credentials at runtime for ESP32 (including ESP32-S2) and ESP8266 boards. With enhanced GUI and fallback web ConfigPortal. This Library is used for configuring ESP32 (including ESP32-S2) and ESP8266 MultiWiFi Credentials at runtime. You can also specify static DNS servers, personalized HostName, DHCP HostName, static AP and STA IP, fixed or random AP channel. Now with MultiWiFi auto(Re)connect feature and configurable CORS Header.",
   "authors":
   {
     "name":  "Khoi Hoang",
@@ -12,9 +12,9 @@
   "repository":
   {
     "type": "git",
-    "url": "https://github.com/khoih-prog/ESPAsync_WiFiManager"
+    "url": "https://github.com/khoih-prog/ESP_WiFiManager"
   },
-  "homepage": "https://github.com/khoih-prog/ESPAsync_WiFiManager",
+  "homepage": "https://github.com/khoih-prog/ESP_WiFiManager",
   "export": {
     "exclude": [
       "linux",
@@ -22,25 +22,8 @@
       "tests"
     ]
   },
-  "dependencies": [
-    {
-      "owner": "me-no-dev",
-      "name": "AsyncTCP",
-      "version": ">=1.1.1",
-      "platforms": ["espressif32"]
-    },
-    {
-      "owner": "me-no-dev",
-      "name": "ESPAsyncTCP",
-      "version": ">=1.2.2",
-      "platforms": ["espressif8266"]
-    },
-    {
-      "owner": "me-no-dev",
-      "name": "ESP Async WebServer",
-      "version": ">=1.2.3",
-      "platforms": ["espressif8266", "espressif32"]
-    },
+  "dependencies": 
+  [
     {
       "owner": "khoih.prog",
       "name": "ESP_DoubleResetDetector",

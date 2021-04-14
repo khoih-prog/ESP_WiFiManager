@@ -15,7 +15,7 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.5.2
+  Version: 1.5.3
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -43,6 +43,7 @@
   1.5.0   K Hoang      12/02/2021 Add support to new ESP32-S2
   1.5.1   K Hoang      26/03/2021 Fix compiler error if setting Compiler Warnings to All. Retest with esp32 core v1.0.6
   1.5.2   K Hoang      08/04/2021 Fix example misleading messages.
+  1.5.3   K Hoang      13/04/2021 Add dnsServer error message.
  *****************************************************************************************************************************/
 
 #pragma once
@@ -357,7 +358,18 @@ void ESP_WiFiManager::setupConfigPortal()
   if (dnsServer)
   {
     dnsServer->setErrorReplyCode(DNSReplyCode::NoError);
-    dnsServer->start(DNS_PORT, "*", WiFi.softAPIP());
+    
+    // DNSServer started with "*" domain name, all DNS requests will be passsed to WiFi.softAPIP()
+    if (! dnsServer->start(DNS_PORT, "*", WiFi.softAPIP()))
+    {
+      // No socket available
+      LOGERROR(F("Can't start DNS Server. No available socket"));
+    }
+  }
+  else
+  {
+    // No space available
+    LOGERROR(F("Can't initiate DNS Server. No enough space"));
   }
 
   _configPortalStart = millis();

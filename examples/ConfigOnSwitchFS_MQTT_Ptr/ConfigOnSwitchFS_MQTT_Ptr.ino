@@ -13,7 +13,7 @@
   
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.5.2
+  Version: 1.5.3
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -41,6 +41,7 @@
   1.5.0   K Hoang      12/02/2021 Add support to new ESP32-S2
   1.5.1   K Hoang      26/03/2021 Fix compiler error if setting Compiler Warnings to All. Retest with esp32 core v1.0.6
   1.5.2   K Hoang      08/04/2021 Fix example misleading messages.
+  1.5.3   K Hoang      13/04/2021 Add dnsServer error message.
  *****************************************************************************************************************************/
 /****************************************************************************************************************************
    This example will open a configuration portal when no WiFi configuration has been previously entered or when a button is pushed.
@@ -63,7 +64,7 @@
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.5.2"
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.5.3"
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3

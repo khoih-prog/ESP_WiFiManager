@@ -15,7 +15,7 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.5.2
+  Version: 1.5.3
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -43,6 +43,7 @@
   1.5.0   K Hoang      12/02/2021 Add support to new ESP32-S2
   1.5.1   K Hoang      26/03/2021 Fix compiler error if setting Compiler Warnings to All. Retest with esp32 core v1.0.6
   1.5.2   K Hoang      08/04/2021 Fix example misleading messages.
+  1.5.3   K Hoang      13/04/2021 Add dnsServer error message.
  *****************************************************************************************************************************/
 
 #pragma once
