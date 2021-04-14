@@ -1,0 +1,1278 @@
+/****************************************************************************************************************************
+  Async_ConfigOnSwitchFS_MQTT_Ptr.ino
+  For ESP8266 / ESP32 boards
+
+  ESPAsync_WiFiManager is a library for the ESP8266/Arduino platform, using (ESP)AsyncWebServer to enable easy
+  configuration and reconfiguration of WiFi credentials using a Captive Portal.
+
+  Modified from 
+  1. Tzapu               (https://github.com/tzapu/WiFiManager)
+  2. Ken Taylor          (https://github.com/kentaylor)
+  3. Alan Steremberg     (https://github.com/alanswx/ESPAsyncWiFiManager)
+  4. Khoi Hoang          (https://github.com/khoih-prog/ESP_WiFiManager)
+
+  Built by Khoi Hoang https://github.com/khoih-prog/ESPAsync_WiFiManager
+  Licensed under MIT license
+  Version: 1.6.3
+
+  Version Modified By  Date      Comments
+  ------- -----------  ---------- -----------
+  1.0.11  K Hoang      21/08/2020 Initial coding to use (ESP)AsyncWebServer instead of (ESP8266)WebServer. Bump up to v1.0.11
+                                  to sync with ESP_WiFiManager v1.0.11
+  1.1.1   K Hoang      29/08/2020 Add MultiWiFi feature to autoconnect to best WiFi at runtime to sync with
+                                  ESP_WiFiManager v1.1.1. Add setCORSHeader function to allow flexible CORS
+  1.1.2   K Hoang      17/09/2020 Fix bug in examples.
+  1.2.0   K Hoang      15/10/2020 Restore cpp code besides Impl.h code to use if linker error. Fix bug.
+  1.3.0   K Hoang      04/12/2020 Add LittleFS support to ESP32 using LITTLEFS Library
+  1.4.0   K Hoang      18/12/2020 Fix staticIP not saved. Add functions. Add complex examples.
+  1.4.1   K Hoang      21/12/2020 Fix bug and compiler warnings.
+  1.4.2   K Hoang      21/12/2020 Fix examples' bug not using saved WiFi Credentials after losing all WiFi connections.
+  1.4.3   K Hoang      23/12/2020 Fix examples' bug not saving Static IP in certain cases.
+  1.5.0   K Hoang      13/02/2021 Add support to new ESP32-S2. Optimize code.
+  1.6.0   K Hoang      25/02/2021 Fix WiFi Scanning bug.
+  1.6.1   K Hoang      26/03/2021 Modify multiWiFi-related timings to work better with latest esp32 core v1.0.6
+  1.6.2   K Hoang      08/04/2021 Fix example misleading messages.
+  1.6.3   K Hoang      13/04/2021 Allow captive portal to run more than once by closing dnsServer.
+ *****************************************************************************************************************************/
+/****************************************************************************************************************************
+  This example will open a Config Portal when there is no stored WiFi Credentials or when a button is pressed.
+  
+  The Button is connected to pin
+  - D27 / GPIO27 for ESP32  (const int BUTTON_PIN  = PIN_D27;)
+  - D1 for ESP8266          (const int BUTTON_PIN  = PIN_D1;)
+
+  You can reconfigure to use another pin, such as the convenience FLASH / BOOT button @ PIN_D0;.
+   
+  A password is required to connect to the Config Portal so that only who know the password can access the Config Portal.
+  
+  The Credentials, being input via Config Portal, will then be saved into LittleFS / SPIFFS file, and be used to connect to 
+  Adafruit MQTT Server at "io.adafruit.com" and publish a Temperature Topic
+  
+  Based on original sketch posted by "Marko"(https://github.com/wackoo-arduino) on https://forum.arduino.cc/index.php?topic=692108
+ *****************************************************************************************************************************/
+
+#if !( defined(ESP8266) ||  defined(ESP32) )
+  #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
+#elif ( ARDUINO_ESP32S2_DEV || ARDUINO_FEATHERS2 || ARDUINO_PROS2 || ARDUINO_MICROS2 )
+  #warning You have to select HUGE APP or 1.9-2.0MB APP to be able to run Config Portal. Must use PSRAM
+#endif
+
+#define ESP_ASYNC_WIFIMANAGER_VERSION_MIN_TARGET     "ESPAsync_WiFiManager v1.6.3"
+
+// Use from 0 to 4. Higher number, more debugging messages and memory usage.
+#define _ESPASYNC_WIFIMGR_LOGLEVEL_    3
+
+#include <Arduino.h>            // for button
+#include <OneButton.h>          // for button
+
+#include <FS.h>
+
+// Now support ArduinoJson 6.0.0+ ( tested with v6.15.2 to v6.16.1 )
+#include <ArduinoJson.h>        // get it from https://arduinojson.org/ or install via Arduino library manager
+
+//For ESP32, To use ESP32 Dev Module, QIO, Flash 4MB/80MHz, Upload 921600
+//Ported to ESP32
+#ifdef ESP32
+  #include <esp_wifi.h>
+  #include <WiFi.h>
+  #include <WiFiClient.h>
+
+  // From v1.1.1
+  #include <WiFiMulti.h>
+  WiFiMulti wifiMulti;
+
+  // LittleFS has higher priority than SPIFFS
+  #define USE_LITTLEFS    true
+  #define USE_SPIFFS      false
+
+  #if USE_LITTLEFS
+    // Use LittleFS
+    #include "FS.h"
+
+    // The library will be depreciated after being merged to future major Arduino esp32 core release 2.x
+    // At that time, just remove this library inclusion
+    #include <LITTLEFS.h>             // https://github.com/lorol/LITTLEFS
+    
+    FS* filesystem =      &LITTLEFS;
+    #define FileFS        LITTLEFS
+    #define FS_Name       "LittleFS"
+  #elif USE_SPIFFS
+    #include <SPIFFS.h>
+    FS* filesystem =      &SPIFFS;
+    #define FileFS        SPIFFS
+    #define FS_Name       "SPIFFS"
+  #else
+    // +Use FFat
+    #include <FFat.h>
+    FS* filesystem =      &FFat;
+    #define FileFS        FFat
+    #define FS_Name       "FFat"
+  #endif
+  //////
+
+  #define ESP_getChipId()   ((uint32_t)ESP.getEfuseMac())
+
+  #define LED_BUILTIN       2
+  #define LED_ON            HIGH
+  #define LED_OFF           LOW
+
+#else
+
+  #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
+  //needed for library
+  #include <DNSServer.h>
+
+  // From v1.1.1
+  #include <ESP8266WiFiMulti.h>
+  ESP8266WiFiMulti wifiMulti;
+
+  #define USE_LITTLEFS      true
+  
+  #if USE_LITTLEFS
+    #include <LittleFS.h>
+    FS* filesystem =      &LittleFS;
+    #define FileFS        LittleFS
+    #define FS_Name       "LittleFS"
+  #else
+    FS* filesystem =      &SPIFFS;
+    #define FileFS        SPIFFS
+    #define FS_Name       "SPIFFS"
+  #endif
+  //////
+  
+  #define ESP_getChipId()   (ESP.getChipId())
+  
+  #define LED_ON      LOW
+  #define LED_OFF     HIGH
+#endif
+
+#include "Adafruit_MQTT.h"                //https://github.com/adafruit/Adafruit_MQTT_Library
+#include "Adafruit_MQTT_Client.h"         //https://github.com/adafruit/Adafruit_MQTT_Library
+
+#if ESP32
+
+  //See file .../hardware/espressif/esp32/variants/(esp32|doitESP32devkitV1)/pins_arduino.h
+  #define LED_BUILTIN       2         // Pin D2 mapped to pin GPIO2/ADC12 of ESP32, control on-board LED
+  #define PIN_LED           2         // Pin D2 mapped to pin GPIO2/ADC12 of ESP32, control on-board LED
+  
+  #define PIN_D0            0         // Pin D0 mapped to pin GPIO0/BOOT/ADC11/TOUCH1 of ESP32
+  #define PIN_D1            1         // Pin D1 mapped to pin GPIO1/TX0 of ESP32
+  #define PIN_D2            2         // Pin D2 mapped to pin GPIO2/ADC12/TOUCH2 of ESP32
+  #define PIN_D3            3         // Pin D3 mapped to pin GPIO3/RX0 of ESP32
+  #define PIN_D4            4         // Pin D4 mapped to pin GPIO4/ADC10/TOUCH0 of ESP32
+  #define PIN_D5            5         // Pin D5 mapped to pin GPIO5/SPISS/VSPI_SS of ESP32
+  #define PIN_D6            6         // Pin D6 mapped to pin GPIO6/FLASH_SCK of ESP32
+  #define PIN_D7            7         // Pin D7 mapped to pin GPIO7/FLASH_D0 of ESP32
+  #define PIN_D8            8         // Pin D8 mapped to pin GPIO8/FLASH_D1 of ESP32
+  #define PIN_D9            9         // Pin D9 mapped to pin GPIO9/FLASH_D2 of ESP32
+  
+  #define PIN_D10           10        // Pin D10 mapped to pin GPIO10/FLASH_D3 of ESP32
+  #define PIN_D11           11        // Pin D11 mapped to pin GPIO11/FLASH_CMD of ESP32
+  #define PIN_D12           12        // Pin D12 mapped to pin GPIO12/HSPI_MISO/ADC15/TOUCH5/TDI of ESP32
+  #define PIN_D13           13        // Pin D13 mapped to pin GPIO13/HSPI_MOSI/ADC14/TOUCH4/TCK of ESP32
+  #define PIN_D14           14        // Pin D14 mapped to pin GPIO14/HSPI_SCK/ADC16/TOUCH6/TMS of ESP32
+  #define PIN_D15           15        // Pin D15 mapped to pin GPIO15/HSPI_SS/ADC13/TOUCH3/TDO of ESP32
+  #define PIN_D16           16        // Pin D16 mapped to pin GPIO16/TX2 of ESP32
+  #define PIN_D17           17        // Pin D17 mapped to pin GPIO17/RX2 of ESP32     
+  #define PIN_D18           18        // Pin D18 mapped to pin GPIO18/VSPI_SCK of ESP32
+  #define PIN_D19           19        // Pin D19 mapped to pin GPIO19/VSPI_MISO of ESP32
+  
+  #define PIN_D21           21        // Pin D21 mapped to pin GPIO21/SDA of ESP32
+  #define PIN_D22           22        // Pin D22 mapped to pin GPIO22/SCL of ESP32
+  #define PIN_D23           23        // Pin D23 mapped to pin GPIO23/VSPI_MOSI of ESP32
+  #define PIN_D24           24        // Pin D24 mapped to pin GPIO24 of ESP32
+  #define PIN_D25           25        // Pin D25 mapped to pin GPIO25/ADC18/DAC1 of ESP32
+  #define PIN_D26           26        // Pin D26 mapped to pin GPIO26/ADC19/DAC2 of ESP32
+  #define PIN_D27           27        // Pin D27 mapped to pin GPIO27/ADC17/TOUCH7 of ESP32     
+  
+  #define PIN_D32           32        // Pin D32 mapped to pin GPIO32/ADC4/TOUCH9 of ESP32
+  #define PIN_D33           33        // Pin D33 mapped to pin GPIO33/ADC5/TOUCH8 of ESP32
+  #define PIN_D34           34        // Pin D34 mapped to pin GPIO34/ADC6 of ESP32
+  
+  //Only GPIO pin < 34 can be used as output. Pins >= 34 can be only inputs
+  //See .../cores/esp32/esp32-hal-gpio.h/c
+  //#define digitalPinIsValid(pin)          ((pin) < 40 && esp32_gpioMux[(pin)].reg)
+  //#define digitalPinCanOutput(pin)        ((pin) < 34 && esp32_gpioMux[(pin)].reg)
+  //#define digitalPinToRtcPin(pin)         (((pin) < 40)?esp32_gpioMux[(pin)].rtc:-1)
+  //#define digitalPinToAnalogChannel(pin)  (((pin) < 40)?esp32_gpioMux[(pin)].adc:-1)
+  //#define digitalPinToTouchChannel(pin)   (((pin) < 40)?esp32_gpioMux[(pin)].touch:-1)
+  //#define digitalPinToDacChannel(pin)     (((pin) == 25)?0:((pin) == 26)?1:-1)
+  
+  #define PIN_D35           35        // Pin D35 mapped to pin GPIO35/ADC7 of ESP32
+  #define PIN_D36           36        // Pin D36 mapped to pin GPIO36/ADC0/SVP of ESP32
+  #define PIN_D39           39        // Pin D39 mapped to pin GPIO39/ADC3/SVN of ESP32
+  
+  #define PIN_RX0            3        // Pin RX0 mapped to pin GPIO3/RX0 of ESP32
+  #define PIN_TX0            1        // Pin TX0 mapped to pin GPIO1/TX0 of ESP32
+  
+  #define PIN_SCL           22        // Pin SCL mapped to pin GPIO22/SCL of ESP32
+  #define PIN_SDA           21        // Pin SDA mapped to pin GPIO21/SDA of ESP32   
+  
+#else
+
+  //PIN_D0 can't be used for PWM/I2C
+  #define PIN_D0            16        // Pin D0 mapped to pin GPIO16/USER/WAKE of ESP8266. This pin is also used for Onboard-Blue LED. PIN_D0 = 0 => LED ON
+  #define PIN_D1            5         // Pin D1 mapped to pin GPIO5 of ESP8266
+  #define PIN_D2            4         // Pin D2 mapped to pin GPIO4 of ESP8266
+  #define PIN_D3            0         // Pin D3 mapped to pin GPIO0/FLASH of ESP8266
+  #define PIN_D4            2         // Pin D4 mapped to pin GPIO2/TXD1 of ESP8266
+  #define PIN_LED           2         // Pin D4 mapped to pin GPIO2/TXD1 of ESP8266, NodeMCU and WeMoS, control on-board LED
+  #define PIN_D5            14        // Pin D5 mapped to pin GPIO14/HSCLK of ESP8266
+  #define PIN_D6            12        // Pin D6 mapped to pin GPIO12/HMISO of ESP8266
+  #define PIN_D7            13        // Pin D7 mapped to pin GPIO13/RXD2/HMOSI of ESP8266
+  #define PIN_D8            15        // Pin D8 mapped to pin GPIO15/TXD2/HCS of ESP8266
+  
+  //Don't use pins GPIO6 to GPIO11 as already connected to flash, etc. Use them can crash the program
+  //GPIO9(D11/SD2) and GPIO11 can be used only if flash in DIO mode ( not the default QIO mode)
+  #define PIN_D11           9         // Pin D11/SD2 mapped to pin GPIO9/SDD2 of ESP8266
+  #define PIN_D12           10        // Pin D12/SD3 mapped to pin GPIO10/SDD3 of ESP8266
+  #define PIN_SD2           9         // Pin SD2 mapped to pin GPIO9/SDD2 of ESP8266
+  #define PIN_SD3           10        // Pin SD3 mapped to pin GPIO10/SDD3 of ESP8266
+  
+  #define PIN_D9            3         // Pin D9 /RX mapped to pin GPIO3/RXD0 of ESP8266
+  #define PIN_D10           1         // Pin D10/TX mapped to pin GPIO1/TXD0 of ESP8266
+  #define PIN_RX            3         // Pin RX mapped to pin GPIO3/RXD0 of ESP8266
+  #define PIN_TX            1         // Pin RX mapped to pin GPIO1/TXD0 of ESP8266
+  
+  #define LED_PIN           16        // Pin D0 mapped to pin GPIO16 of ESP8266. This pin is also used for Onboard-Blue LED. PIN_D0 = 0 => LED ON
+
+#endif    //ESP32
+
+#if ESP32
+  #if ( ARDUINO_ESP32S2_DEV || ARDUINO_FEATHERS2 || ARDUINO_PROS2 || ARDUINO_MICROS2 ) 
+    const int BUTTON_PIN  = PIN_D3;
+    const int RED_LED     = PIN_D4;
+    const int BLUE_LED    = PIN_D5;
+  #else
+    const int BUTTON_PIN  = PIN_D27;
+    const int RED_LED     = PIN_D26;
+    const int BLUE_LED    = PIN_D25;
+  #endif
+#else
+  const int BUTTON_PIN  = PIN_D1;
+  const int RED_LED     = PIN_D2;
+  const int BLUE_LED    = PIN_D5;
+#endif    //ESP32
+
+const char* CONFIG_FILE = "/ConfigMQTT.json";
+
+// Default configuration values for Adafruit IO MQTT
+// This actually works
+#define AIO_SERVER              "io.adafruit.com"
+#define AIO_SERVERPORT          "1883" //1883, or 8883 for SSL
+#define AIO_USERNAME            "private" //Adafruit IO
+#define AIO_KEY                 "private"
+
+// Labels for custom parameters in WiFi manager
+#define AIO_SERVER_Label             "AIO_SERVER_Label"
+#define AIO_SERVERPORT_Label         "AIO_SERVERPORT_Label"
+#define AIO_USERNAME_Label           "AIO_USERNAME_Label"
+#define AIO_KEY_Label                "AIO_KEY_Label"
+
+// Just dummy topics. To be updated later when got valid data from FS or Config Portal
+String MQTT_Pub_Topic   = "private/feeds/Temperature";
+
+// Variables to save custom parameters to...
+// I would like to use these instead of #defines
+#define custom_AIO_SERVER_LEN       20
+#define custom_AIO_PORT_LEN          5
+#define custom_AIO_USERNAME_LEN     20
+#define custom_AIO_KEY_LEN          40
+
+char custom_AIO_SERVER[custom_AIO_SERVER_LEN];
+char custom_AIO_SERVERPORT[custom_AIO_PORT_LEN];
+char custom_AIO_USERNAME[custom_AIO_USERNAME_LEN];
+char custom_AIO_KEY[custom_AIO_KEY_LEN];
+
+// Function Prototypes
+void MQTT_connect();
+bool readConfigFile();
+bool writeConfigFile();
+
+// For Config Portal
+// SSID and PW for Config Portal
+String ssid = "ESP_" + String(ESP_getChipId(), HEX);
+const char* password = "your_password";
+
+// SSID and PW for your Router
+String Router_SSID;
+String Router_Pass;
+
+// From v1.1.1
+// You only need to format the filesystem once
+//#define FORMAT_FILESYSTEM       true
+#define FORMAT_FILESYSTEM         false
+
+#define MIN_AP_PASSWORD_SIZE    8
+
+#define SSID_MAX_LEN            32
+//From v1.0.10, WPA2 passwords can be up to 63 characters long.
+#define PASS_MAX_LEN            64
+
+typedef struct
+{
+  char wifi_ssid[SSID_MAX_LEN];
+  char wifi_pw  [PASS_MAX_LEN];
+}  WiFi_Credentials;
+
+typedef struct
+{
+  String wifi_ssid;
+  String wifi_pw;
+}  WiFi_Credentials_String;
+
+#define NUM_WIFI_CREDENTIALS      2
+
+typedef struct
+{
+  WiFi_Credentials  WiFi_Creds [NUM_WIFI_CREDENTIALS];
+} WM_Config;
+
+WM_Config         WM_config;
+
+#define  CONFIG_FILENAME              F("/wifi_cred.dat")
+//////
+
+// Indicates whether ESP has WiFi credentials saved from previous session, or double reset detected
+bool initialConfig = false;
+
+// Use false if you don't like to display Available Pages in Information Page of Config Portal
+// Comment out or use true to display Available Pages in Information Page of Config Portal
+// Must be placed before #include <ESPAsync_WiFiManager.h>
+#define USE_AVAILABLE_PAGES     false
+
+// From v1.0.10 to permit disable/enable StaticIP configuration in Config Portal from sketch. Valid only if DHCP is used.
+// You'll loose the feature of dynamically changing from DHCP to static IP, or vice versa
+// You have to explicitly specify false to disable the feature.
+//#define USE_STATIC_IP_CONFIG_IN_CP          false
+
+// Use false to disable NTP config. Advisable when using Cellphone, Tablet to access Config Portal.
+// See Issue 23: On Android phone ConfigPortal is unresponsive (https://github.com/khoih-prog/ESP_WiFiManager/issues/23)
+#define USE_ESP_WIFIMANAGER_NTP     false
+
+// Use true to enable CloudFlare NTP service. System can hang if you don't have Internet access while accessing CloudFlare
+// See Issue #21: CloudFlare link in the default portal (https://github.com/khoih-prog/ESP_WiFiManager/issues/21)
+#define USE_CLOUDFLARE_NTP          false
+
+// New in v1.0.11
+#define USING_CORS_FEATURE          true
+//////
+
+// Use USE_DHCP_IP == true for dynamic DHCP IP, false to use static IP which you have to change accordingly to your network
+#if (defined(USE_STATIC_IP_CONFIG_IN_CP) && !USE_STATIC_IP_CONFIG_IN_CP)
+// Force DHCP to be true
+  #if defined(USE_DHCP_IP)
+    #undef USE_DHCP_IP
+  #endif
+  #define USE_DHCP_IP     true
+#else
+  // You can select DHCP or Static IP here
+  //#define USE_DHCP_IP     true
+  #define USE_DHCP_IP     false
+#endif
+
+#if ( USE_DHCP_IP )
+  // Use DHCP
+  #warning Using DHCP IP
+  IPAddress stationIP   = IPAddress(0, 0, 0, 0);
+  IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
+  IPAddress netMask     = IPAddress(255, 255, 255, 0);
+#else
+  // Use static IP
+  #warning Using static IP
+  
+  #ifdef ESP32
+    IPAddress stationIP   = IPAddress(192, 168, 2, 232);
+  #else
+    IPAddress stationIP   = IPAddress(192, 168, 2, 186);
+  #endif
+  
+  IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
+  IPAddress netMask     = IPAddress(255, 255, 255, 0);
+#endif
+
+#define USE_CONFIGURABLE_DNS      true
+
+IPAddress dns1IP      = gatewayIP;
+IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
+
+IPAddress APStaticIP  = IPAddress(192, 168, 100, 1);
+IPAddress APStaticGW  = IPAddress(192, 168, 100, 1);
+IPAddress APStaticSN  = IPAddress(255, 255, 255, 0);
+
+#include <ESPAsync_WiFiManager.h>              //https://github.com/khoih-prog/ESPAsync_WiFiManager
+
+#define HTTP_PORT           80
+
+//Button config
+OneButton btn = OneButton(
+                  BUTTON_PIN,  // Input pin for the button
+                  true,        // Button is active LOW
+                  true         // Enable internal pull-up resistor
+                );
+
+// Create an ESP32 WiFiClient class to connect to the MQTT server
+WiFiClient *client                    = NULL;
+
+Adafruit_MQTT_Client    *mqtt         = NULL;
+Adafruit_MQTT_Publish   *Temperature  = NULL;
+
+///////////////////////////////////////////
+// New in v1.4.0
+/******************************************
+ * // Defined in ESPAsync_WiFiManager.h
+typedef struct
+{
+  IPAddress _ap_static_ip;
+  IPAddress _ap_static_gw;
+  IPAddress _ap_static_sn;
+
+}  WiFi_AP_IPConfig;
+
+typedef struct
+{
+  IPAddress _sta_static_ip;
+  IPAddress _sta_static_gw;
+  IPAddress _sta_static_sn;
+#if USE_CONFIGURABLE_DNS  
+  IPAddress _sta_static_dns1;
+  IPAddress _sta_static_dns2;
+#endif
+}  WiFi_STA_IPConfig;
+******************************************/
+
+WiFi_AP_IPConfig  WM_AP_IPconfig;
+WiFi_STA_IPConfig WM_STA_IPconfig;
+
+void initAPIPConfigStruct(WiFi_AP_IPConfig &in_WM_AP_IPconfig)
+{
+  in_WM_AP_IPconfig._ap_static_ip   = APStaticIP;
+  in_WM_AP_IPconfig._ap_static_gw   = APStaticGW;
+  in_WM_AP_IPconfig._ap_static_sn   = APStaticSN;
+}
+
+void initSTAIPConfigStruct(WiFi_STA_IPConfig &in_WM_STA_IPconfig)
+{
+  in_WM_STA_IPconfig._sta_static_ip   = stationIP;
+  in_WM_STA_IPconfig._sta_static_gw   = gatewayIP;
+  in_WM_STA_IPconfig._sta_static_sn   = netMask;
+#if USE_CONFIGURABLE_DNS  
+  in_WM_STA_IPconfig._sta_static_dns1 = dns1IP;
+  in_WM_STA_IPconfig._sta_static_dns2 = dns2IP;
+#endif
+}
+
+void displayIPConfigStruct(WiFi_STA_IPConfig in_WM_STA_IPconfig)
+{
+  LOGERROR3(F("stationIP ="), in_WM_STA_IPconfig._sta_static_ip, ", gatewayIP =", in_WM_STA_IPconfig._sta_static_gw);
+  LOGERROR1(F("netMask ="), in_WM_STA_IPconfig._sta_static_sn);
+#if USE_CONFIGURABLE_DNS
+  LOGERROR3(F("dns1IP ="), in_WM_STA_IPconfig._sta_static_dns1, ", dns2IP =", in_WM_STA_IPconfig._sta_static_dns2);
+#endif
+}
+
+void configWiFi(WiFi_STA_IPConfig in_WM_STA_IPconfig)
+{
+  #if USE_CONFIGURABLE_DNS  
+    // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
+    WiFi.config(in_WM_STA_IPconfig._sta_static_ip, in_WM_STA_IPconfig._sta_static_gw, in_WM_STA_IPconfig._sta_static_sn, in_WM_STA_IPconfig._sta_static_dns1, in_WM_STA_IPconfig._sta_static_dns2);  
+  #else
+    // Set static IP, Gateway, Subnetmask, Use auto DNS1 and DNS2.
+    WiFi.config(in_WM_STA_IPconfig._sta_static_ip, in_WM_STA_IPconfig._sta_static_gw, in_WM_STA_IPconfig._sta_static_sn);
+  #endif 
+}
+
+///////////////////////////////////////////
+
+uint8_t connectMultiWiFi()
+{
+#if ESP32
+  // For ESP32, this better be 0 to shorten the connect time. 
+  // For ESP32-S2, must be > 500
+  #if ( ARDUINO_ESP32S2_DEV || ARDUINO_FEATHERS2 || ARDUINO_PROS2 || ARDUINO_MICROS2 )
+    #define WIFI_MULTI_1ST_CONNECT_WAITING_MS           500L
+  #else
+    // For ESP32 core v1.0.6, must be >= 500
+    #define WIFI_MULTI_1ST_CONNECT_WAITING_MS           800L
+  #endif
+#else
+  // For ESP8266, this better be 2200 to enable connect the 1st time
+  #define WIFI_MULTI_1ST_CONNECT_WAITING_MS             2200L
+#endif
+
+#define WIFI_MULTI_CONNECT_WAITING_MS                   100L
+  
+  uint8_t status;
+
+  LOGERROR(F("ConnectMultiWiFi with :"));
+  
+  if ( (Router_SSID != "") && (Router_Pass != "") )
+  {
+    LOGERROR3(F("* Flash-stored Router_SSID = "), Router_SSID, F(", Router_Pass = "), Router_Pass );
+  }
+
+  for (uint8_t i = 0; i < NUM_WIFI_CREDENTIALS; i++)
+  {
+    // Don't permit NULL SSID and password len < MIN_AP_PASSWORD_SIZE (8)
+    if ( (String(WM_config.WiFi_Creds[i].wifi_ssid) != "") && (strlen(WM_config.WiFi_Creds[i].wifi_pw) >= MIN_AP_PASSWORD_SIZE) )
+    {
+      LOGERROR3(F("* Additional SSID = "), WM_config.WiFi_Creds[i].wifi_ssid, F(", PW = "), WM_config.WiFi_Creds[i].wifi_pw );
+    }
+  }
+  
+  LOGERROR(F("Connecting MultiWifi..."));
+
+  WiFi.mode(WIFI_STA);
+
+#if !USE_DHCP_IP
+  // New in v1.4.0
+  configWiFi(WM_STA_IPconfig);
+  //////
+#endif
+
+  int i = 0;
+  status = wifiMulti.run();
+  delay(WIFI_MULTI_1ST_CONNECT_WAITING_MS);
+
+  while ( ( i++ < 20 ) && ( status != WL_CONNECTED ) )
+  {
+    status = wifiMulti.run();
+
+    if ( status == WL_CONNECTED )
+      break;
+    else
+      delay(WIFI_MULTI_CONNECT_WAITING_MS);
+  }
+
+  if ( status == WL_CONNECTED )
+  {
+    LOGERROR1(F("WiFi connected after time: "), i);
+    LOGERROR3(F("SSID:"), WiFi.SSID(), F(",RSSI="), WiFi.RSSI());
+    LOGERROR3(F("Channel:"), WiFi.channel(), F(",IP address:"), WiFi.localIP() );
+  }
+  else
+    LOGERROR(F("WiFi not connected"));
+
+  return status;
+}
+
+void toggleLED()
+{
+  //toggle state
+  digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+}
+
+void heartBeatPrint()
+{
+  static int num = 1;
+
+  if (WiFi.status() == WL_CONNECTED)
+    Serial.print(F("W"));        // W means connected to WiFi
+  else
+    Serial.print(F("N"));        // N means not connected to WiFi
+
+  if (num == 40)
+  {
+    Serial.println();
+    num = 1;
+  }
+  else if (num++ % 5 == 0)
+  {
+    Serial.print(F(" "));
+  }
+}
+
+void publishMQTT()
+{
+    float some_number = 25.0 + (float) ( millis() % 100 ) /  100;
+
+    // For debug only
+    //Serial.print(F("Published Temp = "));
+    //Serial.println(some_number);
+    
+    MQTT_connect();
+
+    if (Temperature->publish(some_number)) 
+    {
+      Serial.print(F("T"));        // T means publishing OK
+    }
+    else 
+    {
+      Serial.print(F("F"));        // F means publishing failure
+    }
+}
+
+void check_WiFi()
+{
+  if ( (WiFi.status() != WL_CONNECTED) )
+  {
+    Serial.println(F("\nWiFi lost. Call connectMultiWiFi in loop"));
+    connectMultiWiFi();
+  }
+}  
+
+void check_status()
+{
+  static ulong checkstatus_timeout  = 0;
+  static ulong LEDstatus_timeout    = 0;
+  static ulong checkwifi_timeout    = 0;
+  static ulong mqtt_publish_timeout = 0;
+  
+  ulong current_millis = millis();
+
+#define WIFICHECK_INTERVAL    1000L
+#define LED_INTERVAL          2000L
+#define HEARTBEAT_INTERVAL    10000L
+#define PUBLISH_INTERVAL      60000L
+
+  // Check WiFi every WIFICHECK_INTERVAL (1) seconds.
+  if ((current_millis > checkwifi_timeout) || (checkwifi_timeout == 0))
+  {
+    check_WiFi();
+    checkwifi_timeout = current_millis + WIFICHECK_INTERVAL;
+  }
+
+  if ((current_millis > LEDstatus_timeout) || (LEDstatus_timeout == 0))
+  {
+    // Toggle LED at LED_INTERVAL = 2s
+    toggleLED();
+    LEDstatus_timeout = current_millis + LED_INTERVAL;
+  }
+
+  // Print hearbeat every HEARTBEAT_INTERVAL (10) seconds.
+  if ((current_millis > checkstatus_timeout) || (checkstatus_timeout == 0))
+  { 
+    heartBeatPrint();
+    checkstatus_timeout = current_millis + HEARTBEAT_INTERVAL;
+  }
+
+  // Check every PUBLISH_INTERVAL (60) seconds.
+  if ((current_millis > mqtt_publish_timeout) || (mqtt_publish_timeout == 0))
+  {
+    if (WiFi.status() == WL_CONNECTED)
+    {
+      publishMQTT();
+    }
+    
+    mqtt_publish_timeout = current_millis + PUBLISH_INTERVAL;
+  }
+}
+
+bool loadConfigData()
+{
+  File file = FileFS.open(CONFIG_FILENAME, "r");
+  LOGERROR(F("LoadWiFiCfgFile "));
+
+  memset(&WM_config,       0, sizeof(WM_config));
+
+  // New in v1.4.0
+  memset(&WM_STA_IPconfig, 0, sizeof(WM_STA_IPconfig));
+  //////
+    
+  if (file)
+  {
+    file.readBytes((char *) &WM_config,   sizeof(WM_config));
+
+    // New in v1.4.0
+    file.readBytes((char *) &WM_STA_IPconfig, sizeof(WM_STA_IPconfig));
+    //////
+    
+    file.close();
+    LOGERROR(F("OK"));
+
+    // New in v1.4.0
+    displayIPConfigStruct(WM_STA_IPconfig);
+    //////
+
+    return true;
+  }
+  else
+  {
+    LOGERROR(F("failed"));
+
+    return false;
+  }
+}
+    
+void saveConfigData()
+{
+  File file = FileFS.open(CONFIG_FILENAME, "w");
+  LOGERROR(F("SaveWiFiCfgFile "));
+
+  if (file)
+  {
+    file.write((uint8_t*) &WM_config,   sizeof(WM_config));
+
+    displayIPConfigStruct(WM_STA_IPconfig);
+
+    // New in v1.4.0
+    file.write((uint8_t*) &WM_STA_IPconfig, sizeof(WM_STA_IPconfig));
+    //////
+    
+    file.close();
+    LOGERROR(F("OK"));
+  }
+  else
+  {
+    LOGERROR(F("failed"));
+  }
+}
+
+void deleteOldInstances()
+{
+  // Delete previous instances
+  if (mqtt)
+  {
+    delete mqtt;
+    mqtt = NULL;
+    
+    Serial.println(F("Deleting old MQTT object"));
+  }
+
+  if (Temperature)
+  {
+    delete Temperature;
+    Temperature = NULL;
+    
+    Serial.println(F("Deleting old Temperature object"));
+  }  
+}
+
+void createNewInstances()
+{
+  if (!client)
+  {
+    client = new WiFiClient;
+    
+    Serial.print(F("\nCreating new WiFi client object : "));
+    Serial.println(client? F("OK") : F("failed"));
+  }
+  
+  // Create new instances from new data
+  if (!mqtt)
+  {
+    // Setup the MQTT client class by passing in the WiFi client and MQTT server and login details.
+    mqtt = new Adafruit_MQTT_Client(client, custom_AIO_SERVER, atoi(custom_AIO_SERVERPORT), custom_AIO_USERNAME, custom_AIO_KEY);
+    
+    Serial.print(F("Creating new MQTT object : "));
+    
+    if (mqtt)
+    {
+      Serial.println(F("OK"));
+      Serial.println(String("AIO_SERVER = ")    + custom_AIO_SERVER    + ", AIO_SERVERPORT = "  + custom_AIO_SERVERPORT);
+      Serial.println(String("AIO_USERNAME = ")  + custom_AIO_USERNAME  + ", AIO_KEY = "         + custom_AIO_KEY);
+    }
+    else
+      Serial.println(F("Failed"));
+  }
+  
+  if (!Temperature)
+  {
+    Serial.print(F("Creating new MQTT_Pub_Topic,  Temperature = "));
+    Serial.println(MQTT_Pub_Topic);
+    
+    Temperature = new Adafruit_MQTT_Publish(mqtt, MQTT_Pub_Topic.c_str());
+ 
+    Serial.print(F("Creating new Temperature object : "));
+    
+    if (Temperature)
+    {
+      Serial.println(F("OK"));
+      Serial.println(String("Temperature MQTT_Pub_Topic = ")  + MQTT_Pub_Topic);
+    }
+    else
+      Serial.println(F("Failed"));
+    }
+}
+
+//event handler functions for button
+static void handleClick() 
+{
+  Serial.println(F("\nButton clicked!"));
+  wifi_manager();
+}
+
+static void handleDoubleClick() 
+{
+  Serial.println(F("\nButton double clicked!"));
+}
+
+static void handleLongPressStop() 
+{
+  Serial.println(F("\nLong Button pressed!"));
+  newConfigData();
+}
+
+void wifi_manager() 
+{
+  Serial.println(F("\nConfig Portal requested."));
+  digitalWrite(LED_BUILTIN, LED_ON); // turn the LED on by making the voltage LOW to tell us we are in configuration mode.
+
+  //Local intialization. Once its business is done, there is no need to keep it around
+  // Use this to default DHCP hostname to ESP8266-XXXXXX or ESP32-XXXXXX
+  //ESPAsync_WiFiManager ESPAsync_wifiManager(&webServer, &dnsServer);
+  // Use this to personalize DHCP hostname (RFC952 conformed)
+  AsyncWebServer webServer(HTTP_PORT);
+
+#if ( ARDUINO_ESP32S2_DEV || ARDUINO_FEATHERS2 || ARDUINO_PROS2 || ARDUINO_MICROS2 )
+  ESPAsync_WiFiManager ESPAsync_wifiManager(&webServer, NULL, "ConfigOnSwichFS-MQTT");
+#else
+  DNSServer dnsServer;
+  
+  ESPAsync_WiFiManager ESPAsync_wifiManager(&webServer, &dnsServer, "ConfigOnSwichFS-MQTT");
+#endif
+
+  //Check if there is stored WiFi router/password credentials.
+  //If not found, device will remain in configuration mode until switched off via webserver.
+  Serial.print(F("Opening Configuration Portal. "));
+  
+  Router_SSID = ESPAsync_wifiManager.WiFi_SSID();
+  Router_Pass = ESPAsync_wifiManager.WiFi_Pass();
+  
+  // From v1.1.1, Don't permit NULL password
+  if ( !initialConfig && (Router_SSID != "") && (Router_Pass != "") )
+  {
+    //If valid AP credential and not DRD, set timeout 120s.
+    ESPAsync_wifiManager.setConfigPortalTimeout(120);
+    Serial.println(F("Got stored Credentials. Timeout 120s"));
+  }
+  else
+  {
+    ESPAsync_wifiManager.setConfigPortalTimeout(0);
+
+    Serial.print(F("No timeout : "));
+    
+    if (initialConfig)
+    {
+      Serial.println(F("DRD or No stored Credentials.."));
+    }
+    else
+    {
+      Serial.println(F("No stored Credentials."));
+    }
+  }
+
+  //Local intialization. Once its business is done, there is no need to keep it around
+
+  // Extra parameters to be configured
+  // After connecting, parameter.getValue() will get you the configured value
+  // Format: <ID> <Placeholder text> <default value> <length> <custom HTML> <label placement>
+  // (*** we are not using <custom HTML> and <label placement> ***)
+
+  // AIO_SERVER
+  ESPAsync_WMParameter AIO_SERVER_FIELD(AIO_SERVER_Label, "AIO SERVER", custom_AIO_SERVER, custom_AIO_SERVER_LEN + 1);
+
+  // AIO_SERVERPORT
+  ESPAsync_WMParameter AIO_SERVERPORT_FIELD(AIO_SERVERPORT_Label, "AIO SERVER PORT", custom_AIO_SERVERPORT, custom_AIO_PORT_LEN + 1);
+
+  // AIO_USERNAME
+  ESPAsync_WMParameter AIO_USERNAME_FIELD(AIO_USERNAME_Label, "AIO USERNAME", custom_AIO_USERNAME, custom_AIO_USERNAME_LEN + 1);
+
+  // AIO_KEY
+  ESPAsync_WMParameter AIO_KEY_FIELD(AIO_KEY_Label, "AIO KEY", custom_AIO_KEY, custom_AIO_KEY_LEN + 1);
+
+  // add all parameters here
+  // order of adding is not important
+  ESPAsync_wifiManager.addParameter(&AIO_SERVER_FIELD);
+  ESPAsync_wifiManager.addParameter(&AIO_SERVERPORT_FIELD);
+  ESPAsync_wifiManager.addParameter(&AIO_USERNAME_FIELD);
+  ESPAsync_wifiManager.addParameter(&AIO_KEY_FIELD);
+
+  // Sets timeout in seconds until configuration portal gets turned off.
+  // If not specified device will remain in configuration mode until
+  // switched off via webserver or device is restarted.
+  //ESPAsync_wifiManager.setConfigPortalTimeout(120);
+
+  ESPAsync_wifiManager.setMinimumSignalQuality(-1);
+
+  // From v1.0.10 only
+  // Set config portal channel, default = 1. Use 0 => random channel from 1-13
+  ESPAsync_wifiManager.setConfigPortalChannel(0);
+  //////
+  
+  //set custom ip for portal
+  // New in v1.4.0
+  ESPAsync_wifiManager.setAPStaticIPConfig(WM_AP_IPconfig);
+  //////
+  
+#if !USE_DHCP_IP    
+    // Set (static IP, Gateway, Subnetmask, DNS1 and DNS2) or (IP, Gateway, Subnetmask). New in v1.0.5
+    // New in v1.4.0
+    ESPAsync_wifiManager.setSTAStaticIPConfig(WM_STA_IPconfig);
+    //////
+#endif
+
+  // New from v1.1.1
+#if USING_CORS_FEATURE
+  ESPAsync_wifiManager.setCORSHeader("Your Access-Control-Allow-Origin");
+#endif
+
+  // Start an access point
+  // and goes into a blocking loop awaiting configuration.
+  // Once the user leaves the portal with the exit button
+  // processing will continue
+  // SSID to uppercase
+  ssid.toUpperCase();
+  
+  if (!ESPAsync_wifiManager.startConfigPortal((const char *) ssid.c_str(), password))
+  {
+    Serial.println(F("Not connected to WiFi but continuing anyway."));
+  }
+  else
+  {
+    // If you get here you have connected to the WiFi
+    Serial.println(F("Connected...yeey :)"));
+    Serial.print(F("Local IP: "));
+    Serial.println(WiFi.localIP());
+  }
+
+  // Only clear then save data if CP entered and with new valid Credentials
+  // No CP => stored getSSID() = ""
+  if ( String(ESPAsync_wifiManager.getSSID(0)) != "" && String(ESPAsync_wifiManager.getSSID(1)) != "" )
+  {
+    // Stored  for later usage, from v1.1.0, but clear first
+    memset(&WM_config, 0, sizeof(WM_config));
+    
+    for (uint8_t i = 0; i < NUM_WIFI_CREDENTIALS; i++)
+    {
+      String tempSSID = ESPAsync_wifiManager.getSSID(i);
+      String tempPW   = ESPAsync_wifiManager.getPW(i);
+  
+      if (strlen(tempSSID.c_str()) < sizeof(WM_config.WiFi_Creds[i].wifi_ssid) - 1)
+        strcpy(WM_config.WiFi_Creds[i].wifi_ssid, tempSSID.c_str());
+      else
+        strncpy(WM_config.WiFi_Creds[i].wifi_ssid, tempSSID.c_str(), sizeof(WM_config.WiFi_Creds[i].wifi_ssid) - 1);
+  
+      if (strlen(tempPW.c_str()) < sizeof(WM_config.WiFi_Creds[i].wifi_pw) - 1)
+        strcpy(WM_config.WiFi_Creds[i].wifi_pw, tempPW.c_str());
+      else
+        strncpy(WM_config.WiFi_Creds[i].wifi_pw, tempPW.c_str(), sizeof(WM_config.WiFi_Creds[i].wifi_pw) - 1);  
+  
+      // Don't permit NULL SSID and password len < MIN_AP_PASSWORD_SIZE (8)
+      if ( (String(WM_config.WiFi_Creds[i].wifi_ssid) != "") && (strlen(WM_config.WiFi_Creds[i].wifi_pw) >= MIN_AP_PASSWORD_SIZE) )
+      {
+        LOGERROR3(F("* Add SSID = "), WM_config.WiFi_Creds[i].wifi_ssid, F(", PW = "), WM_config.WiFi_Creds[i].wifi_pw );
+        wifiMulti.addAP(WM_config.WiFi_Creds[i].wifi_ssid, WM_config.WiFi_Creds[i].wifi_pw);
+      }
+    }
+  
+    // New in v1.4.0
+    ESPAsync_wifiManager.getSTAStaticIPConfig(WM_STA_IPconfig);
+    //////
+    
+    saveConfigData();
+  }
+
+  // Getting posted form values and overriding local variables parameters
+  // Config file is written regardless the connection state
+  strcpy(custom_AIO_SERVER, AIO_SERVER_FIELD.getValue());
+  strcpy(custom_AIO_SERVERPORT, AIO_SERVERPORT_FIELD.getValue());
+  strcpy(custom_AIO_USERNAME, AIO_USERNAME_FIELD.getValue());
+  strcpy(custom_AIO_KEY, AIO_KEY_FIELD.getValue());
+
+  // Writing JSON config file to flash for next boot
+  writeConfigFile();
+
+  digitalWrite(LED_BUILTIN, LED_OFF); // Turn LED off as we are not in configuration mode.
+
+  deleteOldInstances();
+
+  MQTT_Pub_Topic = String(custom_AIO_USERNAME) + "/feeds/Temperature";
+  createNewInstances();
+}
+
+bool readConfigFile() 
+{
+  // this opens the config file in read-mode
+  File f = FileFS.open(CONFIG_FILE, "r");
+
+  if (!f)
+  {
+    Serial.println(F("Config File not found"));
+    return false;
+  }
+  else
+  {
+    // we could open the file
+    size_t size = f.size();
+    // Allocate a buffer to store contents of the file.
+    std::unique_ptr<char[]> buf(new char[size + 1]);
+
+    // Read and store file contents in buf
+    f.readBytes(buf.get(), size);
+    // Closing file
+    f.close();
+    // Using dynamic JSON buffer which is not the recommended memory model, but anyway
+    // See https://github.com/bblanchon/ArduinoJson/wiki/Memory%20model
+
+#if (ARDUINOJSON_VERSION_MAJOR >= 6)
+
+    DynamicJsonDocument json(1024);
+    auto deserializeError = deserializeJson(json, buf.get());
+    
+    if ( deserializeError )
+    {
+      Serial.println(F("JSON parseObject() failed"));
+      return false;
+    }
+    
+    serializeJson(json, Serial);
+    
+#else
+
+    DynamicJsonBuffer jsonBuffer;
+    // Parse JSON string
+    JsonObject& json = jsonBuffer.parseObject(buf.get());
+    
+    // Test if parsing succeeds.
+    if (!json.success())
+    {
+      Serial.println(F("JSON parseObject() failed"));
+      return false;
+    }
+    
+    json.printTo(Serial);
+    
+#endif
+
+    // Parse all config file parameters, override
+    // local config variables with parsed values
+    if (json.containsKey(AIO_SERVER_Label))
+    {
+      strcpy(custom_AIO_SERVER, json[AIO_SERVER_Label]);
+    }
+
+    if (json.containsKey(AIO_SERVERPORT_Label))
+    {
+      strcpy(custom_AIO_SERVERPORT, json[AIO_SERVERPORT_Label]);
+    }
+
+    if (json.containsKey(AIO_USERNAME_Label))
+    {
+      strcpy(custom_AIO_USERNAME, json[AIO_USERNAME_Label]);
+    }
+
+    if (json.containsKey(AIO_KEY_Label))
+    {
+      strcpy(custom_AIO_KEY, json[AIO_KEY_Label]);
+    }
+  }
+  
+  Serial.println(F("\nConfig File successfully parsed"));
+  
+  return true;
+}
+
+bool writeConfigFile() 
+{
+  Serial.println(F("Saving Config File"));
+
+#if (ARDUINOJSON_VERSION_MAJOR >= 6)
+  DynamicJsonDocument json(1024);
+#else
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject& json = jsonBuffer.createObject();
+#endif
+
+  // JSONify local configuration parameters
+  json[AIO_SERVER_Label]      = custom_AIO_SERVER;
+  json[AIO_SERVERPORT_Label]  = custom_AIO_SERVERPORT;
+  json[AIO_USERNAME_Label]    = custom_AIO_USERNAME;
+  json[AIO_KEY_Label]         = custom_AIO_KEY;
+
+  // Open file for writing
+  File f = FileFS.open(CONFIG_FILE, "w");
+
+  if (!f)
+  {
+    Serial.println(F("Failed to open Config File for writing"));
+    return false;
+  }
+
+#if (ARDUINOJSON_VERSION_MAJOR >= 6)
+  serializeJsonPretty(json, Serial);
+  // Write data to file and close it
+  serializeJson(json, f);
+#else
+  json.prettyPrintTo(Serial);
+  // Write data to file and close it
+  json.printTo(f);
+#endif
+
+  f.close();
+
+  Serial.println(F("\nConfig File successfully saved"));
+  return true;
+}
+
+// this function is just to display newly saved data,
+// it is not necessary though, because data is displayed
+// after WiFi manager resets ESP32
+void newConfigData() 
+{
+  Serial.println();
+  Serial.print(F("custom_AIO_SERVER: ")); 
+  Serial.println(custom_AIO_SERVER);
+  Serial.print(F("custom_SERVERPORT: ")); 
+  Serial.println(custom_AIO_SERVERPORT);
+  Serial.print(F("custom_USERNAME_KEY: ")); 
+  Serial.println(custom_AIO_USERNAME);
+  Serial.print(F("custom_KEY: ")); 
+  Serial.println(custom_AIO_KEY);
+  Serial.println();
+}
+
+void MQTT_connect() 
+{
+  int8_t ret;
+
+  MQTT_Pub_Topic = String(custom_AIO_USERNAME) + "/feeds/Temperature";
+
+  createNewInstances();
+
+  // Return if already connected
+  if (mqtt->connected()) 
+  {
+    return;
+  }
+
+  Serial.println(F("Connecting to MQTT (3 attempts)..."));
+
+  uint8_t attempt = 3;
+  
+  while ((ret = mqtt->connect()) != 0) 
+  { 
+    // connect will return 0 for connected
+    Serial.println(mqtt->connectErrorString(ret));
+    Serial.println(F("Another attemtpt to connect to MQTT in 2 seconds..."));
+    mqtt->disconnect();
+    delay(2000);  // wait 2 seconds
+    attempt--;
+    
+    if (attempt == 0) 
+    {
+      Serial.println(F("MQTT connection failed. Continuing with program..."));
+      return;
+    }
+  }
+  
+  Serial.println(F("MQTT connection successful!"));
+}
+
+// Setup function
+void setup()
+{
+  // Initialize the LED digital pin as an output.
+  pinMode(LED_BUILTIN, OUTPUT);
+  
+  // Put your setup code here, to run once
+  Serial.begin(115200);
+  while (!Serial);
+
+  delay(200);
+
+  Serial.print(F("\nStarting Async_ConfigOnSwichFS_MQTT_Ptr using ")); Serial.print(FS_Name);
+  Serial.print(F(" on ")); Serial.println(ARDUINO_BOARD);
+  Serial.println(ESP_ASYNC_WIFIMANAGER_VERSION);
+
+  if ( String(ESP_ASYNC_WIFIMANAGER_VERSION) < ESP_ASYNC_WIFIMANAGER_VERSION_MIN_TARGET )
+  {
+    Serial.print("Warning. Must use this example on Version later than : ");
+    Serial.println(ESP_ASYNC_WIFIMANAGER_VERSION_MIN_TARGET);
+  }
+
+  Serial.setDebugOutput(false);
+
+  btn.attachClick(handleClick);
+  btn.attachDoubleClick(handleDoubleClick);
+  btn.attachLongPressStop(handleLongPressStop);
+
+  if (FORMAT_FILESYSTEM) 
+    FileFS.format();
+
+  // Format FileFS if not yet
+#ifdef ESP32
+  if (!FileFS.begin(true))
+#else
+  if (!FileFS.begin())
+#endif
+  {
+#ifdef ESP8266
+    FileFS.format();
+#endif
+
+    Serial.println(F("SPIFFS/LittleFS failed! Already tried formatting."));
+  
+    if (!FileFS.begin())
+    {     
+      // prevents debug info from the library to hide err message.
+      delay(100);
+      
+#if USE_LITTLEFS
+      Serial.println(F("LittleFS failed!. Please use SPIFFS or EEPROM. Stay forever"));
+#else
+      Serial.println(F("SPIFFS failed!. Please use LittleFS or EEPROM. Stay forever"));
+#endif
+
+      while (true)
+      {
+        delay(1);
+      }
+    }
+  }
+
+  // New in v1.4.0
+  initAPIPConfigStruct(WM_AP_IPconfig);
+  initSTAIPConfigStruct(WM_STA_IPconfig);
+  //////
+
+  if (!readConfigFile())
+  {
+    Serial.println(F("Can't read Config File, using default values"));
+  }
+
+  // Load stored data, the addAP ready for MultiWiFi reconnection
+  bool configDataLoaded = loadConfigData();
+
+  // Pretend CP is necessary as we have no AP Credentials
+  initialConfig = true;
+
+  if (configDataLoaded)
+  {
+    for (uint8_t i = 0; i < NUM_WIFI_CREDENTIALS; i++)
+    {
+      // Don't permit NULL SSID and password len < MIN_AP_PASSWORD_SIZE (8)
+      if ( (String(WM_config.WiFi_Creds[i].wifi_ssid) != "") && (strlen(WM_config.WiFi_Creds[i].wifi_pw) >= MIN_AP_PASSWORD_SIZE) )
+      {
+        LOGERROR3(F("* Add SSID = "), WM_config.WiFi_Creds[i].wifi_ssid, F(", PW = "), WM_config.WiFi_Creds[i].wifi_pw );
+        wifiMulti.addAP(WM_config.WiFi_Creds[i].wifi_ssid, WM_config.WiFi_Creds[i].wifi_pw);
+        initialConfig = false;
+      }
+    }
+  }
+
+  if (initialConfig)
+  {
+    Serial.println(F("Open Config Portal without Timeout: No stored WiFi Credentials"));
+  
+    wifi_manager();
+  }
+  else if ( WiFi.status() != WL_CONNECTED ) 
+  {
+    Serial.println(F("ConnectMultiWiFi in setup"));
+   
+    connectMultiWiFi();
+  }
+
+  digitalWrite(LED_BUILTIN, LED_OFF); // Turn led off as we are not in configuration mode.   
+}
+
+// Loop function
+void loop()
+{
+  // checking button state all the time
+  btn.tick();
+
+  // this is just for checking if we are connected to WiFi
+  check_status();
+}

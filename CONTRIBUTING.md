@@ -1,14 +1,14 @@
-## Contributing to ESP_WiFiManager
+## Contributing to ESPAsync_WiFiManager
 
 ### Reporting Bugs
 
-Please report bugs in ESP_WiFiManager if you find them.
+Please report bugs in ESPAsync_WiFiManager if you find them.
 
 However, before reporting a bug please check through the following:
 
-* [Existing Open Issues](https://github.com/khoih-prog/ESP_WiFiManager/issues) - someone might have already encountered this.
+* [Existing Open Issues](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues) - someone might have already encountered this.
 
-If you don't find anything, please [open a new issue](https://github.com/khoih-prog/ESP_WiFiManager/issues/new).
+If you don't find anything, please [open a new issue](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues/new).
 
 ### How to submit a bug report
 
@@ -29,7 +29,7 @@ Please ensure to specify the following:
 Arduino IDE version: 1.8.13
 ESP8266 Core Version 2.7.4
 OS: Ubuntu 20.04 LTS
-Linux xy-Inspiron-3593 5.4.0-70-generic #78-Ubuntu SMP Fri Mar 19 13:29:52 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
+Linux xy-Inspiron-3593 5.4.0-71-generic #79-Ubuntu SMP Wed Mar 24 10:56:57 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
 
 Context:
 I encountered an endless loop while trying to connect to Local WiFi.
@@ -44,7 +44,7 @@ Steps to reproduce:
 
 Feel free to post feature requests. It's helpful if you can explain exactly why the feature would be useful.
 
-There are usually some outstanding feature requests in the [existing issues list](https://github.com/khoih-prog/ESP_WiFiManager/issues?q=is%3Aopen+is%3Aissue+label%3Aenhancement), feel free to add comments to them.
+There are usually some outstanding feature requests in the [existing issues list](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues?q=is%3Aopen+is%3Aissue+label%3Aenhancement), feel free to add comments to them.
 
 ### Sending Pull Requests
 
