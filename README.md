@@ -221,6 +221,8 @@ With version `v1.1.0` or later, you can configure:
 This [**ESP_WiFiManager** library](https://github.com/khoih-prog/ESP_WiFiManager) currently supports these following boards:
 
  1. **ESP8266 and ESP32-based boards using EEPROM, SPIFFS or LittleFS**.
+ 2. **ESP32-S2 (ESP32-S2 Saola, AI-Thinker ESP-12K, etc.) using EEPROM, SPIFFS or LittleFS**.
+ 3. **ESP32-C3 (ARDUINO_ESP32C3_DEV) using EEPROM or SPIFFS**.
  
 ---
 
