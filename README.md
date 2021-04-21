@@ -438,7 +438,7 @@ As of **April 16th 2021**, the **esp32-s2/c3** board support has been included i
 #### 2.3 Unzip
 
 <p align="center">
-    <img src="https://github.com/khoih-prog/ESP_WiFiManager v1.6.0/blob/master/Images/esp32_s2_Core_Unzipped.png">
+    <img src="https://github.com/khoih-prog/ESP_WiFiManager/blob/master/Images/esp32_s2_Core_Unzipped.png">
 </p>
 
 #### 2.4 Update esp32 core directories
@@ -459,7 +459,7 @@ For example `xtensa-esp32s2-elf-gcc8_4_0-esp-2020r3-linux-amd64.tar.gz`, then un
 
 
 <p align="center">
-    <img src="https://github.com/khoih-prog/ESP_WiFiManager v1.6.0/blob/master/Images/esp32_s2_Toolchain.png">
+    <img src="https://github.com/khoih-prog/ESP_WiFiManager/blob/master/Images/esp32_s2_Toolchain.png">
 </p>
 
 #### 3.2 Download esptool
@@ -472,7 +472,7 @@ Download [esptool](https://github.com/espressif/esptool/releases) int the `zip` 
 #### 3.3 Unzip
 
 <p align="center">
-    <img src="https://github.com/khoih-prog/ESP_WiFiManager v1.6.0/blob/master/Images/esp32_s2_esptool.png">
+    <img src="https://github.com/khoih-prog/ESP_WiFiManager/blob/master/Images/esp32_s2_esptool.png">
 </p>
 
 ---
@@ -493,7 +493,7 @@ Copy whole `esptool` directory into `/home/your_account/.arduino15/packages/esp3
 
 
 <p align="center">
-    <img src="https://github.com/khoih-prog/ESP_WiFiManager v1.6.0/blob/master/Images/esp32_s2_tools.png">
+    <img src="https://github.com/khoih-prog/ESP_WiFiManager/blob/master/Images/esp32_s2_tools.png">
 </p>
 
 
@@ -516,7 +516,7 @@ Then using the similar steps as in
 then copy whole `riscv32-esp-elf` directory into `/home/your_account/.arduino15/packages/esp32/hardware/esp32/1.0.6/tools`
 
 <p align="center">
-    <img src="https://github.com/khoih-prog/ESP_WiFiManager v1.6.0/blob/master/Images/ESP_WM_ESP32_C3_Support.png">
+    <img src="https://github.com/khoih-prog/ESP_WiFiManager/blob/master/Images/ESP_WM_ESP32_C3_Support.png">
 </p>
 
 
