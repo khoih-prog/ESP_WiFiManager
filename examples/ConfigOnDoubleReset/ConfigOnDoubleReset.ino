@@ -71,7 +71,7 @@
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.5.3"
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.6.0"
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    4
@@ -89,16 +89,21 @@
   WiFiMulti wifiMulti;
 
   // LittleFS has higher priority than SPIFFS
-  #define USE_LITTLEFS    true
-  #define USE_SPIFFS      false
+  #if ( ARDUINO_ESP32C3_DEV )
+    // Currently, ESP32-C3 only supporting SPIFFS and EEPROM. Will fix to support LittleFS
+    #define USE_LITTLEFS          false
+    #define USE_SPIFFS            true
+  #else
+    #define USE_LITTLEFS    true
+    #define USE_SPIFFS      false
+  #endif
 
   #if USE_LITTLEFS
     // Use LittleFS
     #include "FS.h"
 
-    // The library will be depreciated after being merged to future major Arduino esp32 core release 2.x
-    // At that time, just remove this library inclusion
-    #include <LITTLEFS.h>             // https://github.com/lorol/LITTLEFS
+    // The library has been merged into esp32 core release 1.0.6
+     #include <LITTLEFS.h>             // https://github.com/lorol/LITTLEFS
     
     FS* filesystem =      &LITTLEFS;
     #define FileFS        LITTLEFS

@@ -7,6 +7,7 @@
 #if !( defined(ESP8266) )
   #error This code is intended to run on ESP8266 platform! Please check your Tools->Board setting.
 #endif
+#define _WIFIMGR_LOGLEVEL_    4  // 0-4 where 4 is the highest verbosity level
 #include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
 
 void setup()

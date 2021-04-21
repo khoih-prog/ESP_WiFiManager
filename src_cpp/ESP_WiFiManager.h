@@ -15,7 +15,7 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.5.3
+  Version: 1.6.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -44,6 +44,7 @@
   1.5.1   K Hoang      26/03/2021 Fix compiler error if setting Compiler Warnings to All. Retest with esp32 core v1.0.6
   1.5.2   K Hoang      08/04/2021 Fix example misleading messages.
   1.5.3   K Hoang      13/04/2021 Add dnsServer error message.
+  1.6.0   K Hoang      20/04/2021 Add support to new ESP32-C3 using SPIFFS or EEPROM
  *****************************************************************************************************************************/
 
 #pragma once
@@ -53,11 +54,15 @@
 
 #if !( defined(ESP8266) ||  defined(ESP32) )
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
-#elif ( ARDUINO_ESP32S2_DEV || ARDUINO_FEATHERS2 || ARDUINO_PROS2 || ARDUINO_MICROS2 )
-  #warning Using ESP32_S2. You have to follow library instructions to install esp32-s2 core and WebServer Patch
+#elif ( ARDUINO_ESP32S2_DEV || ARDUINO_FEATHERS2 || ARDUINO_ESP32S2_THING_PLUS || ARDUINO_MICROS2 || \
+        ARDUINO_METRO_ESP32S2 || ARDUINO_MAGTAG29_ESP32S2 || ARDUINO_FUNHOUSE_ESP32S2 || \
+        ARDUINO_ADAFRUIT_FEATHER_ESP32S2_NOPSRAM )
+  #warning Using ESP32_S2. To follow library instructions to install esp32-s2 core and WebServer Patch
+#elif ( ARDUINO_ESP32C3_DEV )
+  #warning Using ESP32_C3. To follow library instructions to install esp32-c3 core. Only SPIFFS and EEPROM OK. 
 #endif
 
-#define ESP_WIFIMANAGER_VERSION     "ESP_WiFiManager v1.5.2"
+#define ESP_WIFIMANAGER_VERSION     "ESP_WiFiManager v1.6.0"
 
 #include "ESP_WiFiManager_Debug.h"
 

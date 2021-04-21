@@ -15,7 +15,7 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.5.3
+  Version: 1.6.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -44,6 +44,7 @@
   1.5.1   K Hoang      26/03/2021 Fix compiler error if setting Compiler Warnings to All. Retest with esp32 core v1.0.6
   1.5.2   K Hoang      08/04/2021 Fix example misleading messages.
   1.5.3   K Hoang      13/04/2021 Add dnsServer error message.
+  1.6.0   K Hoang      20/04/2021 Add support to new ESP32-C3 using SPIFFS or EEPROM
  *****************************************************************************************************************************/
 
 #pragma once
@@ -52,9 +53,9 @@
 #define ESP_WiFiManager_Debug_H
 
 #ifdef WIFIMGR_DEBUG_PORT
-  #define DBG_PORT      WIFIMGR_DEBUG_PORT
+  #define WM_DBG_PORT      WIFIMGR_DEBUG_PORT
 #else
-  #define DBG_PORT      Serial
+  #define WM_DBG_PORT      Serial
 #endif
 
 // Change _WIFIMGR_LOGLEVEL_ to set tracing and logging verbosity
@@ -68,28 +69,47 @@
   #define _WIFIMGR_LOGLEVEL_       0
 #endif
 
-#define LOGERROR(x)         if(_WIFIMGR_LOGLEVEL_>0) { DBG_PORT.print("[WM] "); DBG_PORT.println(x); }
-#define LOGERROR0(x)        if(_WIFIMGR_LOGLEVEL_>0) { DBG_PORT.print(x); }
-#define LOGERROR1(x,y)      if(_WIFIMGR_LOGLEVEL_>0) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.println(y); }
-#define LOGERROR2(x,y,z)    if(_WIFIMGR_LOGLEVEL_>0) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.print(y); DBG_PORT.print(" "); DBG_PORT.println(z); }
-#define LOGERROR3(x,y,z,w)  if(_WIFIMGR_LOGLEVEL_>0) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.print(y); DBG_PORT.print(" "); DBG_PORT.print(z); DBG_PORT.print(" "); DBG_PORT.println(w); }
+const char WM_MARK[] = "[WM] ";
+const char WM_SP[]   = " ";
 
-#define LOGWARN(x)          if(_WIFIMGR_LOGLEVEL_>1) { DBG_PORT.print("[WM] "); DBG_PORT.println(x); }
-#define LOGWARN0(x)         if(_WIFIMGR_LOGLEVEL_>1) { DBG_PORT.print(x); }
-#define LOGWARN1(x,y)       if(_WIFIMGR_LOGLEVEL_>1) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.println(y); }
-#define LOGWARN2(x,y,z)     if(_WIFIMGR_LOGLEVEL_>1) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.print(y); DBG_PORT.print(" "); DBG_PORT.println(z); }
-#define LOGWARN3(x,y,z,w)   if(_WIFIMGR_LOGLEVEL_>1) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.print(y); DBG_PORT.print(" "); DBG_PORT.print(z); DBG_PORT.print(" "); DBG_PORT.println(w); }
+#define WM_PRINT        WM_DBG_PORT.print
+#define WM_PRINTLN      WM_DBG_PORT.println
 
-#define LOGINFO(x)          if(_WIFIMGR_LOGLEVEL_>2) { DBG_PORT.print("[WM] "); DBG_PORT.println(x); }
-#define LOGINFO0(x)         if(_WIFIMGR_LOGLEVEL_>2) { DBG_PORT.print(x); }
-#define LOGINFO1(x,y)       if(_WIFIMGR_LOGLEVEL_>2) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.println(y); }
-#define LOGINFO2(x,y,z)     if(_WIFIMGR_LOGLEVEL_>2) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.print(y); DBG_PORT.print(" "); DBG_PORT.println(z); }
-#define LOGINFO3(x,y,z,w)   if(_WIFIMGR_LOGLEVEL_>2) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.print(y); DBG_PORT.print(" "); DBG_PORT.print(z); DBG_PORT.print(" "); DBG_PORT.println(w); }
+#define WM_PRINT_MARK   WM_PRINT(WM_MARK)
+#define WM_PRINT_SP     WM_PRINT(WM_SP)
 
-#define LOGDEBUG(x)         if(_WIFIMGR_LOGLEVEL_>3) { DBG_PORT.print("[WM] "); DBG_PORT.println(x); }
-#define LOGDEBUG0(x)        if(_WIFIMGR_LOGLEVEL_>3) { DBG_PORT.print(x); }
-#define LOGDEBUG1(x,y)      if(_WIFIMGR_LOGLEVEL_>3) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.println(y); }
-#define LOGDEBUG2(x,y,z)    if(_WIFIMGR_LOGLEVEL_>3) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.print(y); DBG_PORT.print(" "); DBG_PORT.println(z); }
-#define LOGDEBUG3(x,y,z,w)  if(_WIFIMGR_LOGLEVEL_>3) { DBG_PORT.print("[WM] "); DBG_PORT.print(x); DBG_PORT.print(" "); DBG_PORT.print(y); DBG_PORT.print(" "); DBG_PORT.print(z); DBG_PORT.print(" "); DBG_PORT.println(w); }
+////////////////////////////////////////////////////
+
+#define LOGERROR(x)         if(_WIFIMGR_LOGLEVEL_>0) { WM_PRINT_MARK; WM_PRINTLN(x); }
+#define LOGERROR0(x)        if(_WIFIMGR_LOGLEVEL_>0) { WM_PRINT(x); }
+#define LOGERROR1(x,y)      if(_WIFIMGR_LOGLEVEL_>0) { WM_PRINT_MARK; WM_PRINT(x); WM_PRINT_SP; WM_PRINTLN(y); }
+#define LOGERROR2(x,y,z)    if(_WIFIMGR_LOGLEVEL_>0) { WM_PRINT_MARK; WM_PRINT(x); WM_PRINT_SP; WM_PRINT(y); WM_PRINT_SP; WM_PRINTLN(z); }
+#define LOGERROR3(x,y,z,w)  if(_WIFIMGR_LOGLEVEL_>0) { WM_PRINT_MARK; WM_PRINT(x); WM_PRINT_SP; WM_PRINT(y); WM_PRINT_SP; WM_PRINT(z); WM_PRINT_SP; WM_PRINTLN(w); }
+
+////////////////////////////////////////////////////
+
+#define LOGWARN(x)          if(_WIFIMGR_LOGLEVEL_>1) { WM_PRINT_MARK; WM_PRINTLN(x); }
+#define LOGWARN0(x)         if(_WIFIMGR_LOGLEVEL_>1) { WM_PRINT(x); }
+#define LOGWARN1(x,y)       if(_WIFIMGR_LOGLEVEL_>1) { WM_PRINT_MARK; WM_PRINT(x); WM_PRINT_SP; WM_PRINTLN(y); }
+#define LOGWARN2(x,y,z)     if(_WIFIMGR_LOGLEVEL_>1) { WM_PRINT_MARK; WM_PRINT(x); WM_PRINT_SP; WM_PRINT(y); WM_PRINT_SP; WM_PRINTLN(z); }
+#define LOGWARN3(x,y,z,w)   if(_WIFIMGR_LOGLEVEL_>1) { WM_PRINT_MARK; WM_PRINT(x); WM_PRINT_SP; WM_PRINT(y); WM_PRINT_SP; WM_PRINT(z); WM_PRINT_SP; WM_PRINTLN(w); }
+
+////////////////////////////////////////////////////
+
+#define LOGINFO(x)          if(_WIFIMGR_LOGLEVEL_>2) { WM_PRINT_MARK; WM_PRINTLN(x); }
+#define LOGINFO0(x)         if(_WIFIMGR_LOGLEVEL_>2) { WM_PRINT(x); }
+#define LOGINFO1(x,y)       if(_WIFIMGR_LOGLEVEL_>2) { WM_PRINT_MARK; WM_PRINT(x); WM_PRINT_SP; WM_PRINTLN(y); }
+#define LOGINFO2(x,y,z)     if(_WIFIMGR_LOGLEVEL_>2) { WM_PRINT_MARK; WM_PRINT(x); WM_PRINT_SP; WM_PRINT(y); WM_PRINT_SP; WM_PRINTLN(z); }
+#define LOGINFO3(x,y,z,w)   if(_WIFIMGR_LOGLEVEL_>2) { WM_PRINT_MARK; WM_PRINT(x); WM_PRINT_SP; WM_PRINT(y); WM_PRINT_SP; WM_PRINT(z); WM_PRINT_SP; WM_PRINTLN(w); }
+
+////////////////////////////////////////////////////
+
+#define LOGDEBUG(x)         if(_WIFIMGR_LOGLEVEL_>3) { WM_PRINT_MARK; WM_PRINTLN(x); }
+#define LOGDEBUG0(x)        if(_WIFIMGR_LOGLEVEL_>3) { WM_PRINT(x); }
+#define LOGDEBUG1(x,y)      if(_WIFIMGR_LOGLEVEL_>3) { WM_PRINT_MARK; WM_PRINT(x); WM_PRINT_SP; WM_PRINTLN(y); }
+#define LOGDEBUG2(x,y,z)    if(_WIFIMGR_LOGLEVEL_>3) { WM_PRINT_MARK; WM_PRINT(x); WM_PRINT_SP; WM_PRINT(y); WM_PRINT_SP; WM_PRINTLN(z); }
+#define LOGDEBUG3(x,y,z,w)  if(_WIFIMGR_LOGLEVEL_>3) { WM_PRINT_MARK; WM_PRINT(x); WM_PRINT_SP; WM_PRINT(y); WM_PRINT_SP; WM_PRINT(z); WM_PRINT_SP; WM_PRINTLN(w); }
+
+////////////////////////////////////////////////////
 
 #endif    //ESP_WiFiManager_Debug_H
