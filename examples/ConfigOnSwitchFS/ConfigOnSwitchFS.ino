@@ -14,7 +14,7 @@
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
   
-  Version: 1.6.0
+  Version: 1.6.1
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -44,6 +44,7 @@
   1.5.2   K Hoang      08/04/2021 Fix example misleading messages.
   1.5.3   K Hoang      13/04/2021 Add dnsServer error message.
   1.6.0   K Hoang      20/04/2021 Add support to new ESP32-C3 using SPIFFS or EEPROM
+  1.6.1   K Hoang      25/04/2021 Fix MultiWiFi bug. Fix captive-portal bug if CP AP address is not default 192.168.4.1
  *****************************************************************************************************************************/
 /****************************************************************************************************************************
    This example will open a configuration portal when the reset button is pressed twice.
@@ -84,7 +85,7 @@
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.6.0"
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.6.1"
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -517,6 +518,8 @@ uint8_t connectMultiWiFi()
   if ( (Router_SSID != "") && (Router_Pass != "") )
   {
     LOGERROR3(F("* Flash-stored Router_SSID = "), Router_SSID, F(", Router_Pass = "), Router_Pass );
+    LOGERROR3(F("* Add SSID = "), Router_SSID, F(", PW = "), Router_Pass );
+    wifiMulti.addAP(Router_SSID.c_str(), Router_Pass.c_str());
   }
 
   for (uint8_t i = 0; i < NUM_WIFI_CREDENTIALS; i++)

@@ -18,6 +18,7 @@
   * [Features](#features)
   * [Currently supported Boards](#currently-supported-boards)
 * [Changelog](#changelog)
+  * [Releases v1.6.1](#releases-v161)
   * [Releases v1.6.0](#releases-v160)
   * [Releases v1.5.3](#releases-v153)
   * [Releases v1.5.2](#releases-v152)
@@ -241,6 +242,11 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
 ---
 
 ## Changelog
+
+### Releases v1.6.1
+
+1. Fix captive-portal bug if Config Portal AP address is not default 192.168.4.1. Check [In AP, DNS server always redirects to 192.168.4.1 no mater what APStaticIP is set to. #58](https://github.com/khoih-prog/ESP_WiFiManager/issues/58)
+2. Fix MultiWiFi bug.
 
 ### Releases v1.6.0
 
@@ -2285,7 +2291,7 @@ ESP_wifiManager.setRemoveDuplicateAPs(false);
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.6.0"
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.6.1"
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -2687,6 +2693,8 @@ uint8_t connectMultiWiFi()
   if ( (Router_SSID != "") && (Router_Pass != "") )
   {
     LOGERROR3(F("* Flash-stored Router_SSID = "), Router_SSID, F(", Router_Pass = "), Router_Pass );
+    LOGERROR3(F("* Add SSID = "), Router_SSID, F(", PW = "), Router_Pass );
+    wifiMulti.addAP(Router_SSID.c_str(), Router_Pass.c_str());
   }
 
   for (uint8_t i = 0; i < NUM_WIFI_CREDENTIALS; i++)
@@ -3463,7 +3471,7 @@ This is terminal debug output when running [ConfigOnSwitchFS_MQTT_Ptr](examples/
 
 ```
 Starting ConfigOnSwichFS_MQTT_Ptr using LittleFS on ESP8266_NODEMCU
-ESP_WiFiManager v1.6.0
+ESP_WiFiManager v1.6.1
 Configuration file not found
 Failed to read configuration file, using default values
 [WM] RFC925 Hostname = ConfigOnSwichFS-MQTT
@@ -3575,7 +3583,7 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```cpp
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using SPIFFS on ESP32_DEV
-ESP_WiFiManager v1.6.0
+ESP_WiFiManager v1.6.1
 ESP_DoubleResetDetector Version v1.1.1
 FS File: /ConfigSW.json, size: 150B
 FS File: /CanadaFlag_1.png, size: 40.25KB
@@ -3640,7 +3648,7 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.6.0
+ESP_WiFiManager v1.6.1
 ESP_DoubleResetDetector Version v1.1.1
 FS File: /CanadaFlag_1.png, size: 40.25KB
 FS File: /CanadaFlag_2.png, size: 8.12KB
@@ -3699,7 +3707,7 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.6.0
+ESP_WiFiManager v1.6.1
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3742,7 +3750,7 @@ WWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.6.0
+ESP_WiFiManager v1.6.1
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3827,7 +3835,7 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU
-ESP_WiFiManager v1.6.0
+ESP_WiFiManager v1.6.1
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3867,7 +3875,7 @@ TWWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU
-ESP_WiFiManager v1.6.0
+ESP_WiFiManager v1.6.1
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3944,7 +3952,7 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
-ESP_WiFiManager v1.6.0
+ESP_WiFiManager v1.6.1
 ESP_DoubleResetDetector v1.1.1
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] setAPStaticIPConfig
@@ -4021,6 +4029,11 @@ Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiF
 ---
 
 ## Releases
+
+### Releases v1.6.1
+
+1. Fix captive-portal bug if Config Portal AP address is not default 192.168.4.1. Check [In AP, DNS server always redirects to 192.168.4.1 no mater what APStaticIP is set to. #58](https://github.com/khoih-prog/ESP_WiFiManager/issues/58)
+2. Fix MultiWiFi bug.
 
 ### Releases v1.6.0
 
@@ -4198,7 +4211,7 @@ See [KenTaylor's version](https://github.com/kentaylor/WiFiManager) for previous
 10. Thanks to [Maurice Poos](https://github.com/MaPoLom) to report issue [`ESP_WiFiManager Issue 39: Not able to read analog port when using the autoconnect example`](https://github.com/khoih-prog/ESP_WiFiManager/issues/39).
 11. Thanks to [Vague Rabbit](https://github.com/thewhiterabbit) for requesting, collarborating in creating the [**HOWTO Add Dynamic Parameters**](#howto-add-dynamic-parameters).
 12. Thanks to [Roshan](https://github.com/solroshan) to report the issue in [Error esp_littlefs.c 'utime_p'](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues/28) to fix PIO error in using ESP32 LittleFS with old [`LittleFS_esp32 v1.0`](https://github.com/lorol/LITTLEFS)
-
+13. Thanks to [yiancar](https://github.com/yiancar) to report the issue and propose a fix in [In AP, DNS server always redirects to 192.168.4.1 no mater what APStaticIP is set to. #58](https://github.com/khoih-prog/ESP_WiFiManager/issues/58) leading to v1.6.1
 
 <table>
   <tr>
@@ -4220,6 +4233,7 @@ See [KenTaylor's version](https://github.com/kentaylor/WiFiManager) for previous
   <tr>
     <td align="center"><a href="https://github.com/thewhiterabbit"><img src="https://github.com/thewhiterabbit.png" width="100px;" alt="thewhiterabbit"/><br /><sub><b>Vague Rabbit</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/solroshan"><img src="https://github.com/solroshan.png" width="100px;" alt="solroshan"/><br /><sub><b>Roshan</b></sub></a><br /></td>
+    <td align="center"><a href="https://github.com/yiancar"><img src="https://github.com/yiancar.png" width="100px;" alt="yiancar"/><br /><sub><b>yiancar</b></sub></a><br /></td>
   </tr> 
 </table>
 

@@ -15,7 +15,7 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.6.0
+  Version: 1.6.1
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -45,6 +45,7 @@
   1.5.2   K Hoang      08/04/2021 Fix example misleading messages.
   1.5.3   K Hoang      13/04/2021 Add dnsServer error message.
   1.6.0   K Hoang      20/04/2021 Add support to new ESP32-C3 using SPIFFS or EEPROM
+  1.6.1   K Hoang      25/04/2021 Fix MultiWiFi bug. Fix captive-portal bug if CP AP address is not default 192.168.4.1
  *****************************************************************************************************************************/
 
 #pragma once
@@ -355,6 +356,16 @@ void ESP_WiFiManager::setupConfigPortal()
   server.reset(new WebServer(80));
 #endif
 
+  // optional soft ip config
+  // Must be put here before dns server start to take care of the non-default ConfigPortal AP IP.
+  // Check (https://github.com/khoih-prog/ESP_WiFiManager/issues/58)
+  if (_WiFi_AP_IPconfig._ap_static_ip)
+  {
+    LOGWARN3(F("Custom AP IP/GW/Subnet = "), _WiFi_AP_IPconfig._ap_static_ip, _WiFi_AP_IPconfig._ap_static_gw, _WiFi_AP_IPconfig._ap_static_sn);
+    
+    WiFi.softAPConfig(_WiFi_AP_IPconfig._ap_static_ip, _WiFi_AP_IPconfig._ap_static_gw, _WiFi_AP_IPconfig._ap_static_sn);
+  }
+
   /* Setup the DNS server redirecting all the domains to the apIP */
   if (dnsServer)
   {
@@ -412,22 +423,7 @@ void ESP_WiFiManager::setupConfigPortal()
     WiFi.softAP(_apName);
   }
   //////
-  
-  // From v1.0.11
-  // Contributed by AlesSt (https://github.com/AlesSt) to solve issue softAP with custom IP sometimes not working
-  // See https://github.com/khoih-prog/ESP_WiFiManager/issues/26 and https://github.com/espressif/arduino-esp32/issues/985
-  // delay 100ms to wait for SYSTEM_EVENT_AP_START
-  delay(100);
-  //////
-  
-  //optional soft ip config
-  if (_WiFi_AP_IPconfig._ap_static_ip)
-  {
-    LOGWARN3(F("Custom AP IP/GW/Subnet = "), _WiFi_AP_IPconfig._ap_static_ip, _WiFi_AP_IPconfig._ap_static_gw, _WiFi_AP_IPconfig._ap_static_sn);
-    
-    WiFi.softAPConfig(_WiFi_AP_IPconfig._ap_static_ip, _WiFi_AP_IPconfig._ap_static_gw, _WiFi_AP_IPconfig._ap_static_sn);
-  }
-
+   
   delay(500); // Without delay I've seen the IP address blank
   
   LOGWARN1(F("AP IP address ="), WiFi.softAPIP());

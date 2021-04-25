@@ -15,7 +15,7 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.6.0
+  Version: 1.6.1
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -45,6 +45,7 @@
   1.5.2   K Hoang      08/04/2021 Fix example misleading messages.
   1.5.3   K Hoang      13/04/2021 Add dnsServer error message.
   1.6.0   K Hoang      20/04/2021 Add support to new ESP32-C3 using SPIFFS or EEPROM
+  1.6.1   K Hoang      25/04/2021 Fix MultiWiFi bug. Fix captive-portal bug if CP AP address is not default 192.168.4.1
  *****************************************************************************************************************************/
 
 #pragma once
