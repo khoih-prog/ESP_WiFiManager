@@ -18,6 +18,7 @@
   * [Features](#features)
   * [Currently supported Boards](#currently-supported-boards)
 * [Changelog](#changelog)
+  * [Major Releases v1.7.0](#major-releases-v170)
   * [Releases v1.6.1](#releases-v161)
   * [Releases v1.6.0](#releases-v160)
   * [Releases v1.5.3](#releases-v153)
@@ -83,6 +84,9 @@
   * [14. Using AUTOCONNECT_NO_INVALIDATE feature](#14-using-autoconnect_no_invalidate-feature)
   * [15. Using CORS (Cross-Origin Resource Sharing) feature](#15-using-cors-cross-origin-resource-sharing-feature) 
   * [16. Using MultiWiFi auto(Re)connect feature](#16-using-multiwifi-autoreconnect-feature)
+  * [17. How to auto getting _timezoneName](#17-how-to-auto-getting-_timezonename)
+  * [18. How to get TZ variable to configure Timezone](#18-how-to-get-tz-variable-to-configure-timezone) 
+  * [19. How to use the TZ variable to configure Timezone](#19-how-to-use-the-tz-variable-to-configure-timezone)
 * [HOWTO Open Config Portal](#howto-open-config-portal)
 * [HOWTO Add Dynamic Parameters](#howto-add-dynamic-parameters) 
   * [1. Determine the variables to be configured via Config Portal (CP)](#1-determine-the-variables-to-be-configured-via-config-portal-cp)
@@ -160,6 +164,12 @@
     * [5.2 DRD => Config Portal](#52-drd--config-portal)
     * [5.3 Config Portal Done](#53-config-portal-done)
   * [6. ConfigOnDoubleReset on ESP32S2_DEV](#6-configondoublereset-on-esp32s2_dev)
+  * [7. ConfigOnDoubleReset on ESP32_DEV](#7-configondoublereset-on-esp32_dev)
+    * [7.1 DRD => Config Portal](#71-drd--config-portal)
+    * [7.2 Data Saved => Connect to WiFi with correct local time, TZ set and using NTP](#72-data-saved--connect-to-wifi-with-correct-local-time-tz-set-and-using-ntp)
+  * [8. ConfigOnDoubleReset on ESP32_DEV](#8-configondoublereset-on-esp32_dev)
+    * [8.1 No Data => Config Portal](#81-no-data--config-portal)
+    * [8.2 Data Saved => Connect to WiFi with correct local time, TZ set and using NTP](#82-data-saved--connect-to-wifi-with-correct-local-time-tz-set-and-using-ntp)
 * [Debug](#debug)
 * [Troubleshooting](#troubleshooting)
 * [Issues](#issues)
@@ -242,6 +252,14 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
 ---
 
 ## Changelog
+
+### Major Releases v1.7.0
+
+1. Add auto-Timezone feature with variable `_timezoneName` (e.g. `America/New_York`) and function to retrieve TZ (e.g. `EST5EDT,M3.2.0,M11.1.0`) to use directly to configure ESP32/ESP8266 timezone. Check [How to retrieve timezone? #51](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues/51) for more info.
+2. Store those `_timezoneName` and `TZ` in LittleFS or SPIFFS config file.
+3. Using these new timezone feature is optional.
+4. Add checksum in config file to validate data read from LittleFS or SPIFFS config file.
+5. Update examples to show how to use the new TZ feature.
 
 ### Releases v1.6.1
 
@@ -1314,7 +1332,135 @@ void loop()
 ```
 
 ---
+
+#### 17. How to auto getting _timezoneName
+
+
+1. Turn on auto NTP configuration by
+
+```
+// Use false to disable NTP config. Advisable when using Cellphone, Tablet to access Config Portal.
+// See Issue 23: On Android phone ConfigPortal is unresponsive (https://github.com/khoih-prog/ESP_WiFiManager/issues/23)
+#define USE_ESP_WIFIMANAGER_NTP     true
+```
+
+2. The `_timezoneName`, in the format similar to **America/New_York, America/Toronto, Europe/London, etc.**, can be retrieved by using
+
+
+```
+String tempTZ = ESP_wifiManager.getTimezoneName();
+```
+
 ---
+
+#### 18. How to get TZ variable to configure Timezone
+
+
+1. ESP32 and ESP8266 TZ can be configured, using the  similar to `EST5EDT,M3.2.0,M11.1.0` (for America/New_York) , as follows:
+
+```
+// EST5EDT,M3.2.0,M11.1.0 (for America/New_York)
+// EST5EDT is the name of the time zone
+// EST is the abbreviation used when DST is off
+// 6 hours is the time difference from GMT
+// EDT is the abbreviation used when DST is on
+// ,M3 is the third month
+// .2 is the second occurrence of the day in the month
+// .0 is Sunday
+// ,M11 is the eleventh month
+// .1 is the first occurrence of the day in the month
+// .0 is Sunday
+
+#if ESP8266
+      configTime(WM_config.TZ, "pool.ntp.org"); 
+#else
+      //configTzTime(WM_config.TZ, "pool.ntp.org" );
+      configTzTime(WM_config.TZ, "time.nist.gov", "0.pool.ntp.org", "1.pool.ntp.org");
+#endif
+```
+
+2. To convert from `_timezoneName` to TZ, use the function getTZ() as follows:
+
+```
+const char * TZ_Result = ESP_wifiManager.getTZ(_timezoneName);
+```
+
+The conversion depends on the stored TZs, which is using some memory, and can cause issue for ESP8266 in certain cases. Therefore, enable just the region you're interested.
+
+For example, your application is used in America continent, you need just
+
+```
+#define USING_AMERICA       true
+```
+
+Hereafter is the regions' list
+
+
+```
+// Just use enough to save memory. On ESP8266, can cause blank ConfigPortal screen
+// if using too much memory
+#define USING_AFRICA        false
+#define USING_AMERICA       true
+#define USING_ANTARCTICA    false
+#define USING_ASIA          false
+#define USING_ATLANTIC      false
+#define USING_AUSTRALIA     false
+#define USING_EUROPE        false
+#define USING_INDIAN        false
+#define USING_PACIFIC       false
+#define USING_ETC_GMT       false
+```
+
+---
+
+
+#### 19. How to use the TZ variable to configure Timezone
+
+
+```
+#if ESP8266
+      configTime(WM_config.TZ, "pool.ntp.org");
+#else
+      //configTzTime(WM_config.TZ, "pool.ntp.org" );
+      configTzTime(WM_config.TZ, "time.nist.gov", "0.pool.ntp.org", "1.pool.ntp.org");
+#endif
+```
+
+then to print local time
+
+
+```
+void printLocalTime()
+{
+#if ESP8266
+  static time_t now;
+  
+  now = time(nullptr);
+  
+  if ( now > 1451602800 )
+  {
+    Serial.print("Local Date/Time: ");
+    Serial.print(ctime(&now));
+  }
+#else
+  struct tm timeinfo;
+
+  getLocalTime( &timeinfo );
+
+  // Valid only if year > 2000. 
+  // You can get from timeinfo : tm_year, tm_mon, tm_mday, tm_hour, tm_min, tm_sec
+  if (timeinfo.tm_year > 100 )
+  {
+    Serial.print("Local Date/Time: ");
+    Serial.print( asctime( &timeinfo ) );
+  }
+#endif
+}
+```
+
+---
+---
+
 
 ### HOWTO Open Config Portal
 
@@ -2291,7 +2437,7 @@ ESP_wifiManager.setRemoveDuplicateAPs(false);
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.6.1"
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.7.0"
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -2483,7 +2629,7 @@ bool writeConfigFile();
 // For Config Portal
 // SSID and PW for Config Portal
 String ssid = "ESP_" + String(ESP_getChipId(), HEX);
-const char* password = "your_password";
+String password;
 
 // SSID and PW for your Router
 String Router_SSID;
@@ -2514,9 +2660,16 @@ typedef struct
 
 #define NUM_WIFI_CREDENTIALS      2
 
+// Assuming max 491 chars
+#define TZNAME_MAX_LEN            50
+#define TIMEZONE_MAX_LEN          50
+
 typedef struct
 {
   WiFi_Credentials  WiFi_Creds [NUM_WIFI_CREDENTIALS];
+  char TZ_Name[TZNAME_MAX_LEN];     // "America/Toronto"
+  char TZ[TIMEZONE_MAX_LEN];        // "EST5EDT,M3.2.0,M11.1.0"
+  uint16_t checksum;
 } WM_Config;
 
 WM_Config         WM_config;
@@ -2539,7 +2692,20 @@ bool initialConfig = false;
 
 // Use false to disable NTP config. Advisable when using Cellphone, Tablet to access Config Portal.
 // See Issue 23: On Android phone ConfigPortal is unresponsive (https://github.com/khoih-prog/ESP_WiFiManager/issues/23)
-#define USE_ESP_WIFIMANAGER_NTP     false
+#define USE_ESP_WIFIMANAGER_NTP     true
+
+// Just use enough to save memory. On ESP8266, can cause blank ConfigPortal screen
+// if using too much memory
+#define USING_AFRICA        false
+#define USING_AMERICA       true
+#define USING_ANTARCTICA    false
+#define USING_ASIA          false
+#define USING_ATLANTIC      false
+#define USING_AUSTRALIA     false
+#define USING_EUROPE        false
+#define USING_INDIAN        false
+#define USING_PACIFIC       false
+#define USING_ETC_GMT       false
 
 // Use true to enable CloudFlare NTP service. System can hang if you don't have Internet access while accessing CloudFlare
 // See Issue #21: CloudFlare link in the default portal (https://github.com/khoih-prog/ESP_WiFiManager/issues/21)
@@ -2585,6 +2751,8 @@ IPAddress netMask     = IPAddress(255, 255, 255, 0);
 
 IPAddress dns1IP      = gatewayIP;
 IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
+
+#define USE_CUSTOM_AP_IP          false
 
 // New in v1.4.0
 IPAddress APStaticIP  = IPAddress(192, 168, 100, 1);
@@ -2671,9 +2839,9 @@ void configWiFi(WiFi_STA_IPConfig in_WM_STA_IPconfig)
 uint8_t connectMultiWiFi()
 {
 #if ESP32
-  // For ESP32, this better be 0 to shorten the connect time. 
-  // For ESP32-S2, must be > 500
-  #if ( ARDUINO_ESP32S2_DEV || ARDUINO_FEATHERS2 || ARDUINO_PROS2 || ARDUINO_MICROS2 )
+  // For ESP32, this better be 0 to shorten the connect time.
+  // For ESP32-S2/C3, must be > 500
+  #if ( USING_ESP32_S2 || USING_ESP32_C3 )
     #define WIFI_MULTI_1ST_CONNECT_WAITING_MS           500L
   #else
     // For ESP32 core v1.0.6, must be >= 500
@@ -2684,12 +2852,14 @@ uint8_t connectMultiWiFi()
   #define WIFI_MULTI_1ST_CONNECT_WAITING_MS             2200L
 #endif
 
-#define WIFI_MULTI_CONNECT_WAITING_MS                   100L
-  
+#define WIFI_MULTI_CONNECT_WAITING_MS                   500L
+
   uint8_t status;
 
+  WiFi.mode(WIFI_STA);
+
   LOGERROR(F("ConnectMultiWiFi with :"));
-  
+
   if ( (Router_SSID != "") && (Router_Pass != "") )
   {
     LOGERROR3(F("* Flash-stored Router_SSID = "), Router_SSID, F(", Router_Pass = "), Router_Pass );
@@ -2705,10 +2875,10 @@ uint8_t connectMultiWiFi()
       LOGERROR3(F("* Additional SSID = "), WM_config.WiFi_Creds[i].wifi_ssid, F(", PW = "), WM_config.WiFi_Creds[i].wifi_pw );
     }
   }
-  
+
   LOGERROR(F("Connecting MultiWifi..."));
 
-  WiFi.mode(WIFI_STA);
+  //WiFi.mode(WIFI_STA);
 
 #if !USE_DHCP_IP
   // New in v1.4.0
@@ -2737,7 +2907,18 @@ uint8_t connectMultiWiFi()
     LOGERROR3(F("Channel:"), WiFi.channel(), F(",IP address:"), WiFi.localIP() );
   }
   else
+  {
     LOGERROR(F("WiFi not connected"));
+
+    // To avoid unnecessary DRD
+    drd->loop();
+  
+#if ESP8266      
+    ESP.reset();
+#else
+    ESP.restart();
+#endif  
+  }
 
   return status;
 }
@@ -2748,8 +2929,43 @@ void toggleLED()
   digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
 }
 
+#if USE_ESP_WIFIMANAGER_NTP
+
+void printLocalTime()
+{
+#if ESP8266
+  static time_t now;
+  
+  now = time(nullptr);
+  
+  if ( now > 1451602800 )
+  {
+    Serial.print("Local Date/Time: ");
+    Serial.print(ctime(&now));
+  }
+#else
+  struct tm timeinfo;
+
+  getLocalTime( &timeinfo );
+
+  // Valid only if year > 2000. 
+  // You can get from timeinfo : tm_year, tm_mon, tm_mday, tm_hour, tm_min, tm_sec
+  if (timeinfo.tm_year > 100 )
+  {
+    Serial.print("Local Date/Time: ");
+    Serial.print( asctime( &timeinfo ) );
+  }
+#endif
+}
+
+#endif
+
 void heartBeatPrint()
 {
+#if USE_ESP_WIFIMANAGER_NTP
+  printLocalTime();
+#else
+
   static int num = 1;
 
   if (WiFi.status() == WL_CONNECTED)
@@ -2766,6 +2982,7 @@ void heartBeatPrint()
   {
     Serial.print(F(" "));
   }
+#endif  
 }
 
 void publishMQTT()
@@ -2806,10 +3023,16 @@ void check_status()
   
   ulong current_millis = millis();
 
-#define WIFICHECK_INTERVAL    1000L
 #define LED_INTERVAL          2000L
-#define HEARTBEAT_INTERVAL    10000L
-#define PUBLISH_INTERVAL      60000L
+#define PUBLISH_INTERVAL      90000L
+
+#define WIFICHECK_INTERVAL    1000L
+
+#if USE_ESP_WIFIMANAGER_NTP
+  #define HEARTBEAT_INTERVAL    60000L
+#else
+  #define HEARTBEAT_INTERVAL    10000L
+#endif
 
   // Check WiFi every WIFICHECK_INTERVAL (1) seconds.
   if ((current_millis > checkwifi_timeout) || (checkwifi_timeout == 0))
@@ -2844,6 +3067,18 @@ void check_status()
   }
 }
 
+int calcChecksum(uint8_t* address, uint16_t sizeToCalc)
+{
+  uint16_t checkSum = 0;
+  
+  for (uint16_t index = 0; index < sizeToCalc; index++)
+  {
+    checkSum += * ( ( (byte*) address ) + index);
+  }
+
+  return checkSum;
+}
+
 bool loadConfigData()
 {
   File file = FileFS.open(CONFIG_FILENAME, "r");
@@ -2854,7 +3089,7 @@ bool loadConfigData()
   // New in v1.4.0
   memset(&WM_STA_IPconfig, 0, sizeof(WM_STA_IPconfig));
   //////
-    
+
   if (file)
   {
     file.readBytes((char *) &WM_config,   sizeof(WM_config));
@@ -2862,10 +3097,17 @@ bool loadConfigData()
     // New in v1.4.0
     file.readBytes((char *) &WM_STA_IPconfig, sizeof(WM_STA_IPconfig));
     //////
-    
+
     file.close();
     LOGERROR(F("OK"));
 
+    if ( WM_config.checksum != calcChecksum( (uint8_t*) &WM_config, sizeof(WM_config) - sizeof(WM_config.checksum) ) )
+    {
+      LOGERROR(F("WM_config checksum wrong"));
+      
+      return false;
+    }
+    
     // New in v1.4.0
     displayIPConfigStruct(WM_STA_IPconfig);
     //////
@@ -2879,7 +3121,7 @@ bool loadConfigData()
     return false;
   }
 }
-    
+
 void saveConfigData()
 {
   File file = FileFS.open(CONFIG_FILENAME, "w");
@@ -2887,14 +3129,16 @@ void saveConfigData()
 
   if (file)
   {
-    file.write((uint8_t*) &WM_config,   sizeof(WM_config));
+    WM_config.checksum = calcChecksum( (uint8_t*) &WM_config, sizeof(WM_config) - sizeof(WM_config.checksum) );
+    
+    file.write((uint8_t*) &WM_config, sizeof(WM_config));
 
     displayIPConfigStruct(WM_STA_IPconfig);
 
     // New in v1.4.0
     file.write((uint8_t*) &WM_STA_IPconfig, sizeof(WM_STA_IPconfig));
     //////
-    
+
     file.close();
     LOGERROR(F("OK"));
   }
@@ -3047,10 +3291,12 @@ void wifi_manager()
   ESP_wifiManager.setConfigPortalChannel(0);
   //////
   
+#if USE_CUSTOM_AP_IP
   //set custom ip for portal
   // New in v1.4.0
   ESP_wifiManager.setAPStaticIPConfig(WM_AP_IPconfig);
   //////
+#endif
   
 #if !USE_DHCP_IP    
     // Set (static IP, Gateway, Subnetmask, DNS1 and DNS2) or (IP, Gateway, Subnetmask). New in v1.0.5
@@ -3070,8 +3316,22 @@ void wifi_manager()
   // processing will continue
   // SSID to uppercase
   ssid.toUpperCase();
+  password = "My" + ssid;
+
+  Serial.print(F("Starting configuration portal @ "));
   
-  if (!ESP_wifiManager.startConfigPortal((const char *) ssid.c_str(), password))
+#if USE_CUSTOM_AP_IP    
+  Serial.print(APStaticIP);
+#else
+  Serial.print(F("192.168.4.1"));
+#endif
+
+  Serial.print(F(", SSID = "));
+  Serial.print(ssid);
+  Serial.print(F(", PWD = "));
+  Serial.println(password);
+  
+  if (!ESP_wifiManager.startConfigPortal((const char *) ssid.c_str(), password.c_str()))
   {
     Serial.println(F("Not connected to WiFi but continuing anyway."));
   }
@@ -3113,6 +3373,38 @@ void wifi_manager()
       }
     }
   
+#if USE_ESP_WIFIMANAGER_NTP      
+    String tempTZ   = ESP_wifiManager.getTimezoneName();
+
+    if (strlen(tempTZ.c_str()) < sizeof(WM_config.TZ_Name) - 1)
+      strcpy(WM_config.TZ_Name, tempTZ.c_str());
+    else
+      strncpy(WM_config.TZ_Name, tempTZ.c_str(), sizeof(WM_config.TZ_Name) - 1);
+
+    const char * TZ_Result = ESP_wifiManager.getTZ(WM_config.TZ_Name);
+    
+    if (strlen(TZ_Result) < sizeof(WM_config.TZ) - 1)
+      strcpy(WM_config.TZ, TZ_Result);
+    else
+      strncpy(WM_config.TZ, TZ_Result, sizeof(WM_config.TZ_Name) - 1);
+         
+    if ( strlen(WM_config.TZ_Name) > 0 )
+    {
+      LOGERROR3(F("Saving current TZ_Name ="), WM_config.TZ_Name, F(", TZ = "), WM_config.TZ);
+
+  #if ESP8266
+      configTime(WM_config.TZ, "pool.ntp.org"); 
+  #else
+      //configTzTime(WM_config.TZ, "pool.ntp.org" );
+      configTzTime(WM_config.TZ, "time.nist.gov", "0.pool.ntp.org", "1.pool.ntp.org");
+  #endif
+    }
+    else
+    {
+      LOGERROR(F("Current Timezone Name is not set. Enter Config Portal to set."));
+    }
+#endif
+
     // New in v1.4.0
     ESP_wifiManager.getSTAStaticIPConfig(WM_STA_IPconfig);
     //////
@@ -3411,20 +3703,39 @@ void setup()
   }
   else
   {   
-    // Load stored data, the addAP ready for MultiWiFi reconnection
-    loadConfigData();
-
     // Pretend CP is necessary as we have no AP Credentials
     initialConfig = true;
 
-    for (uint8_t i = 0; i < NUM_WIFI_CREDENTIALS; i++)
+    // Load stored data, the addAP ready for MultiWiFi reconnection
+    if (loadConfigData())
     {
-      // Don't permit NULL SSID and password len < MIN_AP_PASSWORD_SIZE (8)
-      if ( (String(WM_config.WiFi_Creds[i].wifi_ssid) != "") && (strlen(WM_config.WiFi_Creds[i].wifi_pw) >= MIN_AP_PASSWORD_SIZE) )
+#if USE_ESP_WIFIMANAGER_NTP      
+    if ( strlen(WM_config.TZ_Name) > 0 )
+    {
+      LOGERROR3(F("Current TZ_Name ="), WM_config.TZ_Name, F(", TZ = "), WM_config.TZ);
+
+  #if ESP8266
+      configTime(WM_config.TZ, "pool.ntp.org"); 
+  #else
+      //configTzTime(WM_config.TZ, "pool.ntp.org" );
+      configTzTime(WM_config.TZ, "time.nist.gov", "0.pool.ntp.org", "1.pool.ntp.org");
+  #endif   
+    }
+    else
+    {
+      Serial.println(F("Current Timezone is not set. Enter Config Portal to set."));
+    } 
+#endif
+      
+      for (uint8_t i = 0; i < NUM_WIFI_CREDENTIALS; i++)
       {
-        LOGERROR3(F("* Add SSID = "), WM_config.WiFi_Creds[i].wifi_ssid, F(", PW = "), WM_config.WiFi_Creds[i].wifi_pw );
-        wifiMulti.addAP(WM_config.WiFi_Creds[i].wifi_ssid, WM_config.WiFi_Creds[i].wifi_pw);
-        initialConfig = false;
+        // Don't permit NULL SSID and password len < MIN_AP_PASSWORD_SIZE (8)
+        if ( (String(WM_config.WiFi_Creds[i].wifi_ssid) != "") && (strlen(WM_config.WiFi_Creds[i].wifi_pw) >= MIN_AP_PASSWORD_SIZE) )
+        {
+          LOGERROR3(F("* Add SSID = "), WM_config.WiFi_Creds[i].wifi_ssid, F(", PW = "), WM_config.WiFi_Creds[i].wifi_pw );
+          wifiMulti.addAP(WM_config.WiFi_Creds[i].wifi_ssid, WM_config.WiFi_Creds[i].wifi_pw);
+          initialConfig = false;
+        }
       }
     }
 
@@ -3471,7 +3782,7 @@ This is terminal debug output when running [ConfigOnSwitchFS_MQTT_Ptr](examples/
 
 ```
 Starting ConfigOnSwichFS_MQTT_Ptr using LittleFS on ESP8266_NODEMCU
-ESP_WiFiManager v1.6.1
+ESP_WiFiManager v1.7.0
 Configuration file not found
 Failed to read configuration file, using default values
 [WM] RFC925 Hostname = ConfigOnSwichFS-MQTT
@@ -3583,7 +3894,7 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```cpp
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using SPIFFS on ESP32_DEV
-ESP_WiFiManager v1.6.1
+ESP_WiFiManager v1.7.0
 ESP_DoubleResetDetector Version v1.1.1
 FS File: /ConfigSW.json, size: 150B
 FS File: /CanadaFlag_1.png, size: 40.25KB
@@ -3648,7 +3959,7 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.6.1
+ESP_WiFiManager v1.7.0
 ESP_DoubleResetDetector Version v1.1.1
 FS File: /CanadaFlag_1.png, size: 40.25KB
 FS File: /CanadaFlag_2.png, size: 8.12KB
@@ -3707,7 +4018,7 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.6.1
+ESP_WiFiManager v1.7.0
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3750,7 +4061,7 @@ WWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.6.1
+ESP_WiFiManager v1.7.0
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3835,7 +4146,7 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU
-ESP_WiFiManager v1.6.1
+ESP_WiFiManager v1.7.0
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3875,7 +4186,7 @@ TWWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU
-ESP_WiFiManager v1.6.1
+ESP_WiFiManager v1.7.0
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3952,7 +4263,7 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
-ESP_WiFiManager v1.6.1
+ESP_WiFiManager v1.7.0
 ESP_DoubleResetDetector v1.1.1
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] setAPStaticIPConfig
@@ -3989,6 +4300,369 @@ HHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHH
 HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH
 HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH
 HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH
+```
+
+---
+
+#### 7. [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) on ESP32_DEV
+
+This is terminal debug output when running [ConfigOnDoubleReset](examples/ConfigOnDoubleReset)  on  **ESP32_DEV.**. Config Portal was requested by DRD to input and save Credentials. The boards then connected to WiFi using new Static IP successfully, with correct local time, TZ set and using NTP
+
+
+#### 7.1 DRD => Config Portal
+
+```
+Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32_DEV
+ESP_WiFiManager v1.7.0
+ESP_DoubleResetDetector v1.1.1
+[WM] RFC925 Hostname = ConfigOnDoubleReset
+[WM] Set CORS Header to :  Your Access-Control-Allow-Origin
+ESP Self-Stored: SSID = HueNet1, Pass = password
+[WM] * Add SSID =  HueNet1 , PW =  password
+Got ESP Self-Stored Credentials. Timeout 120s for Config Portal
+[WM] LoadWiFiCfgFile 
+[WM] OK
+[WM] stationIP = 192.168.2.232 , gatewayIP = 192.168.2.1
+[WM] netMask = 255.255.255.0
+[WM] dns1IP = 192.168.2.1 , dns2IP = 8.8.8.8
+Got stored Credentials. Timeout 120s for Config Portal
+[WM] Current TZ_Name = America/New_York , TZ =  EST5EDT,M3.2.0,M11.1.0
+LittleFS Flag read = 0xD0D01234
+doubleResetDetected
+Saving config file...
+Saving config file OK
+Open Config Portal without Timeout: Double Reset Detected
+Starting configuration portal @ 192.168.4.1, SSID = ESP_9ABF498, PWD = MyESP_9ABF498
+```
+
+#### 7.2 Data Saved => Connect to WiFi with correct local time, TZ set and using NTP
+
+```
+[WM] WiFi.waitForConnectResult Done
+[WM] SET AP
+[WM] Configuring AP SSID = ESP_9ABF498
+[WM] AP PWD = MyESP_9ABF498
+[WM] AP Channel = 8
+[WM] AP IP address = 192.168.4.1
+[WM] HTTP server started
+[WM] startConfigPortal : Enter loop
+[WM] Handle root
+[WM] captivePortal: hostHeader =  test.mosquitto.org
+[WM] Request redirected to captive portal :  192.168.4.1
+[WM] Handle root
+[WM] captivePortal: hostHeader =  192.168.4.1
+[WM] Info
+[WM] Sent info page
+[WM] Handle root
+[WM] captivePortal: hostHeader =  192.168.4.1
+[WM] Handle WiFi
+[WM] Scanning Network
+[WM] scanWifiNetworks: Done, Scanned Networks n = 8
+[WM] Sorting
+[WM] Removing Dup
+[WM] Index = 0
+[WM] SSID = HueNet
+[WM] RSSI = -27
+[WM] Index = 1
+[WM] SSID = HueNet1
+[WM] RSSI = -41
+[WM] Index = 2
+[WM] SSID = dragino-1ed63c
+[WM] RSSI = -45
+[WM] Index = 3
+[WM] SSID = HueNetTek
+[WM] RSSI = -49
+[WM] Index = 4
+[WM] SSID = HueNet2
+[WM] RSSI = -52
+[WM] Index = 5
+[WM] SSID = bacau
+[WM] RSSI = -67
+[WM] Index = 6
+[WM] SSID = guest_24
+[WM] RSSI = -67
+[WM] Index = 7
+[WM] SSID = Jessie
+[WM] RSSI = -85
+[WM] Static IP = 0.0.0.0
+[WM] Sent config page
+[WM] WiFi save
+[WM] TZ name = America/New_York
+[WM] New Static IP = 0.0.0.0
+[WM] New Static Gateway = 192.168.2.1
+[WM] New Static Netmask = 255.255.255.0
+[WM] New Static DNS1 = 192.168.2.1
+[WM] New Static DNS2 = 8.8.8.8
+[WM] Sent wifi save page
+[WM] Connecting to new AP
+[WM] Previous settings invalidated
+[WM] Can't use Custom STA IP/GW/Subnet
+[WM] Connect to new WiFi using new IP parameters
+[WM] Connected after waiting (s) : 6.90
+[WM] Local ip = 192.168.2.45
+[WM] Connection result:  WL_CONNECTED
+WiFi connected...yeey :)
+[WM] * Add SSID =  HueNet1 , PW =  password
+[WM] * Add SSID =  HueNet2 , PW =  password
+[WM] Saving current TZ_Name = America/New_York , TZ =  EST5EDT,M3.2.0,M11.1.0
+[WM] getSTAStaticIPConfig
+[WM] SaveWiFiCfgFile 
+[WM] stationIP = 0.0.0.0 , gatewayIP = 192.168.2.1
+[WM] netMask = 255.255.255.0
+[WM] dns1IP = 192.168.2.1 , dns2IP = 8.8.8.8
+[WM] OK
+After waiting 0.00 secs more in setup(), connection result is connected. Local IP: 192.168.2.45
+[WM] freeing allocated params!
+Local Date/Time: Thu May  6 21:26:18 2021
+Local Date/Time: Thu May  6 21:27:18 2021
+Local Date/Time: Thu May  6 21:28:18 2021
+Local Date/Time: Thu May  6 21:29:18 2021
+```
+
+#### 7.3 Normal running with correct local time, TZ set and using NTP
+
+```
+Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32_DEV
+ESP_WiFiManager v1.7.0
+ESP_DoubleResetDetector v1.1.1
+[WM] RFC925 Hostname = ConfigOnDoubleReset
+[WM] Set CORS Header to :  Your Access-Control-Allow-Origin
+ESP Self-Stored: SSID = HueNet1, Pass = password
+[WM] * Add SSID =  HueNet1 , PW =  password
+Got ESP Self-Stored Credentials. Timeout 120s for Config Portal
+[WM] LoadWiFiCfgFile 
+[WM] OK
+[WM] stationIP = 192.168.2.232 , gatewayIP = 192.168.2.1
+[WM] netMask = 255.255.255.0
+[WM] dns1IP = 192.168.2.1 , dns2IP = 8.8.8.8
+Got stored Credentials. Timeout 120s for Config Portal
+[WM] Current TZ_Name = America/New_York , TZ =  EST5EDT,M3.2.0,M11.1.0
+LittleFS Flag read = 0xD0D04321
+No doubleResetDetected
+Saving config file...
+Saving config file OK
+[WM] * Add SSID =  HueNet1 , PW =  password
+[WM] * Add SSID =  HueNet2 , PW =  password
+ConnectMultiWiFi in setup
+[WM] ConnectMultiWiFi with :
+[WM] * Flash-stored Router_SSID =  HueNet1 , Router_Pass =  password
+[WM] * Add SSID =  HueNet1 , PW =  password
+[WM] * Additional SSID =  HueNet1 , PW =  password
+[WM] * Additional SSID =  HueNet2 , PW =  password
+[WM] Connecting MultiWifi...
+[WM] WiFi connected after time:  1
+[WM] SSID: HueNet1 ,RSSI= -46
+[WM] Channel: 2 ,IP address: 192.168.2.45
+After waiting 18.87 secs more in setup(), connection result is connected. Local IP: 192.168.2.45
+[WM] freeing allocated params!
+Stop doubleResetDetecting
+Saving config file...
+Saving config file OK
+Local Date/Time: Thu May  6 21:31:18 2021
+Local Date/Time: Thu May  6 21:32:18 2021
+Local Date/Time: Thu May  6 21:33:18 2021
+```
+
+---
+
+#### 8. [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) on ESP32S2_DEV
+
+This is terminal debug output when running [ConfigOnDoubleReset](examples/ConfigOnDoubleReset)  on  **ESP32S2_DEV.**. Config Portal was requested by DRD to input and save Credentials. The boards then connected to WiFi using new Static IP successfully, with correct local time, TZ set and using NTP
+
+
+#### 8.1 No Data => Config Portal
+
+```
+Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
+ESP_WiFiManager v1.7.0
+ESP_DoubleResetDetector v1.1.1
+[WM] RFC925 Hostname = ConfigOnDoubleReset
+[WM] Set CORS Header to :  Your Access-Control-Allow-Origin
+ESP Self-Stored: SSID = HueNet1, Pass = password
+[WM] * Add SSID =  HueNet1 , PW =  password
+Got ESP Self-Stored Credentials. Timeout 120s for Config Portal
+[WM] LoadWiFiCfgFile 
+[WM] OK
+[WM] WM_config checksum wrong
+Open Config Portal without Timeout: No stored Credentials.
+LittleFS Flag read = 0xD0D04321
+No doubleResetDetected
+Saving config file...
+Saving config file OK
+Starting configuration portal @ 192.168.4.1, SSID = ESP_8A1DF7C, PWD = MyESP_8A1DF7C
+```
+
+#### 8.2 Data Saved => Connect to WiFi with correct local time, TZ set and using NTP
+
+```
+[WM] WiFi.waitForConnectResult Done
+[WM] SET AP
+[WM] Configuring AP SSID = ESP_8A1DF7C
+[WM] AP PWD = MyESP_8A1DF7C
+[WM] AP Channel = 4
+[WM] AP IP address = 192.168.4.1
+[WM] HTTP server started
+[WM] startConfigPortal : Enter loop
+[WM] Handle root
+[WM] captivePortal: hostHeader =  192.168.4.1
+[WM] Info
+[WM] Sent info page
+[WM] Handle root
+[WM] captivePortal: hostHeader =  192.168.4.1
+[WM] Handle WiFi
+[WM] Scanning Network
+[WM] scanWifiNetworks: Done, Scanned Networks n = 23
+[WM] Sorting
+[WM] Removing Dup
+[WM] DUP AP: Waterhome
+[WM] DUP AP: Waterhome
+[WM] DUP AP: Access 2.0
+[WM] Index = 0
+[WM] SSID = HueNet
+[WM] RSSI = -20
+[WM] Index = 1
+[WM] SSID = HueNet1
+[WM] RSSI = -28
+[WM] Index = 2
+[WM] SSID = HueNetTek
+[WM] RSSI = -31
+[WM] Index = 3
+[WM] SSID = dragino-1ed63c
+[WM] RSSI = -43
+[WM] Index = 4
+[WM] SSID = HueNet2
+[WM] RSSI = -47
+[WM] Index = 5
+[WM] SSID = bacau
+[WM] RSSI = -67
+[WM] Index = 6
+[WM] SSID = guest_24
+[WM] RSSI = -67
+[WM] Index = 7
+[WM] SSID = rogers786
+[WM] RSSI = -72
+[WM] Index = 8
+[WM] SSID = dlink-4F96
+[WM] RSSI = -81
+[WM] Index = 9
+[WM] SSID = Waterhome
+[WM] RSSI = -81
+[WM] Index = 10
+[WM] SSID = VIRGIN874
+[WM] RSSI = -83
+[WM] Index = 11
+[WM] SSID = elef
+[WM] RSSI = -84
+[WM] Index = 12
+[WM] SSID = Access 2.0
+[WM] RSSI = -85
+[WM] Index = 14
+[WM] SSID = Jasmine
+[WM] RSSI = -86
+[WM] Index = 16
+[WM] SSID = FishBowl
+[WM] RSSI = -87
+[WM] Index = 17
+[WM] SSID = FishTank
+[WM] RSSI = -87
+[WM] Index = 19
+[WM] SSID = BELL246
+[WM] RSSI = -89
+[WM] Index = 20
+[WM] SSID = BAHFAMILY
+[WM] RSSI = -89
+[WM] Index = 21
+[WM] SSID = madda
+[WM] RSSI = -91
+[WM] Index = 22
+[WM] SSID = BELL040
+[WM] RSSI = -91
+[WM] Static IP = 0.0.0.0
+[WM] Sent config page
+[WM] WiFi save
+[WM] TZ name = America/New_York
+[WM] New Static IP = 0.0.0.0
+[WM] New Static Gateway = 192.168.2.1
+[WM] New Static Netmask = 255.255.255.0
+[WM] New Static DNS1 = 192.168.2.1
+[WM] New Static DNS2 = 8.8.8.8
+[WM] Sent wifi save page
+[WM] Connecting to new AP
+[WM] Previous settings invalidated
+[WM] Can't use Custom STA IP/GW/Subnet
+[WM] Connect to new WiFi using new IP parameters
+[WM] Connected after waiting (s) : 6.80
+[WM] Local ip = 192.168.2.157
+[WM] Connection result:  WL_CONNECTED
+WiFi connected...yeey :)
+[WM] * Add SSID =  HueNet1 , PW =  password
+[WM] * Add SSID =  HueNet2 , PW =  password
+[WM] Saving current TZ_Name = America/New_York , TZ =  EST5EDT,M3.2.0,M11.1.0
+[WM] getSTAStaticIPConfig
+[WM] SaveWiFiCfgFile 
+[WM] stationIP = 0.0.0.0 , gatewayIP = 192.168.2.1
+[WM] netMask = 255.255.255.0
+[WM] dns1IP = 192.168.2.1 , dns2IP = 8.8.8.8
+[WM] OK
+After waiting 0.00 secs more in setup(), connection result is connected. Local IP: 192.168.2.157
+[WM] freeing allocated params!
+Stop doubleResetDetecting
+Saving config file...
+Saving config file OK
+
+Local Date/Time: Thu May  6 21:26:18 2021
+Local Date/Time: Thu May  6 21:27:18 2021
+Local Date/Time: Thu May  6 21:28:18 2021
+Local Date/Time: Thu May  6 21:29:18 2021
+```
+
+#### 8.3 Normal running with correct local time, TZ set and using NTP
+
+```
+Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
+ESP_WiFiManager v1.7.0
+ESP_DoubleResetDetector v1.1.1
+[WM] RFC925 Hostname = ConfigOnDoubleReset
+[WM] Set CORS Header to :  Your Access-Control-Allow-Origin
+ESP Self-Stored: SSID = HueNet1, Pass = password
+[WM] * Add SSID =  HueNet1 , PW =  password
+Got ESP Self-Stored Credentials. Timeout 120s for Config Portal
+[WM] LoadWiFiCfgFile 
+[WM] OK
+[WM] stationIP = 0.0.0.0 , gatewayIP = 192.168.2.1
+[WM] netMask = 255.255.255.0
+[WM] dns1IP = 192.168.2.1 , dns2IP = 8.8.8.8
+Got stored Credentials. Timeout 120s for Config Portal
+[WM] Current TZ_Name = America/New_York , TZ =  EST5EDT,M3.2.0,M11.1.0
+LittleFS Flag read = 0xD0D04321
+No doubleResetDetected
+Saving config file...
+Saving config file OK
+[WM] * Add SSID =  HueNet1 , PW =  password
+[WM] * Add SSID =  HueNet2 , PW =  password
+ConnectMultiWiFi in setup
+[WM] ConnectMultiWiFi with :
+[WM] * Flash-stored Router_SSID =  HueNet1 , Router_Pass =  password
+[WM] * Add SSID =  HueNet1 , PW =  password
+[WM] * Additional SSID =  HueNet1 , PW =  password
+[WM] * Additional SSID =  HueNet2 , PW =  password
+[WM] Connecting MultiWifi...
+[WM] WiFi connected after time:  1
+[WM] SSID: HueNet1 ,RSSI= -27
+[WM] Channel: 2 ,IP address: 192.168.2.157
+After waiting 7.72 secs more in setup(), connection result is connected. Local IP: 192.168.2.157
+[WM] freeing allocated params!
+Local Date/Time: Wed Dec 31 19:00:13 1969
+Stop doubleResetDetecting
+Saving config file...
+Saving config file OK
+Local Date/Time: Thu May  6 21:47:41 2021
+Local Date/Time: Thu May  6 21:47:51 2021
+Local Date/Time: Thu May  6 21:48:01 2021
+Local Date/Time: Thu May  6 21:48:11 2021
+Local Date/Time: Thu May  6 21:48:21 2021
+Local Date/Time: Thu May  6 21:48:31 2021
+Local Date/Time: Thu May  6 21:48:41 2021
 ```
 
 ---
@@ -4029,6 +4703,14 @@ Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiF
 ---
 
 ## Releases
+
+### Major Releases v1.7.0
+
+1. Add auto-Timezone feature with variable `_timezoneName` (e.g. `America/New_York`) and function to retrieve TZ (e.g. `EST5EDT,M3.2.0,M11.1.0`) to use directly to configure ESP32/ESP8266 timezone. Check [How to retrieve timezone? #51](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues/51) for more info.
+2. Store those `_timezoneName` and `TZ` in LittleFS or SPIFFS config file.
+3. Using these new timezone feature is optional.
+4. Add checksum in config file to validate data read from LittleFS or SPIFFS config file.
+5. Update examples to show how to use the new TZ feature.
 
 ### Releases v1.6.1
 
@@ -4212,6 +4894,7 @@ See [KenTaylor's version](https://github.com/kentaylor/WiFiManager) for previous
 11. Thanks to [Vague Rabbit](https://github.com/thewhiterabbit) for requesting, collarborating in creating the [**HOWTO Add Dynamic Parameters**](#howto-add-dynamic-parameters).
 12. Thanks to [Roshan](https://github.com/solroshan) to report the issue in [Error esp_littlefs.c 'utime_p'](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues/28) to fix PIO error in using ESP32 LittleFS with old [`LittleFS_esp32 v1.0`](https://github.com/lorol/LITTLEFS)
 13. Thanks to [yiancar](https://github.com/yiancar) to report the issue and propose a fix in [In AP, DNS server always redirects to 192.168.4.1 no mater what APStaticIP is set to. #58](https://github.com/khoih-prog/ESP_WiFiManager/issues/58) leading to v1.6.1
+14. Thanks to [Stephen Lavelle](https://github.com/increpare) and [Ben Peart](https://github.com/benpeart) for requesting enhancement in [_timezoneName never getting set? #51](https://github.com/khoih-prog/ESP_WiFiManager/issues/51) and [How to retrieve timezone? #51](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues/51) leading to new v1.7.0
 
 <table>
   <tr>
@@ -4234,6 +4917,8 @@ See [KenTaylor's version](https://github.com/kentaylor/WiFiManager) for previous
     <td align="center"><a href="https://github.com/thewhiterabbit"><img src="https://github.com/thewhiterabbit.png" width="100px;" alt="thewhiterabbit"/><br /><sub><b>Vague Rabbit</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/solroshan"><img src="https://github.com/solroshan.png" width="100px;" alt="solroshan"/><br /><sub><b>Roshan</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/yiancar"><img src="https://github.com/yiancar.png" width="100px;" alt="yiancar"/><br /><sub><b>yiancar</b></sub></a><br /></td>
+    <td align="center"><a href="https://github.com/increpare"><img src="https://github.com/increpare.png" width="100px;" alt="increpare"/><br /><sub><b>Stephen Lavelle</b></sub></a><br /></td>
+    <td align="center"><a href="https://github.com/benpeart"><img src="https://github.com/benpeart.png" width="100px;" alt="benpeart"/><br /><sub><b>Ben Peart</b></sub></a><br /></td>
   </tr> 
 </table>
 

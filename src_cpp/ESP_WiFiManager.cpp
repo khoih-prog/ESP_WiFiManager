@@ -1,5 +1,5 @@
 /****************************************************************************************************************************
-  ESP_WiFiManager.cpp
+  ESP_WiFiManager-Impl.h
   For ESP8266 / ESP32 boards
 
   ESP_WiFiManager is a library for the ESP8266/Arduino platform
@@ -15,7 +15,7 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.6.1
+  Version: 1.7.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -45,10 +45,12 @@
   1.5.2   K Hoang      08/04/2021 Fix example misleading messages.
   1.5.3   K Hoang      13/04/2021 Add dnsServer error message.
   1.6.0   K Hoang      20/04/2021 Add support to new ESP32-C3 using SPIFFS or EEPROM
-  1.6.1   K Hoang      25/04/2021 Fix MultiWiFi bug. Fix captive-portal bug if CP AP address is not default 192.168.4.1 *****************************************************************************************************************************/
+  1.6.1   K Hoang      25/04/2021 Fix MultiWiFi bug. Fix captive-portal bug if CP AP address is not default 192.168.4.1
+  1.7.0   K Hoang      06/05/2021 Set _timezoneName. Add support to new ESP32-S2 (METRO_ESP32S2, FUNHOUSE_ESP32S2, etc.)
+ *****************************************************************************************************************************/
 
-#include "ESP_WiFiManager_Debug.h"
 #include "ESP_WiFiManager.h"
+
 
 //////////////////////////////////////////
 
@@ -556,7 +558,7 @@ bool  ESP_WiFiManager::startConfigPortal(char const *apName, char const *apPassw
 
   bool TimedOut = true;
 
-  LOGINFO("ESP_WiFiManager::startConfigPortal : Enter loop");
+  LOGINFO("startConfigPortal : Enter loop");
 
   while (_configPortalTimeout == 0 || millis() < _configPortalStart + _configPortalTimeout)
   {
@@ -565,7 +567,7 @@ bool  ESP_WiFiManager::startConfigPortal(char const *apName, char const *apPassw
     //HTTP
     server->handleClient();
   
-#if ( ARDUINO_ESP32S2_DEV || ARDUINO_FEATHERS2 || ARDUINO_PROS2 || ARDUINO_MICROS2 )    
+#if ( USING_ESP32_S2 || USING_ESP32_C3 ) 
     // Fix ESP32-S2 issue with WebServer (https://github.com/espressif/arduino-esp32/issues/4348)
     delay(1);
 #endif
@@ -1162,7 +1164,7 @@ void ESP_WiFiManager::handleWifi()
   //Print list of WiFi networks that were found in earlier scan
   if (numberOfNetworks == 0)
   {
-    page += F("WiFi scan found no networks. Restart configuration portal to scan again.");
+    page += F("No network found. Refresh to scan again.");
   }
   else
   {
@@ -1348,6 +1350,8 @@ void ESP_WiFiManager::handleWifi()
 
     page += "<br/>";
   }
+  
+  page += FPSTR(WM_HTTP_SCRIPT_NTP_HIDDEN);
 
   page += FPSTR(WM_HTTP_FORM_END);
 
@@ -1372,7 +1376,23 @@ void ESP_WiFiManager::handleWifiSave()
   // New from v1.1.0
   _ssid1 = server->arg("s1").c_str();
   _pass1 = server->arg("p1").c_str();
-  //////
+  
+  ///////////////////////
+
+#if USE_ESP_WIFIMANAGER_NTP 
+  
+  if (server->arg("timezone") != "")
+  { 
+    _timezoneName = server->arg("timezone");
+    LOGDEBUG1(F("TZ name ="), _timezoneName);
+  }
+  else
+  {
+    LOGDEBUG(F("No TZ arg"));
+  }
+
+#endif
+  ///////////////////////
   
   //parameters
   for (int i = 0; i < _paramsCount; i++)
@@ -1441,7 +1461,6 @@ void ESP_WiFiManager::handleWifiSave()
   
   page.replace("{v}", "Credentials Saved");
   page += FPSTR(WM_HTTP_SCRIPT);
-  page += FPSTR(WM_HTTP_SCRIPT_NTP);
   page += FPSTR(WM_HTTP_STYLE);
   page += _customHeadElement;
   page += FPSTR(WM_HTTP_HEAD_END);
@@ -1486,7 +1505,6 @@ void ESP_WiFiManager::handleServerClose()
   
   page.replace("{v}", "Close Server");
   page += FPSTR(WM_HTTP_SCRIPT);
-  page += FPSTR(WM_HTTP_SCRIPT_NTP);
   page += FPSTR(WM_HTTP_STYLE);
   page += _customHeadElement;
   page += FPSTR(WM_HTTP_HEAD_END);
@@ -1537,7 +1555,6 @@ void ESP_WiFiManager::handleInfo()
   
   page.replace("{v}", "Info");
   page += FPSTR(WM_HTTP_SCRIPT);
-  page += FPSTR(WM_HTTP_SCRIPT_NTP);
   page += FPSTR(WM_HTTP_STYLE);
   page += _customHeadElement;
   page += FPSTR(WM_HTTP_HEAD_END);
@@ -1764,7 +1781,6 @@ void ESP_WiFiManager::handleReset()
   
   page.replace("{v}", "WiFi Information");
   page += FPSTR(WM_HTTP_SCRIPT);
-  page += FPSTR(WM_HTTP_SCRIPT_NTP);
   page += FPSTR(WM_HTTP_STYLE);
   page += _customHeadElement;
   page += FPSTR(WM_HTTP_HEAD_END);
