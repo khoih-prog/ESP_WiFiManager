@@ -256,12 +256,12 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
 
 ## Changelog
 
-### Major Releases v1.7.0
-
 ### Releases v1.7.1
 
 1. Fix Json bug in /scan. Check [Invalid Json generated #60](https://github.com/khoih-prog/ESP_WiFiManager/issues/60)
 2. Fix timezoneName not displayed in Info page.
+
+### Major Releases v1.7.0
 
 1. Add auto-Timezone feature with variable `_timezoneName` (e.g. `America/New_York`) and function to retrieve TZ (e.g. `EST5EDT,M3.2.0,M11.1.0`) to use directly to configure ESP32/ESP8266 timezone. Check [How to retrieve timezone? #51](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues/51) for more info.
 2. Store those `_timezoneName` and `TZ` in LittleFS or SPIFFS config file.
