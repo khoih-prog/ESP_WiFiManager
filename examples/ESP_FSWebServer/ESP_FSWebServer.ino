@@ -39,7 +39,7 @@
   #error This code is intended to run on the ESP8266 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.7.1"
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.7.2"
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -729,10 +729,10 @@ bool loadConfigData()
   File file = FileFS.open(CONFIG_FILENAME, "r");
   LOGERROR(F("LoadWiFiCfgFile "));
 
-  memset(&WM_config,       0, sizeof(WM_config));
+  memset((void *) &WM_config,       0, sizeof(WM_config));
 
   // New in v1.4.0
-  memset(&WM_STA_IPconfig, 0, sizeof(WM_STA_IPconfig));
+  memset((void *) &WM_STA_IPconfig, 0, sizeof(WM_STA_IPconfig));
   //////
 
   if (file)

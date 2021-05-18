@@ -15,7 +15,7 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.7.1
+  Version: 1.7.2
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -48,6 +48,7 @@
   1.6.1   K Hoang      25/04/2021 Fix MultiWiFi bug. Fix captive-portal bug if CP AP address is not default 192.168.4.1
   1.7.0   K Hoang      06/05/2021 Set _timezoneName. Add support to new ESP32-S2 (METRO_ESP32S2, FUNHOUSE_ESP32S2, etc.)
   1.7.1   K Hoang      08/05/2021 Fix Json bug. Fix timezoneName not displayed in Info page.
+  1.7.2   K Hoang      08/05/2021 Fix warnings with ESP8266 core v3.0.0
  *****************************************************************************************************************************/
 
 #pragma once

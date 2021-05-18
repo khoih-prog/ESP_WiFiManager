@@ -18,6 +18,7 @@
   * [Features](#features)
   * [Currently supported Boards](#currently-supported-boards)
 * [Changelog](#changelog)
+  * [Releases v1.7.2](#releases-v172)
   * [Releases v1.7.1](#releases-v171)
   * [Major Releases v1.7.0](#major-releases-v170)
   * [Releases v1.6.1](#releases-v161)
@@ -153,14 +154,14 @@
     * [ConfigOnDRD_ESP8266_minimal](examples/ConfigOnDRD_ESP8266_minimal)
 * [Example ConfigOnDRD_FS_MQTT_Ptr](#example-configondrd_fs_mqtt_ptr)
 * [Debug Terminal Output Samples](#debug-termimal-output-samples)
-  * [1. ConfigOnSwitchFS_MQTT_Ptr on ESP8266_NODEMCU](#1-configonswitchfs_mqtt_ptr-on-esp8266_nodemcu)
+  * [1. ConfigOnSwitchFS_MQTT_Ptr on ESP8266_NODEMCU_ESP12E](#1-configonswitchfs_mqtt_ptr-on-esp8266_nodemcu_esp12e)
   * [2. ESP32_FSWebServer_DRD on ESP32_DEV](#2-esp32_fswebserver_drd-on-esp32_dev)
   * [3. ESP32_FSWebServer_DRD on ESP32_DEV using newly-supported LittleFS](#3-esp32_fswebserver_drd-on-esp32_dev-using-newly-supported-littlefs)
   * [4. ConfigOnDRD_FS_MQTT_Ptr_Complex on ESP32_DEV](#4-configondrd_fs_mqtt_ptr_complex-on-esp32_dev)
     * [4.1 With Config Data => Run normally](#41-with-config-data--run-normally)
     * [4.2 DRD => Config Portal](#42-drd--config-portal)
     * [4.3 Config Portal Done](#43-config-portal-done)
-  * [5. ConfigOnDRD_FS_MQTT_Ptr_Medium on ESP8266_NODEMCU](#5-configondrd_fs_mqtt_ptr_medium-on-esp8266_nodemcu)
+  * [5. ConfigOnDRD_FS_MQTT_Ptr_Medium on ESP8266_NODEMCU_ESP12E](#5-configondrd_fs_mqtt_ptr_medium-on-esp8266_nodemcu_esp12e)
     * [5.1 With Config Data => Run normally](#51-with-config-data--run-normally)
     * [5.2 DRD => Config Portal](#52-drd--config-portal)
     * [5.3 Config Portal Done](#53-config-portal-done)
@@ -255,6 +256,10 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
 ---
 
 ## Changelog
+
+### Releases v1.7.2
+
+1. Fix warnings and Verify compatible with new ESP8266 core v3.0.0
 
 ### Releases v1.7.1
 
@@ -406,7 +411,7 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
 ## Prerequisites
 
  1. [`Arduino IDE 1.8.13+` for Arduino](https://www.arduino.cc/en/Main/Software)
- 2. [`ESP8266 Core 2.7.4+`](https://github.com/esp8266/Arduino) for ESP8266-based boards. [![Latest release](https://img.shields.io/github/release/esp8266/Arduino.svg)](https://github.com/esp8266/Arduino/releases/latest/)
+ 2. [`ESP8266 Core 3.0.0+`](https://github.com/esp8266/Arduino) for ESP8266-based boards. [![Latest release](https://img.shields.io/github/release/esp8266/Arduino.svg)](https://github.com/esp8266/Arduino/releases/latest/)
  3. [`ESP32 Core 1.0.6+`](https://github.com/espressif/arduino-esp32) for ESP32-based boards. [![Latest release](https://img.shields.io/github/release/espressif/arduino-esp32.svg)](https://github.com/espressif/arduino-esp32/releases/latest/)
  4. [`ESP32-S2/C3 Core 1.0.6+`](https://github.com/espressif/arduino-esp32) for ESP32-S2/C3-based boards. Must follow [HOWTO Install esp32 core for ESP32-S2 (Saola, AI-Thinker ESP-12K) and ESP32-C3 boards into Arduino IDE](#howto-install-esp32-core-for-esp32-s2-saola-ai-thinker-esp-12k-and-esp32-c3-boards-into-arduino-ide).
  5. [`ESP_DoubleResetDetector v1.1.1+`](https://github.com/khoih-prog/ESP_DoubleResetDetector) if using DRD feature. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_DoubleResetDetector.svg?)](https://www.ardu-badge.com/ESP_DoubleResetDetector). Use v1.1.0+ if using LittleFS for ESP32.
@@ -2445,7 +2450,7 @@ ESP_wifiManager.setRemoveDuplicateAPs(false);
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.7.1"
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.7.2"
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -3092,10 +3097,10 @@ bool loadConfigData()
   File file = FileFS.open(CONFIG_FILENAME, "r");
   LOGERROR(F("LoadWiFiCfgFile "));
 
-  memset(&WM_config,       0, sizeof(WM_config));
+  memset((void*) &WM_config,       0, sizeof(WM_config));
 
   // New in v1.4.0
-  memset(&WM_STA_IPconfig, 0, sizeof(WM_STA_IPconfig));
+  memset((void*) &WM_STA_IPconfig, 0, sizeof(WM_STA_IPconfig));
   //////
 
   if (file)
@@ -3784,13 +3789,13 @@ void loop()
 
 ### Debug Termimal Output Samples
 
-#### 1. [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr) on ESP8266_NODEMCU
+#### 1. [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr) on ESP8266_NODEMCU_ESP12E
 
-This is terminal debug output when running [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr) on  **ESP8266_NODEMCU**. Config Portal was requested to input and save MQTT Credentials. The boards then connected to Adafruit MQTT Server successfully.
+This is terminal debug output when running [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr) on  **ESP8266_NODEMCU_ESP12E**. Config Portal was requested to input and save MQTT Credentials. The boards then connected to Adafruit MQTT Server successfully.
 
 ```
-Starting ConfigOnSwichFS_MQTT_Ptr using LittleFS on ESP8266_NODEMCU
-ESP_WiFiManager v1.7.1
+Starting ConfigOnSwichFS_MQTT_Ptr using LittleFS on ESP8266_NODEMCU_ESP12E
+ESP_WiFiManager v1.7.2
 Configuration file not found
 Failed to read configuration file, using default values
 [WM] RFC925 Hostname = ConfigOnSwichFS-MQTT
@@ -3902,7 +3907,7 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```cpp
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using SPIFFS on ESP32_DEV
-ESP_WiFiManager v1.7.1
+ESP_WiFiManager v1.7.2
 ESP_DoubleResetDetector Version v1.1.1
 FS File: /ConfigSW.json, size: 150B
 FS File: /CanadaFlag_1.png, size: 40.25KB
@@ -3967,7 +3972,7 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.7.1
+ESP_WiFiManager v1.7.2
 ESP_DoubleResetDetector Version v1.1.1
 FS File: /CanadaFlag_1.png, size: 40.25KB
 FS File: /CanadaFlag_2.png, size: 8.12KB
@@ -4026,7 +4031,7 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.7.1
+ESP_WiFiManager v1.7.2
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -4069,7 +4074,7 @@ WWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.7.1
+ESP_WiFiManager v1.7.2
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -4146,15 +4151,15 @@ TWWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 ---
 
-#### 5. [ConfigOnDRD_FS_MQTT_Ptr_Medium](examples/ConfigOnDRD_FS_MQTT_Ptr_Medium) on ESP8266_NODEMCU
+#### 5. [ConfigOnDRD_FS_MQTT_Ptr_Medium](examples/ConfigOnDRD_FS_MQTT_Ptr_Medium) on ESP8266_NODEMCU_ESP12E
 
-This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](examples/ConfigOnDRD_FS_MQTT_Ptr_Complex) on  **ESP8266_NODEMCU using LittleFS.**. Config Portal was then requested by DRD to input and save MQTT Credentials. The boards then connected to Adafruit MQTT Server successfully.
+This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](examples/ConfigOnDRD_FS_MQTT_Ptr_Complex) on  **ESP8266_NODEMCU_ESP12E using LittleFS.**. Config Portal was then requested by DRD to input and save MQTT Credentials. The boards then connected to Adafruit MQTT Server successfully.
 
 ##### 5.1 With Config Data => Run normally
 
 ```
-Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU
-ESP_WiFiManager v1.7.1
+Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU_ESP12E
+ESP_WiFiManager v1.7.2
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -4193,8 +4198,8 @@ TWWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 #### 5.2 DRD => Config Portal
 
 ```
-Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU
-ESP_WiFiManager v1.7.1
+Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU_ESP12E
+ESP_WiFiManager v1.7.2
 ESP_DoubleResetDetector Version v1.1.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -4271,7 +4276,7 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
-ESP_WiFiManager v1.7.1
+ESP_WiFiManager v1.7.2
 ESP_DoubleResetDetector v1.1.1
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] setAPStaticIPConfig
@@ -4321,7 +4326,7 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.7.1
+ESP_WiFiManager v1.7.2
 ESP_DoubleResetDetector v1.1.1
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
@@ -4431,7 +4436,7 @@ Local Date/Time: Thu May  6 21:29:18 2021
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.7.1
+ESP_WiFiManager v1.7.2
 ESP_DoubleResetDetector v1.1.1
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
@@ -4482,7 +4487,7 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
-ESP_WiFiManager v1.7.1
+ESP_WiFiManager v1.7.2
 ESP_DoubleResetDetector v1.1.1
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
@@ -4628,7 +4633,7 @@ Local Date/Time: Thu May  6 21:29:18 2021
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
-ESP_WiFiManager v1.7.1
+ESP_WiFiManager v1.7.2
 ESP_DoubleResetDetector v1.1.1
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
@@ -4711,6 +4716,10 @@ Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiF
 ---
 
 ## Releases
+
+### Releases v1.7.2
+
+1. Fix warnings and Verify compatible with new ESP8266 core v3.0.0
 
 ### Releases v1.7.1
 
