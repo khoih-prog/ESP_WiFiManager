@@ -53,7 +53,7 @@
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.7.2"
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.7.3"
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -240,7 +240,11 @@ const int TRIGGER_PIN   = PIN_D0;     // Pin D0 mapped to pin GPIO0/BOOT/ADC11/T
    Alternative trigger pin. Needs to be connected to a button to use this pin. It must be a momentary connection
    not connected permanently to ground. Either trigger pin will work.
 */
-const int TRIGGER_PIN2  = PIN_D25;     // Pin D25 mapped to pin GPIO25/ADC18/DAC1 of ESP32
+#if ( ARDUINO_ESP32C3_DEV )
+const int TRIGGER_PIN2  = PIN_D8;       // Pin D8 mapped to pin GPIO8/FLASH_D1 of ESP32
+#else
+const int TRIGGER_PIN2  = PIN_D25;      // Pin D25 mapped to pin GPIO25/ADC18/DAC1 of ESP32
+#endif
 
 int pinSda     = PIN_SDA;     // Pin SDA mapped to pin GPIO21/SDA of ESP32
 int pinScl     = PIN_SCL;     // Pin SCL mapped to pin GPIO22/SCL of ESP32
@@ -503,7 +507,7 @@ uint8_t connectMultiWiFi()
 
   uint8_t status;
 
-  WiFi.mode(WIFI_STA);
+  //WiFi.mode(WIFI_STA);
 
   LOGERROR(F("ConnectMultiWiFi with :"));
 
@@ -539,7 +543,7 @@ uint8_t connectMultiWiFi()
 
   while ( ( i++ < 20 ) && ( status != WL_CONNECTED ) )
   {
-    status = wifiMulti.run();
+    status = WiFi.status();
 
     if ( status == WL_CONNECTED )
       break;
