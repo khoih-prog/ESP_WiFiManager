@@ -1905,7 +1905,7 @@ int ESP_WiFiManager::scanWifiNetworks(int **indicesptr)
 {
   LOGDEBUG(F("Scanning Network"));
 
-  int n = WiFi.scanNetworks();
+  int n = WiFi.scanNetworks(false, true);
 
   LOGDEBUG1(F("scanWifiNetworks: Done, Scanned Networks n ="), n); 
 
