@@ -15,7 +15,7 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.7.4
+  Version: 1.7.5
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -51,6 +51,7 @@
   1.7.2   K Hoang      08/05/2021 Fix warnings with ESP8266 core v3.0.0
   1.7.3   K Hoang      29/07/2021 Fix MultiWiFi connection issue with ESP32 core v2.0.0-rc1+
   1.7.4   K Hoang      13/08/2021 Add WiFi scanning of hidden SSIDs
+  1.7.5   K Hoang      10/10/2021 Update `platform.ini` and `library.json`
  *****************************************************************************************************************************/
 
 #include "ESP_WiFiManager.h"
