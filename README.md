@@ -17,6 +17,7 @@
 * [Why do we need this ESP_WiFiManager library](#why-do-we-need-this-esp_wifimanager-library)
   * [Features](#features)
   * [Currently supported Boards](#currently-supported-boards)
+* [Changelog](changelog.md) 
 * [Prerequisites](#prerequisites)
 * [Installation](#installation)
   * [Use Arduino Library Manager](#use-arduino-library-manager)
