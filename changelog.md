@@ -13,6 +13,7 @@
 ## Table of Contents
 
 * [Changelog](#changelog)
+  * [Releases v1.7.6](#releases-v176)
   * [Releases v1.7.5](#releases-v175)
   * [Releases v1.7.4](#releases-v174)
   * [Releases v1.7.3](#releases-v173)
@@ -45,6 +46,11 @@
 
 
 ## Changelog
+
+### Releases v1.7.6
+
+1. Auto detect ESP32 core and use either built-in LittleFS or [LITTLEFS](https://github.com/lorol/LITTLEFS) library
+2. Update `library.json` to use new `headers` for PIO
 
 ### Releases v1.7.5
 
