@@ -13,6 +13,7 @@
 ## Table of Contents
 
 * [Changelog](#changelog)
+  * [Releases v1.7.8](#releases-v178)
   * [Releases v1.7.7](#releases-v177)
   * [Releases v1.7.6](#releases-v176)
   * [Releases v1.7.5](#releases-v175)
@@ -47,6 +48,12 @@
 
 
 ## Changelog
+
+### Releases v1.7.8
+
+1. To permit using HTTP port different from 80. Check [WiFiManager works only on port 80 #75](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues/75)
+2. Fix bug returning IP `255.255.255.255` in core v2.0.0+ when using `hostname`
+
 
 ### Releases v1.7.7
 

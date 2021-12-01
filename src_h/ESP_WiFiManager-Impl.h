@@ -15,7 +15,7 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.7.7
+  Version: 1.7.8
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -54,6 +54,7 @@
   1.7.5   K Hoang      10/10/2021 Update `platform.ini` and `library.json`
   1.7.6   K Hoang      26/11/2021 Auto detect ESP32 core and use either built-in LittleFS or LITTLEFS library
   1.7.7   K Hoang      26/11/2021 Fix compile error for ESP32 core v1.0.5-
+  1.7.8   K Hoang      30/11/2021 Fix bug to permit using HTTP port different from 80. Fix bug
  *****************************************************************************************************************************/
 
 #pragma once
@@ -359,9 +360,9 @@ void ESP_WiFiManager::setupConfigPortal()
   dnsServer.reset(new DNSServer());
 
 #ifdef ESP8266
-  server.reset(new ESP8266WebServer(80));
+  server.reset(new ESP8266WebServer(HTTP_PORT_TO_USE));
 #else		//ESP32
-  server.reset(new WebServer(80));
+  server.reset(new WebServer(HTTP_PORT_TO_USE));
 #endif
 
   // optional soft ip config
@@ -1864,7 +1865,7 @@ bool ESP_WiFiManager::captivePortal()
   
   if (!isIp(server->hostHeader()))
   {
-    LOGDEBUG1(F("Request redirected to captive portal : "), server->client().localIP());
+    LOGINFO1(F("Request redirected to captive portal : "), server->client().localIP());
     
     server->sendHeader(F("Location"), (String)F("http://") + toStringIp(server->client().localIP()), true);
     server->send(302, FPSTR(WM_HTTP_HEAD_CT2), ""); // Empty content inhibits Content-length header so we have to close the socket ourselves.
@@ -2044,7 +2045,7 @@ bool ESP_WiFiManager::isIp(String str)
   {
     int c = str.charAt(i);
 
-    if (c != '.' && (c < '0' || c > '9'))
+    if (c != '.' && c != ':' && (c < '0' || c > '9'))
     {
       return false;
     }

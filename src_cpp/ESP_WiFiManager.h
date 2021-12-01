@@ -15,7 +15,7 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.7.7
+  Version: 1.7.8
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -54,6 +54,7 @@
   1.7.5   K Hoang      10/10/2021 Update `platform.ini` and `library.json`
   1.7.6   K Hoang      26/11/2021 Auto detect ESP32 core and use either built-in LittleFS or LITTLEFS library
   1.7.7   K Hoang      26/11/2021 Fix compile error for ESP32 core v1.0.5-
+  1.7.8   K Hoang      30/11/2021 Fix bug to permit using HTTP port different from 80. Fix bug
  *****************************************************************************************************************************/
 
 #pragma once
@@ -75,9 +76,23 @@
   #define USING_ESP32_C3        true
 #endif
 
-#define ESP_WIFIMANAGER_VERSION     "ESP_WiFiManager v1.7.7"
+#define ESP_WIFIMANAGER_VERSION     "ESP_WiFiManager v1.7.8"
 
 #include "ESP_WiFiManager_Debug.h"
+
+#if ( defined(HTTP_PORT) && (HTTP_PORT < 65536) && (HTTP_PORT > 0) )
+  #if (_WIFIMGR_LOGLEVEL_ > 2)
+    #warning Using custom HTTP_PORT
+  #endif
+    
+  #define HTTP_PORT_TO_USE     HTTP_PORT
+#else
+  #if (_WIFIMGR_LOGLEVEL_ > 2)
+    #warning Using default HTTP_PORT = 80
+  #endif
+  
+  #define HTTP_PORT_TO_USE     80
+#endif
 
 //KH, for ESP32
 #ifdef ESP8266
@@ -507,14 +522,23 @@ class ESP_WiFiManager
         WiFi.hostname(RFC952_hostname);
 #else
 
-  #if !( USING_ESP32_S2 || USING_ESP32_C3 )
+  // Check cores/esp32/esp_arduino_version.h and cores/esp32/core_version.h
+  //#if ( ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0) )  //(ESP_ARDUINO_VERSION_MAJOR >= 2)
+  #if ( defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 2) )
+      WiFi.setHostname(RFC952_hostname);
+  #else     
+      // Still have bug in ESP32_S2 for old core. If using WiFi.setHostname() => WiFi.localIP() always = 255.255.255.255
+      if ( String(ARDUINO_BOARD) != "ESP32S2_DEV" )
+      {
         // See https://github.com/espressif/arduino-esp32/issues/2537
         WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
         WiFi.setHostname(RFC952_hostname);
-  #endif      
+      } 
+   #endif    
 #endif        
       }
     }
+
 
 #if USE_ESP_WIFIMANAGER_NTP
     
