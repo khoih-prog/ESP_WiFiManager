@@ -4511,7 +4511,7 @@ Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiF
 15. Thanks to [energise](https://github.com/energise) to report the issue in [Invalid Json generated #60](https://github.com/khoih-prog/ESP_WiFiManager/issues/60) leading to new v1.7.1
 16. Thanks to [eth0up](https://github.com/eth0up) to make the PR [Add support for Wifi hidden SSID scanning. #66](https://github.com/khoih-prog/ESP_WiFiManager/pull/66) leading to v1.7.4
 17. Thanks to [Dean Ott](https://github.com/deanjott) for reporting [WiFiManager works only on port 80 #75](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues/75) and providing the solution leading to v1.7.8
-18. Thanks to [Twaste](https://github.com/Twaste) for initiate the discussion in [Different behaviour using the src_cpp or src_h lib #80](https://github.com/khoih-prog/ESPAsync_WiFiManager/discussions/80) and providing the idea to the solution, to fix `multiple-definitions` linker error, leading to v1.8.0
+18. Thanks to [Twaste](https://github.com/Twaste) for initiating the discussion in [Different behaviour using the src_cpp or src_h lib #80](https://github.com/khoih-prog/ESPAsync_WiFiManager/discussions/80) and providing the idea to the solution, to fix `multiple-definitions` linker error, leading to v1.8.0
 
 
 <table>
