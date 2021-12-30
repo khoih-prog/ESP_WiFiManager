@@ -15,7 +15,8 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.7.8
+  
+  Version: 1.8.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -55,6 +56,7 @@
   1.7.6   K Hoang      26/11/2021 Auto detect ESP32 core and use either built-in LittleFS or LITTLEFS library
   1.7.7   K Hoang      26/11/2021 Fix compile error for ESP32 core v1.0.5-
   1.7.8   K Hoang      30/11/2021 Fix bug to permit using HTTP port different from 80. Fix bug
+  1.8.0  K Hoang       29/12/2021 Fix `multiple-definitions` linker error and weird bug related to src_cpp
  *****************************************************************************************************************************/
 
 #pragma once
@@ -85,7 +87,7 @@ ESP_WMParameter::ESP_WMParameter(const char *id, const char *placeholder, const 
 
 //////////////////////////////////////////
 // New in v1.4.0
-ESP_WMParameter::ESP_WMParameter(WMParam_Data WMParam_data)
+ESP_WMParameter::ESP_WMParameter(const WMParam_Data& WMParam_data)
 {
   init(WMParam_data._id, WMParam_data._placeholder, WMParam_data._value, WMParam_data._length, "", WMParam_data._labelPlacement);
 }                  
@@ -127,7 +129,7 @@ ESP_WMParameter::~ESP_WMParameter()
 //////////////////////////////////////////
 // New in v1.4.0
 // Using Struct to get/set whole data at once
-void ESP_WMParameter::setWMParam_Data(WMParam_Data WMParam_data)
+void ESP_WMParameter::setWMParam_Data(const WMParam_Data& WMParam_data)
 {
   LOGINFO(F("setWMParam_Data"));
   
@@ -731,7 +733,7 @@ int ESP_WiFiManager::reconnectWifi()
 
 //////////////////////////////////////////
 
-int ESP_WiFiManager::connectWifi(String ssid, String pass)
+int ESP_WiFiManager::connectWifi(const String& ssid, const String& pass)
 {
   //KH, from v1.0.10.
   // Add option if didn't input/update SSID/PW => Use the previous saved Credentials.
@@ -962,7 +964,7 @@ int ESP_WiFiManager::setConfigPortalChannel(int channel)
 
 //////////////////////////////////////////
 
-void ESP_WiFiManager::setAPStaticIPConfig(IPAddress ip, IPAddress gw, IPAddress sn)
+void ESP_WiFiManager::setAPStaticIPConfig(const IPAddress& ip, const IPAddress& gw, const IPAddress& sn)
 {
   LOGINFO(F("setAPStaticIPConfig"));
   _WiFi_AP_IPconfig._ap_static_ip = ip;
@@ -973,7 +975,7 @@ void ESP_WiFiManager::setAPStaticIPConfig(IPAddress ip, IPAddress gw, IPAddress 
 //////////////////////////////////////////
 
 // New in v1.4.0
-void ESP_WiFiManager::setAPStaticIPConfig(WiFi_AP_IPConfig  WM_AP_IPconfig)
+void ESP_WiFiManager::setAPStaticIPConfig(const WiFi_AP_IPConfig&  WM_AP_IPconfig)
 {
   LOGINFO(F("setAPStaticIPConfig"));
   
@@ -991,7 +993,7 @@ void ESP_WiFiManager::getAPStaticIPConfig(WiFi_AP_IPConfig  &WM_AP_IPconfig)
 //////
 //////////////////////////////////////////
 
-void ESP_WiFiManager::setSTAStaticIPConfig(IPAddress ip, IPAddress gw, IPAddress sn)
+void ESP_WiFiManager::setSTAStaticIPConfig(const IPAddress& ip, const IPAddress& gw, const IPAddress& sn)
 {
   LOGINFO(F("setSTAStaticIPConfig"));
   _WiFi_STA_IPconfig._sta_static_ip = ip;
@@ -1002,7 +1004,7 @@ void ESP_WiFiManager::setSTAStaticIPConfig(IPAddress ip, IPAddress gw, IPAddress
 //////////////////////////////////////////
 // New in v1.4.0
 
-void ESP_WiFiManager::setSTAStaticIPConfig(WiFi_STA_IPConfig WM_STA_IPconfig)
+void ESP_WiFiManager::setSTAStaticIPConfig(const WiFi_STA_IPConfig& WM_STA_IPconfig)
 {
   LOGINFO(F("setSTAStaticIPConfig"));
   
@@ -1021,7 +1023,8 @@ void ESP_WiFiManager::getSTAStaticIPConfig(WiFi_STA_IPConfig &WM_STA_IPconfig)
 //////////////////////////////////////////
 
 #if USE_CONFIGURABLE_DNS
-void ESP_WiFiManager::setSTAStaticIPConfig(IPAddress ip, IPAddress gw, IPAddress sn, IPAddress dns_address_1, IPAddress dns_address_2)
+void ESP_WiFiManager::setSTAStaticIPConfig(const IPAddress& ip, const IPAddress& gw, const IPAddress& sn, 
+                                           const IPAddress& dns_address_1, const IPAddress& dns_address_2)
 {
   LOGINFO(F("setSTAStaticIPConfig for USE_CONFIGURABLE_DNS"));
   _WiFi_STA_IPconfig._sta_static_ip = ip;
@@ -2039,7 +2042,7 @@ int ESP_WiFiManager::getRSSIasQuality(int RSSI)
 //////////////////////////////////////////
 
 /** Is this an IP? */
-bool ESP_WiFiManager::isIp(String str)
+bool ESP_WiFiManager::isIp(const String& str)
 {
   for (unsigned int i = 0; i < str.length(); i++)
   {
@@ -2056,7 +2059,7 @@ bool ESP_WiFiManager::isIp(String str)
 //////////////////////////////////////////
 
 /** IP to String? */
-String ESP_WiFiManager::toStringIp(IPAddress ip)
+String ESP_WiFiManager::toStringIp(const IPAddress& ip)
 {
   String res = "";
   for (int i = 0; i < 3; i++)

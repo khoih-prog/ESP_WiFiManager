@@ -15,7 +15,8 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.7.8
+  
+  Version: 1.8.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -55,6 +56,7 @@
   1.7.6   K Hoang      26/11/2021 Auto detect ESP32 core and use either built-in LittleFS or LITTLEFS library
   1.7.7   K Hoang      26/11/2021 Fix compile error for ESP32 core v1.0.5-
   1.7.8   K Hoang      30/11/2021 Fix bug to permit using HTTP port different from 80. Fix bug
+  1.8.0  K Hoang       29/12/2021 Fix `multiple-definitions` linker error and weird bug related to src_cpp
  *****************************************************************************************************************************/
 
 #pragma once

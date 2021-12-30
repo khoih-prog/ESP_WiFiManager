@@ -10,7 +10,8 @@
 #else  
   #error This code is intended to run on the ESP32 platform! Please check your Tools->Board setting.  
 #endif
-#include <ESP_WiFiManager.h>                    //https://github.com/khoih-prog/ESP_WiFiManager
+#include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
+#include <ESP_WiFiManager-Impl.h>         //https://github.com/khoih-prog/ESP_WiFiManager
 #define DRD_TIMEOUT             10
 #define DRD_ADDRESS             0
 #include <ESP_DoubleResetDetector.h>            //https://github.com/khoih-prog/ESP_DoubleResetDetector

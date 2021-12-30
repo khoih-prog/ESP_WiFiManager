@@ -15,7 +15,8 @@
 
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
-  Version: 1.7.8
+  
+  Version: 1.8.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -55,6 +56,7 @@
   1.7.6   K Hoang      26/11/2021 Auto detect ESP32 core and use either built-in LittleFS or LITTLEFS library
   1.7.7   K Hoang      26/11/2021 Fix compile error for ESP32 core v1.0.5-
   1.7.8   K Hoang      30/11/2021 Fix bug to permit using HTTP port different from 80. Fix bug
+  1.8.0  K Hoang       29/12/2021 Fix `multiple-definitions` linker error and weird bug related to src_cpp
  *****************************************************************************************************************************/
 
 #pragma once
@@ -76,7 +78,13 @@
   #define USING_ESP32_C3        true
 #endif
 
-#define ESP_WIFIMANAGER_VERSION     "ESP_WiFiManager v1.7.8"
+#define ESP_WIFIMANAGER_VERSION           "ESP_WiFiManager v1.8.0"
+
+#define ESP_WIFIMANAGER_VERSION_MAJOR     1
+#define ESP_WIFIMANAGER_VERSION_MINOR     8
+#define ESP_WIFIMANAGER_VERSION_PATCH     0
+
+#define ESP_WIFIMANAGER_VERSION_INT      1008000
 
 #include "ESP_WiFiManager_Debug.h"
 
@@ -282,19 +290,17 @@ class ESP_WMParameter
 {
   public:
     ESP_WMParameter(const char *custom);
-    //ESP_WMParameter(const char *id, const char *placeholder, const char *defaultValue, int length);
-    //ESP_WMParameter(const char *id, const char *placeholder, const char *defaultValue, int length, const char *custom);
     ESP_WMParameter(const char *id, const char *placeholder, const char *defaultValue, int length, 
                     const char *custom = "", int labelPlacement = WFM_LABEL_BEFORE);
     
     // New in v1.4.0              
-    ESP_WMParameter(WMParam_Data WMParam_data);                      
+    ESP_WMParameter(const WMParam_Data& WMParam_data);                   
     //////
                    
     ~ESP_WMParameter();
     
     // New in v1.4.0
-    void setWMParam_Data(WMParam_Data WMParam_data);
+    void setWMParam_Data(const WMParam_Data& WMParam_data);
     void getWMParam_Data(WMParam_Data &WMParam_data);
     //////
 
@@ -307,15 +313,7 @@ class ESP_WMParameter
     
   private:
   
-#if 1
     WMParam_Data _WMParam_data;
-#else  
-    const char *_id;
-    const char *_placeholder;
-    char       *_value;
-    int         _length;
-    int         _labelPlacement;
-#endif
     
     const char *_customHTML;
 
@@ -376,24 +374,24 @@ class ESP_WiFiManager
     //////
     
     //sets a custom ip /gateway /subnet configuration
-    void          setAPStaticIPConfig(IPAddress ip, IPAddress gw, IPAddress sn);
+    void          setAPStaticIPConfig(const IPAddress& ip, const IPAddress& gw, const IPAddress& sn);
     
     // New in v1.4.0
-    void          setAPStaticIPConfig(WiFi_AP_IPConfig  WM_AP_IPconfig);
+    void          setAPStaticIPConfig(const WiFi_AP_IPConfig&  WM_AP_IPconfig);
     void          getAPStaticIPConfig(WiFi_AP_IPConfig  &WM_AP_IPconfig);
     //////
     
     //sets config for a static IP
-    void          setSTAStaticIPConfig(IPAddress ip, IPAddress gw, IPAddress sn);
+    void          setSTAStaticIPConfig(const IPAddress& ip, const IPAddress& gw, const IPAddress& sn);
     
     // New in v1.4.0
-    void          setSTAStaticIPConfig(WiFi_STA_IPConfig  WM_STA_IPconfig);
+    void          setSTAStaticIPConfig(const WiFi_STA_IPConfig&  WM_STA_IPconfig);
     void          getSTAStaticIPConfig(WiFi_STA_IPConfig  &WM_STA_IPconfig);
     //////
     
 #if USE_CONFIGURABLE_DNS
-    void          setSTAStaticIPConfig(IPAddress ip, IPAddress gw, IPAddress sn,
-                                       IPAddress dns_address_1, IPAddress dns_address_2);
+    void          setSTAStaticIPConfig(const IPAddress& ip, const IPAddress& gw, const IPAddress& sn,
+                                       const IPAddress& dns_address_1, const IPAddress& dns_address_2);
 #endif
 
     //called when AP mode and config portal is started
@@ -546,7 +544,7 @@ class ESP_WiFiManager
       return _timezoneName;
     }
 
-    void setTimezoneName(String& inTimezoneName) 
+    void setTimezoneName(const String& inTimezoneName) 
     {  
       _timezoneName = inTimezoneName;
     }
@@ -581,7 +579,7 @@ class ESP_WiFiManager
     }
     
     
-    const char * getTZ(String& timezoneName)
+    const char * getTZ(const String& timezoneName)
     {
       return getTZ(timezoneName.c_str());      
     }
@@ -671,7 +669,7 @@ class ESP_WiFiManager
     //////
     
     // New v1.0.11
-    int           connectWifi(String ssid = "", String pass = "");
+    int           connectWifi(const String& ssid = "", const String& pass = "");
     //////
     
     uint8_t       waitForConnectResult();
@@ -694,8 +692,8 @@ class ESP_WiFiManager
 
     //helpers
     int           getRSSIasQuality(int RSSI);
-    bool          isIp(String str);
-    String        toStringIp(IPAddress ip);
+    bool          isIp(const String& str);
+    String        toStringIp(const IPAddress& ip);
 
     bool          connect;
     bool          stopConfigPortal = false;
@@ -724,8 +722,6 @@ class ESP_WiFiManager
       return false;
     }
 };
-
-#include "ESP_WiFiManager-Impl.h"
 
 #endif    // ESP_WiFiManager_h
 

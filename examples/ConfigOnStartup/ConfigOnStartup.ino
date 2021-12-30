@@ -33,7 +33,8 @@
   #error This code is intended to run only on the ESP8266 and ESP32 boards ! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET     "ESP_WiFiManager v1.7.8"
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.8.0"
+#define ESP_WIFIMANAGER_VERSION_MIN             1008000
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -283,6 +284,7 @@ IPAddress APStaticSN  = IPAddress(255, 255, 255, 0);
 //#define HTTP_PORT     8080
 
 #include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
+#include <ESP_WiFiManager-Impl.h>         //https://github.com/khoih-prog/ESP_WiFiManager
 
 // Onboard LED I/O pin on NodeMCU board
 const int PIN_LED = 2; // D4 on NodeMCU and WeMos. GPIO2/ADC12 of ESP32. Controls the onboard LED.
@@ -631,11 +633,13 @@ void setup()
   Serial.print(F(" on ")); Serial.println(ARDUINO_BOARD);
   Serial.println(ESP_WIFIMANAGER_VERSION);
 
-  if ( String(ESP_WIFIMANAGER_VERSION) < ESP_WIFIMANAGER_VERSION_MIN_TARGET )
+#if defined(ESP_WIFIMANAGER_VERSION_MIN)
+  if (ESP_WIFIMANAGER_VERSION_INT < ESP_WIFIMANAGER_VERSION_MIN)
   {
-    Serial.print(F("Warning. Must use this example on Version equal or later than : "));
+    Serial.print("Warning. Must use this example on Version later than : ");
     Serial.println(ESP_WIFIMANAGER_VERSION_MIN_TARGET);
   }
+#endif
 
   Serial.setDebugOutput(false);
 
