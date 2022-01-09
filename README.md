@@ -12,6 +12,7 @@
 
 ## Table of Contents
 
+* [Important Breaking Change from v1.8.0](#Important-Breaking-Change-from-v180)
 * [Important Note](#important-note)
   * [Why do we need the new Async ESPAsync_WiFiManager library](#why-do-we-need-the-new-async-espasync_wifimanager-library)
 * [Why do we need this ESP_WiFiManager library](#why-do-we-need-this-esp_wifimanager-library)
@@ -145,6 +146,28 @@
 * [Contributing](#contributing)
 * [License and credits](#license-and-credits)
 * [Copyright](#copyright)
+
+---
+---
+
+### Important Breaking Change from v1.8.0
+
+Please have a look at [HOWTO Fix `Multiple Definitions` Linker Error](#howto-fix-multiple-definitions-linker-error)
+
+From v1.8.0, you must use
+
+```
+#include <ESP_WiFiManager.h>               //https://github.com/khoih-prog/ESP_WiFiManager
+
+// To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
+#include <ESP_WiFiManager-Impl.h>          //https://github.com/khoih-prog/ESP_WiFiManager
+```
+
+instead of only
+
+```
+#include <ESP_WiFiManager.h>               //https://github.com/khoih-prog/ESP_WiFiManager
+```
 
 ---
 ---
@@ -293,6 +316,7 @@ You can use
 in many files. But be sure to use the following `#include <ESP_WiFiManager-Impl.h>` **in just 1 `.h`, `.cpp` or `.ino` file**, which must **not be included in any other file**, to avoid `Multiple Definitions` Linker Error
 
 ```
+// To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
 #include <ESP_WiFiManager-Impl.h>          //https://github.com/khoih-prog/ESP_WiFiManager
 ```
 
