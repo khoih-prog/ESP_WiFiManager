@@ -342,8 +342,7 @@ extern IPAddress APStaticSN;    //  = IPAddress(255, 255, 255, 0);
 // Must be placed before #include <ESP_WiFiManager.h>, or default port 80 will be used
 //#define HTTP_PORT     8080
 
-#include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
-//#include <ESP_WiFiManager-Impl.h>         //https://github.com/khoih-prog/ESP_WiFiManager
+#include <ESP_WiFiManager.hpp>              //https://github.com/khoih-prog/ESP_WiFiManager
 
 // Function Prototypes
 uint8_t connectMultiWiFi();

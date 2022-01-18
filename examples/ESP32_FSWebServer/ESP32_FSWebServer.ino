@@ -39,8 +39,8 @@
   #error This code is intended to run on the ESP32 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.8.0"
-#define ESP_WIFIMANAGER_VERSION_MIN             1008000
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.9.0"
+#define ESP_WIFIMANAGER_VERSION_MIN             1009000
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -240,7 +240,9 @@ IPAddress APStaticSN  = IPAddress(255, 255, 255, 0);
 //#define HTTP_PORT     8080
 
 #include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
-#include <ESP_WiFiManager-Impl.h>         //https://github.com/khoih-prog/ESP_WiFiManager
+
+// Redundant, for v1.8.0 only
+//#include <ESP_WiFiManager-Impl.h>         //https://github.com/khoih-prog/ESP_WiFiManager
 
 const char* host = "esp32-fs-browser";
 

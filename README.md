@@ -13,6 +13,8 @@
 ## Table of Contents
 
 * [Important Breaking Change from v1.8.0](#Important-Breaking-Change-from-v180)
+  * [For v1.9.0 and up](#For-v190-and-up)
+  * [For v1.8.0 only](#For-v180-only)
 * [Important Note](#important-note)
   * [Why do we need the new Async ESPAsync_WiFiManager library](#why-do-we-need-the-new-async-espasync_wifimanager-library)
 * [Why do we need this ESP_WiFiManager library](#why-do-we-need-this-esp_wifimanager-library)
@@ -151,6 +153,46 @@
 ---
 
 ### Important Breaking Change from v1.8.0
+
+#### For v1.9.0 and up
+
+Please have a look at [HOWTO Fix `Multiple Definitions` Linker Error](#howto-fix-multiple-definitions-linker-error)
+
+From v1.9.0, you just use
+
+```
+#include <ESP_WiFiManager.h>               //https://github.com/khoih-prog/ESP_WiFiManager
+```
+
+instead of both
+
+```
+#include <ESP_WiFiManager.h>               //https://github.com/khoih-prog/ESP_WiFiManager
+
+// To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
+#include <ESP_WiFiManager-Impl.h>          //https://github.com/khoih-prog/ESP_WiFiManager
+```
+
+
+For complex project having `Multiple Definitions Linker Error` issue, you can use in many files (**Be careful**: `.hpp`, not `.h`)
+
+```
+#include <ESP_WiFiManager.hpp>             //https://github.com/khoih-prog/ESP_WiFiManager
+```
+
+but only in main(), .ino with setup() to avoid `Multiple Definitions Linker Error`
+
+
+```
+#include <ESP_WiFiManager.h>               //https://github.com/khoih-prog/ESP_WiFiManager
+```
+
+---
+
+
+#### For v1.8.0 only
+
+It's advisable to use v1.9.0+
 
 Please have a look at [HOWTO Fix `Multiple Definitions` Linker Error](#howto-fix-multiple-definitions-linker-error)
 
@@ -310,14 +352,14 @@ The current library implementation, using `xyz-Impl.h` instead of standard `xyz.
 You can use
 
 ```
-#include <ESP_WiFiManager.h>               //https://github.com/khoih-prog/ESP_WiFiManager
+#include <ESP_WiFiManager.hpp>               //https://github.com/khoih-prog/ESP_WiFiManager
 ```
 
-in many files. But be sure to use the following `#include <ESP_WiFiManager-Impl.h>` **in just 1 `.h`, `.cpp` or `.ino` file**, which must **not be included in any other file**, to avoid `Multiple Definitions` Linker Error
+in many files. But be sure to use the following `#include <ESP_WiFiManager.h>` **in just 1 `.h`, `.cpp` or `.ino` file**, which must **not be included in any other file**, to avoid `Multiple Definitions` Linker Error
 
 ```
 // To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
-#include <ESP_WiFiManager-Impl.h>          //https://github.com/khoih-prog/ESP_WiFiManager
+#include <ESP_WiFiManager.h>                //https://github.com/khoih-prog/ESP_WiFiManager
 ```
 
 Check [ConfigOnDoubleReset_Multi](examples/ConfigOnDoubleReset_Multi) for an example how and where to do so.
@@ -2151,8 +2193,8 @@ ESP_wifiManager.setRemoveDuplicateAPs(false);
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.8.0"
-#define ESP_WIFIMANAGER_VERSION_MIN             1008000
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.9.0"
+#define ESP_WIFIMANAGER_VERSION_MIN             1009000
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -2492,7 +2534,9 @@ IPAddress APStaticSN  = IPAddress(255, 255, 255, 0);
 //#define HTTP_PORT     8080
 
 #include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
-#include <ESP_WiFiManager-Impl.h>         //https://github.com/khoih-prog/ESP_WiFiManager
+
+// Redundant, for v1.8.0 only
+//#include <ESP_WiFiManager-Impl.h>         //https://github.com/khoih-prog/ESP_WiFiManager
 
 #define HTTP_PORT           80
 
@@ -3521,7 +3565,7 @@ This is terminal debug output when running [ConfigOnSwitchFS_MQTT_Ptr](examples/
 
 ```
 Starting ConfigOnSwichFS_MQTT_Ptr using LittleFS on ESP8266_NODEMCU_ESP12E
-ESP_WiFiManager v1.8.0
+ESP_WiFiManager v1.9.0
 Configuration file not found
 Failed to read configuration file, using default values
 [WM] RFC925 Hostname = ConfigOnSwichFS-MQTT
@@ -3633,7 +3677,7 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```cpp
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using SPIFFS on ESP32_DEV
-ESP_WiFiManager v1.8.0
+ESP_WiFiManager v1.9.0
 ESP_DoubleResetDetector v1.2.1
 FS File: /ConfigSW.json, size: 150B
 FS File: /CanadaFlag_1.png, size: 40.25KB
@@ -3698,7 +3742,7 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.8.0
+ESP_WiFiManager v1.9.0
 ESP_DoubleResetDetector v1.2.1
 FS File: /CanadaFlag_1.png, size: 40.25KB
 FS File: /CanadaFlag_2.png, size: 8.12KB
@@ -3757,7 +3801,7 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.8.0
+ESP_WiFiManager v1.9.0
 ESP_DoubleResetDetector v1.2.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3800,7 +3844,7 @@ WWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.8.0
+ESP_WiFiManager v1.9.0
 ESP_DoubleResetDetector v1.2.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3885,7 +3929,7 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU_ESP12E
-ESP_WiFiManager v1.8.0
+ESP_WiFiManager v1.9.0
 ESP_DoubleResetDetector v1.2.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -3925,7 +3969,7 @@ TWWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU_ESP12E
-ESP_WiFiManager v1.8.0
+ESP_WiFiManager v1.9.0
 ESP_DoubleResetDetector v1.2.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -4002,7 +4046,7 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
-ESP_WiFiManager v1.8.0
+ESP_WiFiManager v1.9.0
 ESP_DoubleResetDetector v1.2.1
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] setAPStaticIPConfig
@@ -4052,7 +4096,7 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.8.0
+ESP_WiFiManager v1.9.0
 ESP_DoubleResetDetector v1.2.1
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
@@ -4162,7 +4206,7 @@ Local Date/Time: Thu May  6 21:29:18 2021
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.8.0
+ESP_WiFiManager v1.9.0
 ESP_DoubleResetDetector v1.2.1
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
@@ -4213,7 +4257,7 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
-ESP_WiFiManager v1.8.0
+ESP_WiFiManager v1.9.0
 ESP_DoubleResetDetector v1.2.1
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
@@ -4359,7 +4403,7 @@ Local Date/Time: Thu May  6 21:29:18 2021
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
-ESP_WiFiManager v1.8.0
+ESP_WiFiManager v1.9.0
 ESP_DoubleResetDetector v1.2.1
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
@@ -4412,7 +4456,7 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using SPIFFS on ESP32C3_DEV
-ESP_WiFiManager v1.8.0
+ESP_WiFiManager v1.9.0
 ESP_DoubleResetDetector v1.2.1
 FS File: wm_cp.dat, size: 4B
 FS File: wm_cp.bak, size: 4B

@@ -13,6 +13,7 @@
 ## Table of Contents
 
 * [Changelog](#changelog)
+  * [Releases v1.9.0](#releases-v190)
   * [Releases v1.8.0](#releases-v180)
   * [Releases v1.7.8](#releases-v178)
   * [Releases v1.7.7](#releases-v177)
@@ -49,6 +50,11 @@
 
 
 ## Changelog
+
+### Releases v1.9.0
+
+1. Reduce the breaking effect of v1.8.0 by enabling compatibility with old code to include only `ESP_WiFiManager.h`. Check [Important Breaking Change from v1.8.0](https://github.com/khoih-prog/ESP_WiFiManager#Important-Breaking-Change-from-v180)
+
 
 ### Releases v1.8.0
 

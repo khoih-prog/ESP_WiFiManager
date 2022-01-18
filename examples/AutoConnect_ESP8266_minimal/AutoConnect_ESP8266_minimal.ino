@@ -9,7 +9,9 @@
 #endif
 #define _WIFIMGR_LOGLEVEL_    4  // 0-4 where 4 is the highest verbosity level
 #include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
-#include <ESP_WiFiManager-Impl.h>         //https://github.com/khoih-prog/ESP_WiFiManager
+
+// Redundant, for v1.8.0 only
+//#include <ESP_WiFiManager-Impl.h>         //https://github.com/khoih-prog/ESP_WiFiManager
 
 void setup()
 {
