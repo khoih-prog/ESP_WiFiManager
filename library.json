@@ -37,6 +37,7 @@
       "platforms": ["espressif32"]
     }
   ],
+  "license": "MIT",
   "frameworks": "*",
   "platforms": ["espressif8266", "espressif32"],
   "examples": "examples/*/*/*.ino",
