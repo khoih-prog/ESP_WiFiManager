@@ -1006,7 +1006,7 @@
 
 #if 1
 
-const char TZ_NAME[][TIMEZONE_MAX_LEN] /*PROGMEM*/ =
+static const char TZ_NAME[][TIMEZONE_MAX_LEN] /*PROGMEM*/ =
 {
 #if USING_AFRICA
   "Africa/Abidjan",             //PSTR("GMT0")
@@ -1503,7 +1503,7 @@ const char TZ_NAME[][TIMEZONE_MAX_LEN] /*PROGMEM*/ =
 
 ////////////////////////////////////////////////////////////
 
-const char ESP_TZ_NAME[][TIMEZONE_MAX_LEN] /*PROGMEM*/ =
+static const char ESP_TZ_NAME[][TIMEZONE_MAX_LEN] /*PROGMEM*/ =
 {
 #if USING_AFRICA
   TZ_Africa_Abidjan,  //PSTR("GMT0")
@@ -2002,7 +2002,7 @@ const char ESP_TZ_NAME[][TIMEZONE_MAX_LEN] /*PROGMEM*/ =
 
 
 #else
-const char TZ_NAME[][TIMEZONE_MAX_LEN] =
+static const char TZ_NAME[][TIMEZONE_MAX_LEN] =
 {
   "Pacific/Pago_Pago",
   "America/Adak",
@@ -2075,7 +2075,7 @@ const char TZ_NAME[][TIMEZONE_MAX_LEN] =
 
 ////////////////////////////////////////////////////////////
 
-const char ESP_TZ_NAME[][TIMEZONE_MAX_LEN] =
+static const char ESP_TZ_NAME[][TIMEZONE_MAX_LEN] =
 {
   TZ_Pacific_Pago_Pago,                   //PSTR("SST11")
   TZ_America_Adak,                        //PSTR("HST10HDT,M3.2.0,M11.1.0")

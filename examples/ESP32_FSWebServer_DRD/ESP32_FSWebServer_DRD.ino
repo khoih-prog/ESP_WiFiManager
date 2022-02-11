@@ -37,10 +37,13 @@
 *****************************************************************************************************************************/
 #if !defined(ESP32)
   #error This code is intended to run on the ESP32 platform! Please check your Tools->Board setting.
+#elif ( defined(ARDUINO_ESP32S3_DEV) || defined(ARDUINO_ESP32_S3_BOX) || defined(ARDUINO_TINYS3) || \
+        defined(ARDUINO_PROS3) || defined(ARDUINO_FEATHERS3) )
+  #error ESP32_S3 is not supported yet
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.9.0"
-#define ESP_WIFIMANAGER_VERSION_MIN             1009000
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.10.0"
+#define ESP_WIFIMANAGER_VERSION_MIN             1010000
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3

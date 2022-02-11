@@ -29,7 +29,7 @@ Please ensure to specify the following:
 Arduino IDE version: 1.8.19
 ESP8266 Core Version 3.0.2
 OS: Ubuntu 20.04 LTS
-Linux Inspiron 5.4.0-94-generic #106-Ubuntu SMP Thu Jan 6 23:58:14 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux
+Linux xy-Inspiron-3593 5.4.0-99-generic #112-Ubuntu SMP Thu Feb 3 13:50:55 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux
 
 Context:
 I encountered an endless loop while trying to connect to Local WiFi.
@@ -50,3 +50,4 @@ There are usually some outstanding feature requests in the [existing issues list
 ### Sending Pull Requests
 
 Pull Requests with changes and fixes are also welcome!
+

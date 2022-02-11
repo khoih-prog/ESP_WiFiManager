@@ -8,7 +8,7 @@
 [![star this repo](https://githubbadges.com/star.svg?user=khoih-prog&repo=ESP_WiFiManager&style=default)](https://github.com/khoih-prog/ESP_WiFiManager)
 
 
-<a href="https://www.buymeacoffee.com/khoihprog6" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+<a href="https://www.buymeacoffee.com/khoihprog6" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 50px !important;width: 181px !important;" ></a>
 
 ---
 ---
@@ -144,6 +144,7 @@
     * [8.2 Data Saved => Connect to WiFi with correct local time, TZ set and using NTP](#82-data-saved--connect-to-wifi-with-correct-local-time-tz-set-and-using-ntp)
     * [8.3 Normal running with correct local time, TZ set and using NTP](#83-normal-running-with-correct-local-time-tz-set-and-using-ntp)
   * [9. ESP32_FSWebServer_DRD on ESP32C3_DEV using SPIFFS](#9-esp32_fswebserver_drd-on-esp32c3_dev-using-spiffs)
+  * [10. ConfigOnDoubleReset on ESP32S3_DEV](#10-configondoublereset-on-esp32s3_dev)
 * [Debug](#debug)
 * [Troubleshooting](#troubleshooting)
 * [Issues](#issues)
@@ -269,6 +270,7 @@ This [**ESP_WiFiManager** library](https://github.com/khoih-prog/ESP_WiFiManager
  1. **ESP8266 and ESP32-based boards using EEPROM, SPIFFS or LittleFS**.
  2. **ESP32-S2 (ESP32-S2 Saola, AI-Thinker ESP-12K, etc.) using EEPROM, SPIFFS or LittleFS**.
  3. **ESP32-C3 (ARDUINO_ESP32C3_DEV) using EEPROM or SPIFFS**.
+ 4. **ESP32-S3 (ESP32S3_DEV, ESP32_S3_BOX, UM TINYS3, UM PROS3, UM FEATHERS3, etc.) using EEPROM, SPIFFS or LittleFS**.
  
 ---
 
@@ -291,8 +293,8 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
  1. [`Arduino IDE 1.8.19+` for Arduino](https://github.com/arduino/Arduino). [![GitHub release](https://img.shields.io/github/release/arduino/Arduino.svg)](https://github.com/arduino/Arduino/releases/latest)
  2. [`ESP8266 Core 3.0.2+`](https://github.com/esp8266/Arduino) for ESP8266-based boards. [![Latest release](https://img.shields.io/github/release/esp8266/Arduino.svg)](https://github.com/esp8266/Arduino/releases/latest/). To use ESP8266 core 2.7.1+ for LittleFS.
  3. [`ESP32 Core 2.0.2+`](https://github.com/espressif/arduino-esp32) for ESP32-based boards. [![Latest release](https://img.shields.io/github/release/espressif/arduino-esp32.svg)](https://github.com/espressif/arduino-esp32/releases/latest/)
- 4. [`ESP_DoubleResetDetector v1.2.1+`](https://github.com/khoih-prog/ESP_DoubleResetDetector) if using DRD feature. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_DoubleResetDetector.svg?)](https://www.ardu-badge.com/ESP_DoubleResetDetector). Use v1.1.0+ if using LittleFS for ESP32.
- 5. [`ESP_MultiResetDetector v1.2.1+`](https://github.com/khoih-prog/ESP_MultiResetDetector) if using MRD feature. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_MultiResetDetector.svg?)](https://www.ardu-badge.com/ESP_MultiResetDetector).
+ 4. [`ESP_DoubleResetDetector v1.3.0+`](https://github.com/khoih-prog/ESP_DoubleResetDetector) if using DRD feature. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_DoubleResetDetector.svg?)](https://www.ardu-badge.com/ESP_DoubleResetDetector). Use v1.1.0+ if using LittleFS for ESP32.
+ 5. [`ESP_MultiResetDetector v1.3.0+`](https://github.com/khoih-prog/ESP_MultiResetDetector) if using MRD feature. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_MultiResetDetector.svg?)](https://www.ardu-badge.com/ESP_MultiResetDetector).
  6. [`LittleFS_esp32 v1.0.6+`](https://github.com/lorol/LITTLEFS) for ESP32-based boards using LittleFS with ESP32 core v1.0.5-. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/LittleFS_esp32.svg?)](https://www.ardu-badge.com/LittleFS_esp32). **Notice**: This [`LittleFS_esp32 library`](https://github.com/lorol/LITTLEFS) has been integrated to Arduino [ESP32 core v1.0.6+](https://github.com/espressif/arduino-esp32/tree/master/libraries/LITTLEFS) and you don't need to install it if using ESP32 core v1.0.6+
 
 ---
@@ -314,7 +316,7 @@ The best and easiest way is to use `Arduino Library Manager`. Search for `ESP_Wi
 
 1. Install [VS Code](https://code.visualstudio.com/)
 2. Install [PlatformIO](https://platformio.org/platformio-ide)
-3. Install [**Latest ESP_WiFiManager** library](https://platformio.org/lib/show/11301/ESP_WiFiManager) by using [Library Manager](https://platformio.org/lib/show/11301/ESP_WiFiManager/installation). Search for **ESP_WiFiManager** in [Platform.io Author's Libraries](https://platformio.org/lib/search?query=author:%22Khoi%20Hoang%22)
+3. Install [**Latest ESP_WiFiManager** library](https://registry.platformio.org/libraries/khoih-prog/ESP_WiFiManager) by using [Library Manager](https://registry.platformio.org/libraries/khoih-prog/ESP_WiFiManager/installation). Search for **ESP_WiFiManager** in [Platform.io Author's Libraries](https://platformio.org/lib/search?query=author:%22Khoi%20Hoang%22)
 4. Use included [platformio.ini](platformio/platformio.ini) file from examples to ensure that all dependent libraries will installed automatically. Please visit documentation for the other options and examples at [Project Configuration File](https://docs.platformio.org/page/projectconf.html)
 
 ---
@@ -2196,8 +2198,8 @@ ESP_wifiManager.setRemoveDuplicateAPs(false);
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.9.0"
-#define ESP_WIFIMANAGER_VERSION_MIN             1009000
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.10.0"
+#define ESP_WIFIMANAGER_VERSION_MIN             1010000
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -4522,6 +4524,65 @@ Local Date/Time: Thu Jul 29 23:22:53 2021
 Local Date/Time: Thu Jul 29 23:23:53 2021
 ```
 
+---
+
+#### 10. [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) on ESP32S3_DEV
+
+This is terminal debug output when running [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) on **ESP32S3_DEV**.
+
+
+```
+Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S3_DEV
+ESP_WiFiManager v1.10.0
+ESP_DoubleResetDetector v1.3.0
+[WM] RFC925 Hostname = ConfigOnDoubleReset
+[WM] Set CORS Header to :  Your Access-Control-Allow-Origin
+ESP Self-Stored: SSID = HueNet1, Pass = password
+[WM] * Add SSID =  HueNet1 , PW =  password
+Got ESP Self-Stored Credentials. Timeout 120s for Config Portal
+[WM] LoadWiFiCfgFile 
+[WM] OK
+[WM] stationIP = 0.0.0.0 , gatewayIP = 192.168.2.1
+[WM] netMask = 255.255.255.0
+[WM] dns1IP = 192.168.2.1 , dns2IP = 8.8.8.8
+Got stored Credentials. Timeout 120s for Config Portal
+[WM] Current TZ_Name = America/New_York , TZ =  EST5EDT,M3.2.0,M11.1.0
+LittleFS Flag read = 0xD0D04321
+No doubleResetDetected
+Saving config file...
+Saving config file OK
+[WM] * Add SSID =  HueNet1 , PW =  password
+[WM] * Add SSID =  HueNet , PW =  password
+ConnectMultiWiFi in setup
+[WM] ConnectMultiWiFi with :
+[WM] * Flash-stored Router_SSID =  HueNet1 , Router_Pass =  password
+[WM] * Add SSID =  HueNet1 , PW =  password
+[WM] * Additional SSID =  HueNet1 , PW =  password
+[WM] * Additional SSID =  HueNet , PW =  password
+[WM] Connecting MultiWifi...
+[WM] WiFi connected after time:  1
+[WM] SSID: HueNet1 ,RSSI= -23
+[WM] Channel: 2 ,IP address: 192.168.2.83
+After waiting 7.92 secs more in setup(), connection result is connected. Local IP: 192.168.2.83
+[WM] freeing allocated params!
+Stop doubleResetDetecting
+Saving config file...
+Saving config file OK
+Local Date/Time: Thu Feb 10 23:15:26 2022
+Local Date/Time: Thu Feb 10 23:16:26 2022
+Local Date/Time: Thu Feb 10 23:17:26 2022
+Local Date/Time: Thu Feb 10 23:18:26 2022
+Local Date/Time: Thu Feb 10 23:19:26 2022
+Local Date/Time: Thu Feb 10 23:20:26 2022
+Local Date/Time: Thu Feb 10 23:21:26 2022
+Local Date/Time: Thu Feb 10 23:22:26 2022
+Local Date/Time: Thu Feb 10 23:23:26 2022
+Local Date/Time: Thu Feb 10 23:24:26 2022
+Local Date/Time: Thu Feb 10 23:25:26 2022
+Local Date/Time: Thu Feb 10 23:26:26 2022
+```
+
+---
 
 ---
 ---
