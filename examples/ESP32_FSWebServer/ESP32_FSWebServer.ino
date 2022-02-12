@@ -43,8 +43,8 @@
   #error ESP32_S3 is not supported yet
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.10.0"
-#define ESP_WIFIMANAGER_VERSION_MIN             1010000
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.10.1"
+#define ESP_WIFIMANAGER_VERSION_MIN             1010001
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -64,13 +64,13 @@ WiFiMulti wifiMulti;
 #define FORMAT_FILESYSTEM         false
 
 // LittleFS has higher priority than SPIFFS
-#if ( ARDUINO_ESP32C3_DEV )
-  // Currently, ESP32-C3 only supporting SPIFFS and EEPROM. Will fix to support LittleFS
-  #define USE_LITTLEFS          false
-  #define USE_SPIFFS            true
-#else
+#if ( defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 2) )
   #define USE_LITTLEFS    true
   #define USE_SPIFFS      false
+#elif defined(ARDUINO_ESP32C3_DEV)
+  // For core v1.0.6-, ESP32-C3 only supporting SPIFFS and EEPROM. To use v2.0.0+ for LittleFS
+  #define USE_LITTLEFS          false
+  #define USE_SPIFFS            true
 #endif
 
 #if USE_LITTLEFS
@@ -82,7 +82,7 @@ WiFiMulti wifiMulti;
   #if ( defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 2) )
     #warning Using ESP32 Core 1.0.6 or 2.0.0+
     // The library has been merged into esp32 core from release 1.0.6
-    #include <LittleFS.h>
+    #include <LittleFS.h>       // https://github.com/espressif/arduino-esp32/tree/master/libraries/LittleFS
     
     FS* filesystem =      &LittleFS;
     #define FileFS        LittleFS
@@ -90,7 +90,7 @@ WiFiMulti wifiMulti;
   #else
     #warning Using ESP32 Core 1.0.5-. You must install LITTLEFS library
     // The library has been merged into esp32 core from release 1.0.6
-    #include <LITTLEFS.h>             // https://github.com/lorol/LITTLEFS
+    #include <LITTLEFS.h>       // https://github.com/lorol/LITTLEFS
     
     FS* filesystem =      &LITTLEFS;
     #define FileFS        LITTLEFS

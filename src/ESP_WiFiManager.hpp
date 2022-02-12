@@ -16,7 +16,7 @@
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
   
-  Version: 1.10.0
+  Version: 1.10.1
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -59,6 +59,7 @@
   1.8.0   K Hoang      29/12/2021 Fix `multiple-definitions` linker error and weird bug related to src_cpp
   1.9.0   K Hoang      17/01/2022 Enable compatibility with old code to include only ESP_WiFiManager.h
   1.10.0  K Hoang      10/02/2022 Add support to new ESP32-S3
+  1.10.1  K Hoang      11/02/2022 Add LittleFS support to ESP32-C3. Use core LittleFS instead of Lorol's LITTLEFS for v2.0.0+
  *****************************************************************************************************************************/
 
 #pragma once
@@ -75,7 +76,12 @@
   #warning You have to select HUGE APP or 1.9-2.0 MB APP to be able to run Config Portal. Must use PSRAM
   #define USING_ESP32_S2        true
 #elif ( ARDUINO_ESP32C3_DEV )
-  #warning Using ESP32_C3. To follow library instructions to install esp32-c3 core. Only SPIFFS and EEPROM OK.
+  #if ( defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 2) )
+    #warning Using ESP32_C3 using core v2.0.0+. Either LittleFS, SPIFFS or EEPROM OK.
+  #else
+    #warning Using ESP32_C3 using core v1.0.6-. To follow library instructions to install esp32-c3 core. Only SPIFFS and EEPROM OK.
+  #endif
+  
   #warning You have to select Flash size 2MB and Minimal APP (1.3MB + 700KB) for some boards
   #define USING_ESP32_C3        true
 #elif ( defined(ARDUINO_ESP32S3_DEV) || defined(ARDUINO_ESP32_S3_BOX) || defined(ARDUINO_TINYS3) || \
@@ -84,13 +90,13 @@
   #define USING_ESP32_S3        true   
 #endif
 
-#define ESP_WIFIMANAGER_VERSION           "ESP_WiFiManager v1.10.0"
+#define ESP_WIFIMANAGER_VERSION           "ESP_WiFiManager v1.10.1"
 
 #define ESP_WIFIMANAGER_VERSION_MAJOR     1
 #define ESP_WIFIMANAGER_VERSION_MINOR     10
-#define ESP_WIFIMANAGER_VERSION_PATCH     0
+#define ESP_WIFIMANAGER_VERSION_PATCH     1
 
-#define ESP_WIFIMANAGER_VERSION_INT      1010000
+#define ESP_WIFIMANAGER_VERSION_INT      1010001
 
 #include "ESP_WiFiManager_Debug.h"
 

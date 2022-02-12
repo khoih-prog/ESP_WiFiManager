@@ -145,6 +145,7 @@
     * [8.3 Normal running with correct local time, TZ set and using NTP](#83-normal-running-with-correct-local-time-tz-set-and-using-ntp)
   * [9. ESP32_FSWebServer_DRD on ESP32C3_DEV using SPIFFS](#9-esp32_fswebserver_drd-on-esp32c3_dev-using-spiffs)
   * [10. ConfigOnDoubleReset on ESP32S3_DEV](#10-configondoublereset-on-esp32s3_dev)
+  * [11. ConfigOnDoubleReset using LittleFS on ESP32C3_DEV](#11-configondoublereset-using-LittleFS-on-ESP32C3_DEV)
 * [Debug](#debug)
 * [Troubleshooting](#troubleshooting)
 * [Issues](#issues)
@@ -269,7 +270,7 @@ This [**ESP_WiFiManager** library](https://github.com/khoih-prog/ESP_WiFiManager
 
  1. **ESP8266 and ESP32-based boards using EEPROM, SPIFFS or LittleFS**.
  2. **ESP32-S2 (ESP32-S2 Saola, AI-Thinker ESP-12K, etc.) using EEPROM, SPIFFS or LittleFS**.
- 3. **ESP32-C3 (ARDUINO_ESP32C3_DEV) using EEPROM or SPIFFS**.
+ 3. **ESP32-C3 (ARDUINO_ESP32C3_DEV) using EEPROM, SPIFFS or LittleFS**.
  4. **ESP32-S3 (ESP32S3_DEV, ESP32_S3_BOX, UM TINYS3, UM PROS3, UM FEATHERS3, etc.) using EEPROM, SPIFFS or LittleFS**.
  
 ---
@@ -452,8 +453,14 @@ then connect WebBrowser to configurable ConfigPortal IP address, default is 192.
   WiFiMulti wifiMulti;
 
   // LittleFS has higher priority than SPIFFS
-  #define USE_LITTLEFS    true
-  #define USE_SPIFFS      false
+  #if ( defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 2) )
+    #define USE_LITTLEFS    true
+    #define USE_SPIFFS      false
+  #elif defined(ARDUINO_ESP32C3_DEV)
+    // For core v1.0.6-, ESP32-C3 only supporting SPIFFS and EEPROM. To use v2.0.0+ for LittleFS
+    #define USE_LITTLEFS          false
+    #define USE_SPIFFS            true
+  #endif
 
   #if USE_LITTLEFS
     // Use LittleFS
@@ -464,7 +471,7 @@ then connect WebBrowser to configurable ConfigPortal IP address, default is 192.
     #if ( defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 2) )
       #warning Using ESP32 Core 1.0.6 or 2.0.0+
       // The library has been merged into esp32 core from release 1.0.6
-      #include <LittleFS.h>
+      #include <LittleFS.h>       // https://github.com/espressif/arduino-esp32/tree/master/libraries/LittleFS
       
       FS* filesystem =      &LittleFS;
       #define FileFS        LittleFS
@@ -472,7 +479,7 @@ then connect WebBrowser to configurable ConfigPortal IP address, default is 192.
     #else
       #warning Using ESP32 Core 1.0.5-. You must install LITTLEFS library
       // The library has been merged into esp32 core from release 1.0.6
-      #include <LITTLEFS.h>             // https://github.com/lorol/LITTLEFS
+      #include <LITTLEFS.h>       // https://github.com/lorol/LITTLEFS
       
       FS* filesystem =      &LITTLEFS;
       #define FileFS        LITTLEFS
@@ -2198,7 +2205,7 @@ ESP_wifiManager.setRemoveDuplicateAPs(false);
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.10.0"
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.10.1"
 #define ESP_WIFIMANAGER_VERSION_MIN             1010000
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
@@ -2224,13 +2231,13 @@ ESP_wifiManager.setRemoveDuplicateAPs(false);
   WiFiMulti wifiMulti;
 
   // LittleFS has higher priority than SPIFFS
-  #if ( ARDUINO_ESP32C3_DEV )
-    // Currently, ESP32-C3 only supporting SPIFFS and EEPROM. Will fix to support LittleFS
-    #define USE_LITTLEFS          false
-    #define USE_SPIFFS            true
-  #else
+  #if ( defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 2) )
     #define USE_LITTLEFS    true
     #define USE_SPIFFS      false
+  #elif defined(ARDUINO_ESP32C3_DEV)
+    // For core v1.0.6-, ESP32-C3 only supporting SPIFFS and EEPROM. To use v2.0.0+ for LittleFS
+    #define USE_LITTLEFS          false
+    #define USE_SPIFFS            true
   #endif
 
   #if USE_LITTLEFS
@@ -2242,7 +2249,7 @@ ESP_wifiManager.setRemoveDuplicateAPs(false);
     #if ( defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 2) )
       #warning Using ESP32 Core 1.0.6 or 2.0.0+
       // The library has been merged into esp32 core from release 1.0.6
-      #include <LittleFS.h>
+      #include <LittleFS.h>       // https://github.com/espressif/arduino-esp32/tree/master/libraries/LittleFS
       
       FS* filesystem =      &LittleFS;
       #define FileFS        LittleFS
@@ -2250,7 +2257,7 @@ ESP_wifiManager.setRemoveDuplicateAPs(false);
     #else
       #warning Using ESP32 Core 1.0.5-. You must install LITTLEFS library
       // The library has been merged into esp32 core from release 1.0.6
-      #include <LITTLEFS.h>             // https://github.com/lorol/LITTLEFS
+      #include <LITTLEFS.h>       // https://github.com/lorol/LITTLEFS
       
       FS* filesystem =      &LITTLEFS;
       #define FileFS        LITTLEFS
@@ -3570,7 +3577,7 @@ This is terminal debug output when running [ConfigOnSwitchFS_MQTT_Ptr](examples/
 
 ```
 Starting ConfigOnSwichFS_MQTT_Ptr using LittleFS on ESP8266_NODEMCU_ESP12E
-ESP_WiFiManager v1.9.0
+ESP_WiFiManager v1.10.1
 Configuration file not found
 Failed to read configuration file, using default values
 [WM] RFC925 Hostname = ConfigOnSwichFS-MQTT
@@ -3682,8 +3689,8 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```cpp
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using SPIFFS on ESP32_DEV
-ESP_WiFiManager v1.9.0
-ESP_DoubleResetDetector v1.2.1
+ESP_WiFiManager v1.10.1
+ESP_DoubleResetDetector v1.3.0
 FS File: /ConfigSW.json, size: 150B
 FS File: /CanadaFlag_1.png, size: 40.25KB
 FS File: /CanadaFlag_2.png, size: 8.12KB
@@ -3747,8 +3754,8 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.9.0
-ESP_DoubleResetDetector v1.2.1
+ESP_WiFiManager v1.10.1
+ESP_DoubleResetDetector v1.3.0
 FS File: /CanadaFlag_1.png, size: 40.25KB
 FS File: /CanadaFlag_2.png, size: 8.12KB
 FS File: /CanadaFlag_3.jpg, size: 10.89KB
@@ -3806,8 +3813,8 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.9.0
-ESP_DoubleResetDetector v1.2.1
+ESP_WiFiManager v1.10.1
+ESP_DoubleResetDetector v1.3.0
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
 LittleFS Flag read = 0xd0d04321
@@ -3849,8 +3856,8 @@ WWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.9.0
-ESP_DoubleResetDetector v1.2.1
+ESP_WiFiManager v1.10.1
+ESP_DoubleResetDetector v1.3.0
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
 LittleFS Flag read = 0xd0d01234
@@ -3934,8 +3941,8 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU_ESP12E
-ESP_WiFiManager v1.9.0
-ESP_DoubleResetDetector v1.2.1
+ESP_WiFiManager v1.10.1
+ESP_DoubleResetDetector v1.3.0
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
 LittleFS Flag read = 0xd0d04321
@@ -3974,8 +3981,8 @@ TWWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU_ESP12E
-ESP_WiFiManager v1.9.0
-ESP_DoubleResetDetector v1.2.1
+ESP_WiFiManager v1.10.1
+ESP_DoubleResetDetector v1.3.0
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
 LittleFS Flag read = 0xd0d01234
@@ -4051,8 +4058,8 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
-ESP_WiFiManager v1.9.0
-ESP_DoubleResetDetector v1.2.1
+ESP_WiFiManager v1.10.1
+ESP_DoubleResetDetector v1.3.0
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] setAPStaticIPConfig
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
@@ -4101,8 +4108,8 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.9.0
-ESP_DoubleResetDetector v1.2.1
+ESP_WiFiManager v1.10.1
+ESP_DoubleResetDetector v1.3.0
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
 ESP Self-Stored: SSID = HueNet1, Pass = password
@@ -4211,8 +4218,8 @@ Local Date/Time: Thu May  6 21:29:18 2021
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.9.0
-ESP_DoubleResetDetector v1.2.1
+ESP_WiFiManager v1.10.1
+ESP_DoubleResetDetector v1.3.0
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
 ESP Self-Stored: SSID = HueNet1, Pass = password
@@ -4262,8 +4269,8 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
-ESP_WiFiManager v1.9.0
-ESP_DoubleResetDetector v1.2.1
+ESP_WiFiManager v1.10.1
+ESP_DoubleResetDetector v1.3.0
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
 ESP Self-Stored: SSID = HueNet1, Pass = password
@@ -4408,8 +4415,8 @@ Local Date/Time: Thu May  6 21:29:18 2021
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
-ESP_WiFiManager v1.9.0
-ESP_DoubleResetDetector v1.2.1
+ESP_WiFiManager v1.10.1
+ESP_DoubleResetDetector v1.3.0
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
 ESP Self-Stored: SSID = HueNet1, Pass = password
@@ -4461,8 +4468,8 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using SPIFFS on ESP32C3_DEV
-ESP_WiFiManager v1.9.0
-ESP_DoubleResetDetector v1.2.1
+ESP_WiFiManager v1.10.1
+ESP_DoubleResetDetector v1.3.0
 FS File: wm_cp.dat, size: 4B
 FS File: wm_cp.bak, size: 4B
 FS File: wmssl_conf.dat, size: 376B
@@ -4533,7 +4540,7 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S3_DEV
-ESP_WiFiManager v1.10.0
+ESP_WiFiManager v1.10.1
 ESP_DoubleResetDetector v1.3.0
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
@@ -4583,6 +4590,54 @@ Local Date/Time: Thu Feb 10 23:26:26 2022
 ```
 
 ---
+
+#### 11. [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) using LittleFS on ESP32C3_DEV
+
+This is terminal debug output when running [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) on **ESP32C3_DEV**.
+
+
+```
+Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32C3_DEV
+ESP_WiFiManager v1.10.1
+ESP_DoubleResetDetector v1.3.0
+[WM] RFC925 Hostname = ConfigOnDoubleReset
+[WM] Set CORS Header to :  Your Access-Control-Allow-Origin
+ESP Self-Stored: SSID = HueNet1, Pass = password
+[WM] * Add SSID =  HueNet1 , PW =  password
+Got ESP Self-Stored Credentials. Timeout 120s for Config Portal
+[WM] LoadWiFiCfgFile 
+[WM] OK
+[WM] stationIP = 0.0.0.0 , gatewayIP = 192.168.2.1
+[WM] netMask = 255.255.255.0
+[WM] dns1IP = 192.168.2.1 , dns2IP = 8.8.8.8
+Got stored Credentials. Timeout 120s for Config Portal
+[WM] Current TZ_Name = America/New_York , TZ =  EST5EDT,M3.2.0,M11.1.0
+LittleFS Flag read = 0xD0D04321
+No doubleResetDetected
+Saving config file...
+Saving config file OK
+[WM] * Add SSID =  HueNet1 , PW =  password
+[WM] * Add SSID =  HueNet2 , PW =  password
+ConnectMultiWiFi in setup
+[WM] ConnectMultiWiFi with :
+[WM] * Flash-stored Router_SSID =  HueNet1 , Router_Pass =  password
+[WM] * Add SSID =  HueNet1 , PW =  password
+[WM] * Additional SSID =  HueNet1 , PW =  password
+[WM] * Additional SSID =  HueNet2 , PW =  password
+[WM] Connecting MultiWifi...
+[WM] WiFi connected after time:  1
+[WM] SSID: HueNet1 ,RSSI= -20
+[WM] Channel: 2 ,IP address: 192.168.2.85
+After waiting 8.31 secs more in setup(), connection result is connected. Local IP: 192.168.2.85
+[WM] freeing allocated params!
+Stop doubleResetDetecting
+Saving config file...
+Saving config file OK
+Local Date/Time: Fri Feb 11 18:40:46 2022
+Local Date/Time: Fri Feb 11 18:41:46 2022
+Local Date/Time: Fri Feb 11 18:42:46 2022
+Local Date/Time: Fri Feb 11 18:43:46 2022
+```
 
 ---
 ---
