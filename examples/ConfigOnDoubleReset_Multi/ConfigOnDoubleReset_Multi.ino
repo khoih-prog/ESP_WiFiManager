@@ -42,8 +42,8 @@
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.10.1"
-#define ESP_WIFIMANAGER_VERSION_MIN             1010001
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.10.2"
+#define ESP_WIFIMANAGER_VERSION_MIN             1010002
 
 // These definitions must be placed before #include <ESPAsync_WiFiManager.h> 
 #include "ConfigOnDoubleReset_Multi.h"

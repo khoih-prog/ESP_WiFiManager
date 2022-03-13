@@ -94,14 +94,21 @@ WM_Config         WM_config;
 bool initialConfig = false;
 
 #if ( USE_DHCP_IP )
-  // Use DHCP
-  #warning Using DHCP IP
+   // Use DHCP
+  
+  #if (_WIFIMGR_LOGLEVEL_ > 3)
+    #warning Using DHCP IP
+  #endif
+  
   IPAddress stationIP   = IPAddress(0, 0, 0, 0);
   IPAddress gatewayIP   = IPAddress(192, 168, 1, 1);
   IPAddress netMask     = IPAddress(255, 255, 255, 0);
 #else
   // Use static IP
-  #warning Using static IP
+  
+  #if (_WIFIMGR_LOGLEVEL_ > 3)
+    #warning Using static IP
+  #endif
   
   #ifdef ESP32
     IPAddress stationIP   = IPAddress(192, 168, 2, 232);

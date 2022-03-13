@@ -42,8 +42,8 @@
   #error ESP32_S3 is not supported yet
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.10.1"
-#define ESP_WIFIMANAGER_VERSION_MIN             1010001
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.10.2"
+#define ESP_WIFIMANAGER_VERSION_MIN             1010002
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -111,17 +111,23 @@ DoubleResetDetector* drd;
   #include "FS.h"
 
   // Check cores/esp32/esp_arduino_version.h and cores/esp32/core_version.h
-  //#if ( ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0) )  //(ESP_ARDUINO_VERSION_MAJOR >= 2)
-  #if ( defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 2) )
-    #warning Using ESP32 Core 1.0.6 or 2.0.0+
-    // The library has been merged into esp32 core from release 1.0.6
-    #include <LittleFS.h>       // https://github.com/espressif/arduino-esp32/tree/master/libraries/LittleFS
-    
-    FS* filesystem =      &LittleFS;
-    #define FileFS        LittleFS
-    #define FS_Name       "LittleFS"
-  #else
-    #warning Using ESP32 Core 1.0.5-. You must install LITTLEFS library
+    //#if ( ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0) )  //(ESP_ARDUINO_VERSION_MAJOR >= 2)
+    #if ( defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 2) )
+      #if (_WIFIMGR_LOGLEVEL_ > 3)
+        #warning Using ESP32 Core 1.0.6 or 2.0.0+
+      #endif
+      
+      // The library has been merged into esp32 core from release 1.0.6
+      #include <LittleFS.h>       // https://github.com/espressif/arduino-esp32/tree/master/libraries/LittleFS
+      
+      FS* filesystem =      &LittleFS;
+      #define FileFS        LittleFS
+      #define FS_Name       "LittleFS"
+    #else
+      #if (_WIFIMGR_LOGLEVEL_ > 3)
+        #warning Using ESP32 Core 1.0.5-. You must install LITTLEFS library
+      #endif
+      
     // The library has been merged into esp32 core from release 1.0.6
     #include <LITTLEFS.h>       // https://github.com/lorol/LITTLEFS
     
@@ -227,7 +233,8 @@ bool initialConfig = false;
 
 // New in v1.0.11
 #define USING_CORS_FEATURE          true
-//////
+
+////////////////////////////////////////////
 
 // Use USE_DHCP_IP == true for dynamic DHCP IP, false to use static IP which you have to change accordingly to your network
 #if (defined(USE_STATIC_IP_CONFIG_IN_CP) && !USE_STATIC_IP_CONFIG_IN_CP)
@@ -244,13 +251,22 @@ bool initialConfig = false;
 
 #if ( USE_DHCP_IP )
   // Use DHCP
-  #warning Using DHCP IP
+  
+  #if (_WIFIMGR_LOGLEVEL_ > 3)
+    #warning Using DHCP IP
+  #endif
+  
   IPAddress stationIP   = IPAddress(0, 0, 0, 0);
   IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
   IPAddress netMask     = IPAddress(255, 255, 255, 0);
+  
 #else
   // Use static IP
-  #warning Using static IP
+  
+  #if (_WIFIMGR_LOGLEVEL_ > 3)
+    #warning Using static IP
+  #endif
+  
   #ifdef ESP32
     IPAddress stationIP   = IPAddress(192, 168, 2, 232);
   #else
@@ -260,6 +276,8 @@ bool initialConfig = false;
   IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
   IPAddress netMask     = IPAddress(255, 255, 255, 0);
 #endif
+
+////////////////////////////////////////////
 
 #define USE_CONFIGURABLE_DNS      true
 
