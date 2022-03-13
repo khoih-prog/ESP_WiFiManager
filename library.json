@@ -1,6 +1,6 @@
 {
   "name": "ESP_WifiManager",
-  "version": "1.10.1",
+  "version": "1.10.2",
   "keywords": "wifi, wi-fi, MultiWiFi, multi-wifi, WiFiManager, esp8266, esp32, esp32-s2, esp32-s3, esp32-c3, Communication, iot, credentials, persistent, config-portal, DoubleReset, MultiReset, DoubleResetDetector, littlefs, spiffs, eeprom, dns-server",
   "description": "Library to configure MultiWiFi/Credentials at runtime for ESP32 (including ESP32-S2, ESP32-S3 and ESP32-C3) and ESP8266 boards. With enhanced GUI and fallback web ConfigPortal. This Library is used for configuring ESP32 (including ESP32-S2, ESP32-S3 and ESP32-C3) and ESP8266 MultiWiFi Credentials at runtime. You can also specify static DNS servers, personalized HostName, DHCP HostName, static AP and STA IP, fixed or random AP channel.  Now with MultiWiFi auto(Re)connect, configurable CORS Header and auto-Timezone features. Auto detect ESP32 core and use either built-in LittleFS or external LITTLEFS library",
   "authors":
@@ -27,7 +27,7 @@
     {
       "owner": "khoih-prog",
       "name": "ESP_DoubleResetDetector",
-      "version": ">=1.3.0",
+      "version": ">=1.3.1",
       "platforms": ["espressif8266", "espressif32"]
     },
     {
@@ -41,5 +41,5 @@
   "frameworks": "*",
   "platforms": ["espressif8266", "espressif32"],
   "examples": "examples/*/*/*.ino",
-  "headers": ["ESP_WiFiManager.h", "ESP_WiFiManager.hpp", "ESP_WiFiManager-Impl.h"]
+  "headers": ["ESP_WiFiManager.h", "ESP_WiFiManager.hpp"]
 }

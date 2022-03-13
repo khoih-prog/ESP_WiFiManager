@@ -16,50 +16,17 @@
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
   
-  Version: 1.10.1
+  Version: 1.10.2
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
   1.0.0   K Hoang      07/10/2019 Initial coding
-  1.0.1   K Hoang      13/12/2019 Fix bug. Add features. Add support for ESP32
-  1.0.2   K Hoang      19/12/2019 Fix bug thatkeeps ConfigPortal in endless loop if Portal/Router SSID or Password is NULL.
-  1.0.3   K Hoang      05/01/2020 Option not displaying AvailablePages in Info page. Enhance README.md. Modify examples
-  1.0.4   K Hoang      07/01/2020 Add RFC952 setHostname feature.
-  1.0.5   K Hoang      15/01/2020 Add configurable DNS feature. Thanks to @Amorphous of https://community.blynk.cc
-  1.0.6   K Hoang      03/02/2020 Add support for ArduinoJson version 6.0.0+ ( tested with v6.14.1 )
-  1.0.7   K Hoang      13/04/2020 Reduce start time, fix SPIFFS bug in examples, update README.md
-  1.0.8   K Hoang      10/06/2020 Fix STAstaticIP issue. Restructure code. Add LittleFS support for ESP8266 core 2.7.1+
-  1.0.9   K Hoang      29/07/2020 Fix ESP32 STAstaticIP bug. Permit changing from DHCP <-> static IP using Config Portal.
-                                  Add, enhance examples (fix MDNS for ESP32)
-  1.0.10  K Hoang      08/08/2020 Add more features to Config Portal. Use random WiFi AP channel to avoid conflict.
-  1.0.11  K Hoang      17/08/2020 Add CORS feature. Fix bug in softAP, autoConnect, resetSettings.
-  1.1.0   K Hoang      28/08/2020 Add MultiWiFi feature to autoconnect to best WiFi at runtime
-  1.1.1   K Hoang      30/08/2020 Add setCORSHeader function to allow flexible CORS. Fix typo and minor improvement.
-  1.1.2   K Hoang      17/08/2020 Fix bug. Add example.
-  1.2.0   K Hoang      09/10/2020 Restore cpp code besides Impl.h code to use if linker error. Fix bug.
-  1.3.0   K Hoang      04/12/2020 Add LittleFS support to ESP32 using LITTLEFS Library
-  1.4.1   K Hoang      22/12/2020 Fix staticIP not saved. Add functions. Add complex examples. Sync with ESPAsync_WiFiManager
-  1.4.2   K Hoang      14/01/2021 Fix examples' bug not using saved WiFi Credentials after losing all WiFi connections.
-  1.4.3   K Hoang      23/01/2021 Fix examples' bug not saving Static IP in certain cases.
-  1.5.0   K Hoang      12/02/2021 Add support to new ESP32-S2
-  1.5.1   K Hoang      26/03/2021 Fix compiler error if setting Compiler Warnings to All. Retest with esp32 core v1.0.6
-  1.5.2   K Hoang      08/04/2021 Fix example misleading messages.
-  1.5.3   K Hoang      13/04/2021 Add dnsServer error message.
-  1.6.0   K Hoang      20/04/2021 Add support to new ESP32-C3 using SPIFFS or EEPROM
-  1.6.1   K Hoang      25/04/2021 Fix MultiWiFi bug. Fix captive-portal bug if CP AP address is not default 192.168.4.1
-  1.7.0   K Hoang      06/05/2021 Set _timezoneName. Add support to new ESP32-S2 (METRO_ESP32S2, FUNHOUSE_ESP32S2, etc.)
-  1.7.1   K Hoang      08/05/2021 Fix Json bug. Fix timezoneName not displayed in Info page.
-  1.7.2   K Hoang      08/05/2021 Fix warnings with ESP8266 core v3.0.0
-  1.7.3   K Hoang      29/07/2021 Fix MultiWiFi connection issue with ESP32 core v2.0.0-rc1+
-  1.7.4   K Hoang      13/08/2021 Add WiFi scanning of hidden SSIDs
-  1.7.5   K Hoang      10/10/2021 Update `platform.ini` and `library.json`
-  1.7.6   K Hoang      26/11/2021 Auto detect ESP32 core and use either built-in LittleFS or LITTLEFS library
-  1.7.7   K Hoang      26/11/2021 Fix compile error for ESP32 core v1.0.5-
-  1.7.8   K Hoang      30/11/2021 Fix bug to permit using HTTP port different from 80. Fix bug
+  ...
   1.8.0   K Hoang      29/12/2021 Fix `multiple-definitions` linker error and weird bug related to src_cpp
   1.9.0   K Hoang      17/01/2022 Enable compatibility with old code to include only ESP_WiFiManager.h
   1.10.0  K Hoang      10/02/2022 Add support to new ESP32-S3
   1.10.1  K Hoang      11/02/2022 Add LittleFS support to ESP32-C3. Use core LittleFS instead of Lorol's LITTLEFS for v2.0.0+
+  1.10.2  K Hoang      13/03/2022 Send CORS header in handleWifiSave() function
  *****************************************************************************************************************************/
 
 #pragma once
@@ -72,42 +39,48 @@
 #elif ( ARDUINO_ESP32S2_DEV || ARDUINO_FEATHERS2 || ARDUINO_ESP32S2_THING_PLUS || ARDUINO_MICROS2 || \
         ARDUINO_METRO_ESP32S2 || ARDUINO_MAGTAG29_ESP32S2 || ARDUINO_FUNHOUSE_ESP32S2 || \
         ARDUINO_ADAFRUIT_FEATHER_ESP32S2_NOPSRAM )
-  #warning Using ESP32_S2. To follow library instructions to install esp32-s2 core and WebServer Patch
-  #warning You have to select HUGE APP or 1.9-2.0 MB APP to be able to run Config Portal. Must use PSRAM
+  #if (_WIFIMGR_LOGLEVEL_ > 3)
+		#warning Using ESP32_S2. To follow library instructions to install esp32-s2 core and WebServer Patch
+		#warning You have to select HUGE APP or 1.9-2.0 MB APP to be able to run Config Portal. Must use PSRAM
+  #endif
   #define USING_ESP32_S2        true
 #elif ( ARDUINO_ESP32C3_DEV )
-  #if ( defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 2) )
-    #warning Using ESP32_C3 using core v2.0.0+. Either LittleFS, SPIFFS or EEPROM OK.
-  #else
-    #warning Using ESP32_C3 using core v1.0.6-. To follow library instructions to install esp32-c3 core. Only SPIFFS and EEPROM OK.
+	#if (_WIFIMGR_LOGLEVEL_ > 3)
+		#if ( defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 2) )
+		  #warning Using ESP32_C3 using core v2.0.0+. Either LittleFS, SPIFFS or EEPROM OK.
+		#else
+		  #warning Using ESP32_C3 using core v1.0.6-. To follow library instructions to install esp32-c3 core. Only SPIFFS and EEPROM OK.
+		#endif
   #endif
   
   #warning You have to select Flash size 2MB and Minimal APP (1.3MB + 700KB) for some boards
   #define USING_ESP32_C3        true
 #elif ( defined(ARDUINO_ESP32S3_DEV) || defined(ARDUINO_ESP32_S3_BOX) || defined(ARDUINO_TINYS3) || \
         defined(ARDUINO_PROS3) || defined(ARDUINO_FEATHERS3) )
-  #warning Using ESP32_S3. To install esp32-s3-support branch if using core v2.0.2-.
+  #if (_WIFIMGR_LOGLEVEL_ > 3)
+  	#warning Using ESP32_S3. To install esp32-s3-support branch if using core v2.0.2-
+  #endif
   #define USING_ESP32_S3        true   
 #endif
 
-#define ESP_WIFIMANAGER_VERSION           "ESP_WiFiManager v1.10.1"
+#define ESP_WIFIMANAGER_VERSION           "ESP_WiFiManager v1.10.2"
 
 #define ESP_WIFIMANAGER_VERSION_MAJOR     1
 #define ESP_WIFIMANAGER_VERSION_MINOR     10
-#define ESP_WIFIMANAGER_VERSION_PATCH     1
+#define ESP_WIFIMANAGER_VERSION_PATCH     2
 
-#define ESP_WIFIMANAGER_VERSION_INT      1010001
+#define ESP_WIFIMANAGER_VERSION_INT      1010002
 
 #include "ESP_WiFiManager_Debug.h"
 
 #if ( defined(HTTP_PORT) && (HTTP_PORT < 65536) && (HTTP_PORT > 0) )
-  #if (_WIFIMGR_LOGLEVEL_ > 2)
+  #if (_WIFIMGR_LOGLEVEL_ > 3)
     #warning Using custom HTTP_PORT
   #endif
     
   #define HTTP_PORT_TO_USE     HTTP_PORT
 #else
-  #if (_WIFIMGR_LOGLEVEL_ > 2)
+  #if (_WIFIMGR_LOGLEVEL_ > 3)
     #warning Using default HTTP_PORT = 80
   #endif
   
@@ -210,7 +183,10 @@ const char WM_HTTP_SCRIPT_NTP_HIDDEN[] PROGMEM = "<p><input type='hidden' id='ti
   #if !(USE_CLOUDFLARE_NTP)
     #undef USE_CLOUDFLARE_NTP
     #define USE_CLOUDFLARE_NTP      true
-    #warning Forcing USE_CLOUDFLARE_NTP for ESP8266 as low memory can cause blank page
+    
+    #if (_WIFIMGR_LOGLEVEL_ > 3)
+    	#warning Forcing USE_CLOUDFLARE_NTP for ESP8266 as low memory can cause blank page
+    #endif
   #endif
 #endif
 
@@ -302,8 +278,8 @@ class ESP_WMParameter
 {
   public:
     ESP_WMParameter(const char *custom);
-    ESP_WMParameter(const char *id, const char *placeholder, const char *defaultValue, int length, 
-                    const char *custom = "", int labelPlacement = WFM_LABEL_BEFORE);
+    ESP_WMParameter(const char *id, const char *placeholder, const char *defaultValue, const int& length, 
+                    const char *custom = "", const int& labelPlacement = WFM_LABEL_BEFORE);
     
     // New in v1.4.0              
     ESP_WMParameter(const WMParam_Data& WMParam_data);                   
@@ -313,7 +289,7 @@ class ESP_WMParameter
     
     // New in v1.4.0
     void setWMParam_Data(const WMParam_Data& WMParam_data);
-    void getWMParam_Data(WMParam_Data &WMParam_data);
+    void getWMParam_Data(WMParam_Data& WMParam_data);
     //////
 
     const char *getID();
@@ -329,7 +305,8 @@ class ESP_WMParameter
     
     const char *_customHTML;
 
-    void init(const char *id, const char *placeholder, const char *defaultValue, int length, const char *custom, int labelPlacement);
+    void init(const char *id, const char *placeholder, const char *defaultValue, const int& length, 
+              const char *custom, const int& labelPlacement);
 
     friend class ESP_WiFiManager;
 };
@@ -370,27 +347,27 @@ class ESP_WiFiManager
     //sets timeout before webserver loop ends and exits even if there has been no setup.
     //usefully for devices that failed to connect at some point and got stuck in a webserver loop
     //in seconds setConfigPortalTimeout is a new name for setTimeout
-    void          setConfigPortalTimeout(unsigned long seconds);
-    void          setTimeout(unsigned long seconds);
+    void          setConfigPortalTimeout(const unsigned long& seconds);
+    void          setTimeout(const unsigned long& seconds);
 
     //sets timeout for which to attempt connecting, usefull if you get a lot of failed connects
-    void          setConnectTimeout(unsigned long seconds);
+    void          setConnectTimeout(const unsigned long& seconds);
 
 
     void          setDebugOutput(bool debug);
     //defaults to not showing anything under 8% signal quality if called
-    void          setMinimumSignalQuality(int quality = 8);
+    void          setMinimumSignalQuality(const int& quality = 8);
     
     // KH, new from v1.0.10 to enable dynamic/random channel
-    int           setConfigPortalChannel(int channel = 1);
+    int           setConfigPortalChannel(const int& channel = 1);
     //////
     
     //sets a custom ip /gateway /subnet configuration
     void          setAPStaticIPConfig(const IPAddress& ip, const IPAddress& gw, const IPAddress& sn);
     
     // New in v1.4.0
-    void          setAPStaticIPConfig(const WiFi_AP_IPConfig&  WM_AP_IPconfig);
-    void          getAPStaticIPConfig(WiFi_AP_IPConfig  &WM_AP_IPconfig);
+    void          setAPStaticIPConfig(const WiFi_AP_IPConfig& WM_AP_IPconfig);
+    void          getAPStaticIPConfig(WiFi_AP_IPConfig& WM_AP_IPconfig);
     //////
     
     //sets config for a static IP
@@ -398,7 +375,7 @@ class ESP_WiFiManager
     
     // New in v1.4.0
     void          setSTAStaticIPConfig(const WiFi_STA_IPConfig&  WM_STA_IPconfig);
-    void          getSTAStaticIPConfig(WiFi_STA_IPConfig  &WM_STA_IPconfig);
+    void          getSTAStaticIPConfig(WiFi_STA_IPConfig& WM_STA_IPconfig);
     //////
     
 #if USE_CONFIGURABLE_DNS
@@ -458,7 +435,7 @@ class ESP_WiFiManager
     
     #define MAX_WIFI_CREDENTIALS        2
     
-    String				getSSID(uint8_t index) 
+    String				getSSID(const uint8_t& index) 
     {
       if (index == 0)
         return _ssid;
@@ -468,7 +445,7 @@ class ESP_WiFiManager
         return String("");
     }
     
-    String				getPW(uint8_t index) 
+    String				getPW(const uint8_t& index) 
     {
       if (index == 0)
         return _pass;
@@ -499,7 +476,7 @@ class ESP_WiFiManager
     // returns the Parameters Count
     int           getParametersCount();
 
-    const char*   getStatus(int status);
+    const char*   getStatus(const int& status);
 
 #ifdef ESP32
     String getStoredWiFiSSID();
@@ -616,7 +593,7 @@ class ESP_WiFiManager
 
     void          setupConfigPortal();
     void          startWPS();
-    //const char*   getStatus(int status);
+    //const char*   getStatus(const int& status);
 
     const char*   _apName = "no-net";
     const char*   _apPassword = NULL;
@@ -697,13 +674,13 @@ class ESP_WiFiManager
     void          handleNotFound();
     bool          captivePortal();
     
-    void          reportStatus(String &page);
+    void          reportStatus(String& page);
 
     // DNS server
     const byte    DNS_PORT = 53;
 
     //helpers
-    int           getRSSIasQuality(int RSSI);
+    int           getRSSIasQuality(const int& RSSI);
     bool          isIp(const String& str);
     String        toStringIp(const IPAddress& ip);
 
@@ -726,10 +703,13 @@ class ESP_WiFiManager
     void          DEBUG_WM(Generic text);
 
     template <class T>
-    auto optionalIPFromString(T *obj, const char *s) -> decltype(obj->fromString(s)) {
+    auto optionalIPFromString(T *obj, const char *s) -> decltype(obj->fromString(s)) 
+    {
       return  obj->fromString(s);
     }
-    auto optionalIPFromString(...) -> bool {
+    
+    auto optionalIPFromString(...) -> bool 
+    {
       LOGINFO("NO fromString METHOD ON IPAddress, you need ESP8266 core 2.1.0 or newer for Custom IP configuration to work.");
       return false;
     }

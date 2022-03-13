@@ -13,6 +13,7 @@
 ## Table of Contents
 
 * [Changelog](#changelog)
+  * [Releases v1.10.2](#releases-v1102)
   * [Releases v1.10.1](#releases-v1101)
   * [Releases v1.10.0](#releases-v1100)
   * [Releases v1.9.0](#releases-v190)
@@ -52,6 +53,13 @@
 
 
 ## Changelog
+
+### Releases v1.10.2
+
+1. Send CORS header in handleWifiSave() function. Check [Cors header not sent when saving wifi details, even when cors is enabled #80](https://github.com/khoih-prog/ESP_WiFiManager/issues/80)
+2. Optimize code by using passing by `reference` instead of by `value`
+3. Delete all confusing, function-lacking `minimal` examples
+4. Display informational warnings only when `_WIFIMGR_LOGLEVEL_ > 3`
 
 ### Releases v1.10.1
 
