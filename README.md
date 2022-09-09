@@ -119,7 +119,7 @@
   * [Multiple-Definitions-Linker-Error demo](#Multiple-Definitions-Linker-Error-demo)
     * [ConfigOnDoubleReset_Multi](examples/ConfigOnDoubleReset_Multi)
 * [Example ConfigOnDRD_FS_MQTT_Ptr](#example-configondrd_fs_mqtt_ptr)
-* [Debug Terminal Output Samples](#debug-termimal-output-samples)
+* [Debug Terminal Output Samples](#debug-terminal-output-samples)
   * [1. ConfigOnSwitchFS_MQTT_Ptr on ESP8266_NODEMCU_ESP12E](#1-configonswitchfs_mqtt_ptr-on-esp8266_nodemcu_esp12e)
   * [2. ESP32_FSWebServer_DRD on ESP32_DEV](#2-esp32_fswebserver_drd-on-esp32_dev)
   * [3. ESP32_FSWebServer_DRD on ESP32_DEV using newly-supported LittleFS](#3-esp32_fswebserver_drd-on-esp32_dev-using-newly-supported-littlefs)
@@ -2193,7 +2193,7 @@ https://github.com/khoih-prog/ESP_WiFiManager/blob/a73dbe26dba2491b40b38100f29ce
 ---
 ---
 
-### Debug Termimal Output Samples
+### Debug Terminal Output Samples
 
 #### 1. [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr) on ESP8266_NODEMCU_ESP12E
 
