@@ -35,13 +35,13 @@
    3) access the sample web page at http://esp8266fs.local
    4) edit the page by going to http://esp8266fs.local/edit
 *****************************************************************************************************************************/
+
 #if !defined(ESP8266)
   #error This code is intended to run on the ESP8266 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.10.2"
-#define ESP_WIFIMANAGER_VERSION_MIN             1010002
-
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.11.0"
+#define ESP_WIFIMANAGER_VERSION_MIN             1011000
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3

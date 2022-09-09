@@ -15,8 +15,8 @@
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.10.2"
-#define ESP_WIFIMANAGER_VERSION_MIN             1010002
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.11.0"
+#define ESP_WIFIMANAGER_VERSION_MIN             1011000
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -84,11 +84,10 @@
     #define FS_Name       "FFat"
   #endif
   //////
-  
-  #define ESP_getChipId()   ((uint32_t)ESP.getEfuseMac())
-  
-  #define LED_ON      HIGH
-  #define LED_OFF     LOW
+   
+  #define LED_BUILTIN       2
+  #define LED_ON            HIGH
+  #define LED_OFF           LOW
   
 #else
 

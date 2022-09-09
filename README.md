@@ -17,6 +17,7 @@
 ## Table of Contents
 
 * [Important Breaking Change from v1.8.0](#Important-Breaking-Change-from-v180)
+  * [For v1.11.0 and up](#For-v1110-and-up)
   * [For v1.9.0 and up](#For-v190-and-up)
   * [For v1.8.0 only](#For-v180-only)
 * [Important Note](#important-note)
@@ -155,6 +156,19 @@
 
 ### Important Breaking Change from v1.8.0
 
+#### For v1.11.0 and up
+
+ESP32 `chipID` is now correct and unique. The previous releases' 32-bit wrong `chipID` is mainly the 24-bit `Organizational Unique Identifier` (OUI) plus 8 bits from the correct chipID. That's why `ESP_getChipId()` function can return duplicated values if the boards are from the same batch.
+
+For example
+
+```
+Chip_ID_64 : 0x98F4AB085288
+chipOUI    : 0x98F4AB
+chipId     : 0x85288
+getEfuseMac: 0x885208ABF498
+```
+
 #### For v1.9.0 and up
 
 Please have a look at [HOWTO Fix `Multiple Definitions` Linker Error](#howto-fix-multiple-definitions-linker-error)
@@ -289,10 +303,10 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
 
  1. [`Arduino IDE 1.8.19+` for Arduino](https://github.com/arduino/Arduino). [![GitHub release](https://img.shields.io/github/release/arduino/Arduino.svg)](https://github.com/arduino/Arduino/releases/latest)
  2. [`ESP8266 Core 3.0.2+`](https://github.com/esp8266/Arduino) for ESP8266-based boards. [![Latest release](https://img.shields.io/github/release/esp8266/Arduino.svg)](https://github.com/esp8266/Arduino/releases/latest/). To use ESP8266 core 2.7.1+ for LittleFS.
- 3. [`ESP32 Core 2.0.2+`](https://github.com/espressif/arduino-esp32) for ESP32-based boards. [![Latest release](https://img.shields.io/github/release/espressif/arduino-esp32.svg)](https://github.com/espressif/arduino-esp32/releases/latest/)
+ 3. [`ESP32 Core 2.0.4+`](https://github.com/espressif/arduino-esp32) for ESP32-based boards. [![Latest release](https://img.shields.io/github/release/espressif/arduino-esp32.svg)](https://github.com/espressif/arduino-esp32/releases/latest/)
  4. [`ESP_DoubleResetDetector v1.3.1+`](https://github.com/khoih-prog/ESP_DoubleResetDetector) if using DRD feature. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_DoubleResetDetector.svg?)](https://www.ardu-badge.com/ESP_DoubleResetDetector). Use v1.1.0+ if using LittleFS for ESP32.
  5. [`ESP_MultiResetDetector v1.3.1+`](https://github.com/khoih-prog/ESP_MultiResetDetector) if using MRD feature. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_MultiResetDetector.svg?)](https://www.ardu-badge.com/ESP_MultiResetDetector).
- 6. [`LittleFS_esp32 v1.0.6+`](https://github.com/lorol/LITTLEFS) for ESP32-based boards using LittleFS with ESP32 core v1.0.5-. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/LittleFS_esp32.svg?)](https://www.ardu-badge.com/LittleFS_esp32). **Notice**: This [`LittleFS_esp32 library`](https://github.com/lorol/LITTLEFS) has been integrated to Arduino [ESP32 core v1.0.6+](https://github.com/espressif/arduino-esp32/tree/master/libraries/LITTLEFS) and you don't need to install it if using ESP32 core v1.0.6+
+ 6. [`LittleFS_esp32 v1.0.6+`](https://github.com/lorol/LITTLEFS) for ESP32-based boards using LittleFS with ESP32 core **v1.0.5-**. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/LittleFS_esp32.svg?)](https://www.ardu-badge.com/LittleFS_esp32). **Notice**: This [`LittleFS_esp32 library`](https://github.com/lorol/LITTLEFS) has been integrated to Arduino [ESP32 core v1.0.6+](https://github.com/espressif/arduino-esp32/tree/master/libraries/LITTLEFS) and **you don't need to install it if using ESP32 core v1.0.6+**
 
 ---
 
@@ -496,8 +510,6 @@ then connect WebBrowser to configurable ConfigPortal IP address, default is 192.
   #endif
   //////
 
-  #define ESP_getChipId()   ((uint32_t)ESP.getEfuseMac())
-
   #define LED_BUILTIN       2
   #define LED_ON            HIGH
   #define LED_OFF           LOW
@@ -531,14 +543,6 @@ then connect WebBrowser to configurable ConfigPortal IP address, default is 192.
   #define LED_ON      LOW
   #define LED_OFF     HIGH
 #endif
-
-// SSID and PW for Config Portal
-String ssid = "ESP_" + String(ESP_getChipId(), HEX);
-const char* password = "your_password";
-
-// SSID and PW for your Router
-String Router_SSID;
-String Router_Pass;
 
 // From v1.1.0
 // You only need to format the filesystem once
@@ -576,6 +580,14 @@ WM_Config         WM_config;
 //////
 
 #include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
+
+// SSID and PW for Config Portal
+String ssid = "ESP_" + String(ESP_getChipId(), HEX);
+const char* password = "your_password";
+
+// SSID and PW for your Router
+String Router_SSID;
+String Router_Pass;
 ```
 ---
 
@@ -635,8 +647,6 @@ WM_Config         WM_config;
   #endif
   //////
 
-  #define ESP_getChipId()   ((uint32_t)ESP.getEfuseMac())
-
   #define LED_BUILTIN       2
   #define LED_ON            HIGH
   #define LED_OFF           LOW
@@ -670,14 +680,6 @@ WM_Config         WM_config;
   #define LED_ON      LOW
   #define LED_OFF     HIGH
 #endif
-
-// SSID and PW for Config Portal
-String ssid = "ESP_" + String(ESP_getChipId(), HEX);
-const char* password = "your_password";
-
-// SSID and PW for your Router
-String Router_SSID;
-String Router_Pass;
 
 // From v1.1.0
 // You only need to format the filesystem once
@@ -783,10 +785,18 @@ IPAddress APStaticSN  = IPAddress(255, 255, 255, 0);
 
 #include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
 
+// SSID and PW for Config Portal
+String ssid = "ESP_" + String(ESP_getChipId(), HEX);
+const char* password = "your_password";
+
+// SSID and PW for your Router
+String Router_SSID;
+String Router_Pass;
+
 ///////////////////////////////////////////
 // New in v1.4.0
 /******************************************
- * // Defined in ESPAsync_WiFiManager.h
+ * // Defined in ESP_WiFiManager.h
 typedef struct
 {
   IPAddress _ap_static_ip;
@@ -2192,7 +2202,7 @@ This is terminal debug output when running [ConfigOnSwitchFS_MQTT_Ptr](examples/
 
 ```
 Starting ConfigOnSwichFS_MQTT_Ptr using LittleFS on ESP8266_NODEMCU_ESP12E
-ESP_WiFiManager v1.10.2
+ESP_WiFiManager v1.11.0
 Configuration file not found
 Failed to read configuration file, using default values
 [WM] RFC925 Hostname = ConfigOnSwichFS-MQTT
@@ -2304,7 +2314,7 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```cpp
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using SPIFFS on ESP32_DEV
-ESP_WiFiManager v1.10.2
+ESP_WiFiManager v1.11.0
 ESP_DoubleResetDetector v1.3.1
 FS File: /ConfigSW.json, size: 150B
 FS File: /CanadaFlag_1.png, size: 40.25KB
@@ -2369,7 +2379,7 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.10.2
+ESP_WiFiManager v1.11.0
 ESP_DoubleResetDetector v1.3.1
 FS File: /CanadaFlag_1.png, size: 40.25KB
 FS File: /CanadaFlag_2.png, size: 8.12KB
@@ -2396,7 +2406,7 @@ Saving config file OK
 Open Config Portal without Timeout: Double Reset Detected
 [WM] WiFi.waitForConnectResult Done
 [WM] SET AP
-[WM] Configuring AP SSID = ESP_9ABF498
+[WM] Configuring AP SSID = ESP_85288
 [WM] AP PWD = your_password
 [WM] AP Channel = 10
 [WM] Custom AP IP/GW/Subnet =  192.168.232.1 192.168.232.1 255.255.255.0
@@ -2428,7 +2438,7 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.10.2
+ESP_WiFiManager v1.11.0
 ESP_DoubleResetDetector v1.3.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -2471,7 +2481,7 @@ WWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.10.2
+ESP_WiFiManager v1.11.0
 ESP_DoubleResetDetector v1.3.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -2493,7 +2503,7 @@ Opening Configuration Portal. No timeout : DRD or No stored Credentials..
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
 [WM] WiFi.waitForConnectResult Done
 [WM] SET AP
-[WM] Configuring AP SSID = ESP_9ABF498
+[WM] Configuring AP SSID = ESP_85288
 [WM] AP PWD = your_password
 [WM] AP Channel = 4
 [WM] Custom AP IP/GW/Subnet =  192.168.100.1 192.168.100.1 255.255.255.0
@@ -2556,7 +2566,7 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU_ESP12E
-ESP_WiFiManager v1.10.2
+ESP_WiFiManager v1.11.0
 ESP_DoubleResetDetector v1.3.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -2596,7 +2606,7 @@ TWWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU_ESP12E
-ESP_WiFiManager v1.10.2
+ESP_WiFiManager v1.11.0
 ESP_DoubleResetDetector v1.3.1
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -2673,7 +2683,7 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
-ESP_WiFiManager v1.10.2
+ESP_WiFiManager v1.11.0
 ESP_DoubleResetDetector v1.3.1
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] setAPStaticIPConfig
@@ -2723,7 +2733,7 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.10.2
+ESP_WiFiManager v1.11.0
 ESP_DoubleResetDetector v1.3.1
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
@@ -2742,7 +2752,7 @@ doubleResetDetected
 Saving config file...
 Saving config file OK
 Open Config Portal without Timeout: Double Reset Detected
-Starting configuration portal @ 192.168.4.1:80, SSID = ESP_9ABF498, PWD = MyESP_9ABF498
+Starting configuration portal @ 192.168.4.1:80, SSID = ESP_85288, PWD = MyESP_85288
 ```
 
 #### 7.2 Data Saved => Connect to WiFi with correct local time, TZ set and using NTP
@@ -2750,8 +2760,8 @@ Starting configuration portal @ 192.168.4.1:80, SSID = ESP_9ABF498, PWD = MyESP_
 ```
 [WM] WiFi.waitForConnectResult Done
 [WM] SET AP
-[WM] Configuring AP SSID = ESP_9ABF498
-[WM] AP PWD = MyESP_9ABF498
+[WM] Configuring AP SSID = ESP_85288
+[WM] AP PWD = MyESP_85288
 [WM] AP Channel = 8
 [WM] AP IP address = 192.168.4.1
 [WM] HTTP server started
@@ -2833,7 +2843,7 @@ Local Date/Time: Thu May  6 21:29:18 2021
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.10.2
+ESP_WiFiManager v1.11.0
 ESP_DoubleResetDetector v1.3.1
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
@@ -2884,7 +2894,7 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
-ESP_WiFiManager v1.10.2
+ESP_WiFiManager v1.11.0
 ESP_DoubleResetDetector v1.3.1
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
@@ -3030,7 +3040,7 @@ Local Date/Time: Thu May  6 21:29:18 2021
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
-ESP_WiFiManager v1.10.2
+ESP_WiFiManager v1.11.0
 ESP_DoubleResetDetector v1.3.1
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
@@ -3083,7 +3093,7 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using SPIFFS on ESP32C3_DEV
-ESP_WiFiManager v1.10.2
+ESP_WiFiManager v1.11.0
 ESP_DoubleResetDetector v1.3.1
 FS File: wm_cp.dat, size: 4B
 FS File: wm_cp.bak, size: 4B
@@ -3155,7 +3165,7 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S3_DEV
-ESP_WiFiManager v1.10.2
+ESP_WiFiManager v1.11.0
 ESP_DoubleResetDetector v1.3.1
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
@@ -3213,7 +3223,7 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32C3_DEV
-ESP_WiFiManager v1.10.2
+ESP_WiFiManager v1.11.0
 ESP_DoubleResetDetector v1.3.1
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
@@ -3315,6 +3325,7 @@ Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiF
 17. Thanks to [Dean Ott](https://github.com/deanjott) for reporting [WiFiManager works only on port 80 #75](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues/75) and providing the solution leading to v1.7.8
 18. Thanks to [Twaste](https://github.com/Twaste) for initiating the discussion in [Different behaviour using the src_cpp or src_h lib #80](https://github.com/khoih-prog/ESPAsync_WiFiManager/discussions/80) and providing the idea to the solution, to fix `multiple-definitions` linker error, leading to v1.8.0
 19. Thanks to [Richard Hawthorn](https://github.com/richardhawthorn) for reporting [Cors header not sent when saving wifi details, even when cors is enabled #80](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues/80) and providing the solution leading to v1.10.2
+20. Thanks to [MattiaCC93](https://github.com/MattiaCC93) for open discussion [Help for storing variables in memory (non-volatile) #87](https://github.com/khoih-prog/ESP_WiFiManager/discussions/87#discussioncomment-3593028) and report the ESP32 chipID bug, leading to v1.11.0.
 
 ---
 
@@ -3348,6 +3359,7 @@ Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiF
     <td align="center"><a href="https://github.com/deanjott"><img src="https://github.com/deanjott.png" width="100px;" alt="deanjott"/><br /><sub><b>Dean Ott</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/Twaste"><img src="https://github.com/Twaste.png" width="100px;" alt="Twaste"/><br /><sub><b>Twaste</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/richardhawthorn"><img src="https://github.com/richardhawthorn.png" width="100px;" alt="richardhawthorn"/><br /><sub><b>Richard Hawthorn</b></sub></a><br /></td>
+    <td align="center"><a href="https://github.com/MattiaCC93"><img src="https://github.com/MattiaCC93.png" width="100px;" alt="MattiaCC93"/><br /><sub><b>MattiaCC93</b></sub></a><br /></td>
   </tr>
 </table>
 

@@ -16,7 +16,7 @@
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
   
-  Version: 1.10.2
+  Version: 1.11.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -27,6 +27,7 @@
   1.10.0  K Hoang      10/02/2022 Add support to new ESP32-S3
   1.10.1  K Hoang      11/02/2022 Add LittleFS support to ESP32-C3. Use core LittleFS instead of Lorol's LITTLEFS for v2.0.0+
   1.10.2  K Hoang      13/03/2022 Send CORS header in handleWifiSave() function
+  1.11.0  K Hoang      09/09/2022 Fix ESP32 chipID and add ESP_getChipOUI()
  *****************************************************************************************************************************/
 
 #pragma once
@@ -222,7 +223,8 @@ ESP_WiFiManager::ESP_WiFiManager(const char *iHostname)
 #ifdef ESP8266
     String _hostname = "ESP8266-" + String(ESP.getChipId(), HEX);
 #else		//ESP32
-    String _hostname = "ESP32-" + String((uint32_t)ESP.getEfuseMac(), HEX);
+    String _hostname = "ESP32-" + String(ESP_getChipId(), HEX);
+    
 #endif
     _hostname.toUpperCase();
 
@@ -431,7 +433,8 @@ bool ESP_WiFiManager::autoConnect()
 #ifdef ESP8266
   String ssid = "ESP_" + String(ESP.getChipId());
 #else		//ESP32
-  String ssid = "ESP_" + String((uint32_t)ESP.getEfuseMac());
+  String ssid = "ESP_" + String(ESP_getChipId());
+  
 #endif
 
   return autoConnect(ssid.c_str(), NULL);
@@ -492,7 +495,7 @@ bool  ESP_WiFiManager::startConfigPortal()
 #ifdef ESP8266
   String ssid = "ESP_" + String(ESP.getChipId());
 #else		//ESP32
-  String ssid = "ESP_" + String((uint32_t)ESP.getEfuseMac());
+  String ssid = "ESP_" + String(ESP_getChipId());
 #endif
   ssid.toUpperCase();
 
@@ -1559,10 +1562,23 @@ void ESP_WiFiManager::handleInfo()
   page += F("<table class=\"table\">");
   page += F("<thead><tr><th>Name</th><th>Value</th></tr></thead><tbody><tr><td>Chip ID</td><td>");
 
+  page += F("0x");
 #ifdef ESP8266
   page += String(ESP.getChipId(), HEX);		//ESP.getChipId();
 #else		//ESP32
-  page += String((uint32_t)ESP.getEfuseMac(), HEX);		//ESP.getChipId();
+
+  page += String(ESP_getChipId(), HEX);		//ESP.getChipId();
+  
+  page += F("</td></tr>");
+  page += F("<tr><td>Chip OUI</td><td>");
+  page += F("0x");
+  page += String(getChipOUI(), HEX);		//ESP.getChipId();
+  
+  page += F("</td></tr>");
+  page += F("<tr><td>Chip Model</td><td>");
+  page += ESP.getChipModel();
+  page += F(" Rev");
+  page += ESP.getChipRevision();
 #endif
 
   page += F("</td></tr>");
@@ -2091,6 +2107,31 @@ String ESP_WiFiManager::getStoredWiFiPass()
   
   return String(reinterpret_cast<char*>(conf.sta.password));
 }
+
+uint32_t getChipID()
+{
+  uint64_t chipId64 = 0;
+
+  for (int i = 0; i < 6; i++)
+  {
+    chipId64 |= ( ( (uint64_t) ESP.getEfuseMac() >> (40 - (i * 8)) ) & 0xff ) << (i * 8);
+  }
+  
+  return (uint32_t) (chipId64 & 0xFFFFFF);
+}
+
+uint32_t getChipOUI()
+{
+  uint64_t chipId64 = 0;
+
+  for (int i = 0; i < 6; i++)
+  {
+    chipId64 |= ( ( (uint64_t) ESP.getEfuseMac() >> (40 - (i * 8)) ) & 0xff ) << (i * 8);
+  }
+  
+  return (uint32_t) (chipId64 >> 24);
+}
+
 #endif
 
 

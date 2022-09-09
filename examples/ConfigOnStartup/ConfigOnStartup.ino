@@ -33,8 +33,8 @@
   #error This code is intended to run only on the ESP8266 and ESP32 boards ! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.10.2"
-#define ESP_WIFIMANAGER_VERSION_MIN             1010002
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.11.0"
+#define ESP_WIFIMANAGER_VERSION_MIN             1011000
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -105,7 +105,7 @@
   #endif
   //////
 
-  #define ESP_getChipId()   ((uint32_t)ESP.getEfuseMac())
+  //#define ESP_getChipId()   ((uint32_t)ESP.getEfuseMac())
 
   #define LED_BUILTIN       2
   #define LED_ON            HIGH
@@ -140,14 +140,6 @@
   #define LED_ON      LOW
   #define LED_OFF     HIGH
 #endif
-
-// SSID and PW for Config Portal
-String ssid = "ESP_" + String(ESP_getChipId(), HEX);
-String password;
-
-// SSID and PW for your Router
-String Router_SSID;
-String Router_Pass;
 
 // From v1.1.0
 // You only need to format the filesystem once
@@ -295,6 +287,14 @@ IPAddress APStaticSN  = IPAddress(255, 255, 255, 0);
 
 // Onboard LED I/O pin on NodeMCU board
 const int PIN_LED = 2; // D4 on NodeMCU and WeMos. GPIO2/ADC12 of ESP32. Controls the onboard LED.
+
+// SSID and PW for Config Portal
+String ssid = "ESP_" + String(ESP_getChipId(), HEX);
+String password;
+
+// SSID and PW for your Router
+String Router_SSID;
+String Router_Pass;
 
 // Function Prototypes
 uint8_t connectMultiWiFi();

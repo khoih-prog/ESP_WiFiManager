@@ -43,8 +43,8 @@
   #error ESP32_S3 is not supported yet
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.10.2"
-#define ESP_WIFIMANAGER_VERSION_MIN             1010002
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.11.0"
+#define ESP_WIFIMANAGER_VERSION_MIN             1011000
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    3
@@ -117,14 +117,6 @@ WiFiMulti wifiMulti;
 #endif
 
 #define DBG_OUTPUT_PORT Serial
-
-// SSID and PW for Config Portal
-String ssid = "ESP_" + String((uint32_t)ESP.getEfuseMac(), HEX);
-String password;
-
-// SSID and PW for your Router
-String Router_SSID;
-String Router_Pass;
 
 // From v1.1.0
 #define MIN_AP_PASSWORD_SIZE    8
@@ -265,6 +257,14 @@ IPAddress APStaticSN  = IPAddress(255, 255, 255, 0);
 
 // Redundant, for v1.8.0 only
 //#include <ESP_WiFiManager-Impl.h>         //https://github.com/khoih-prog/ESP_WiFiManager
+
+// SSID and PW for Config Portal
+String ssid       = "ESP_" + String(ESP_getChipId(), HEX);
+String password;
+
+// SSID and PW for your Router
+String Router_SSID;
+String Router_Pass;
 
 const char* host = "esp32-fs-browser";
 

@@ -111,8 +111,6 @@
   #endif
   //////
   
-  #define ESP_getChipId()   ((uint32_t)ESP.getEfuseMac())
-
 #define LED_BUILTIN       2
 #define LED_ON            HIGH
 #define LED_OFF           LOW

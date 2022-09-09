@@ -13,6 +13,7 @@
 ## Table of Contents
 
 * [Changelog](#changelog)
+  * [Releases v1.11.0](#releases-v1110)
   * [Releases v1.10.2](#releases-v1102)
   * [Releases v1.10.1](#releases-v1101)
   * [Releases v1.10.0](#releases-v1100)
@@ -53,6 +54,13 @@
 
 
 ## Changelog
+
+### Releases v1.11.0
+
+1. Fix ESP32 chipID. Check [Help for storing variables in memory (non-volatile) #87](https://github.com/khoih-prog/ESP_WiFiManager/discussions/87#discussioncomment-3593028)
+2. Add ESP32 ESP_getChipOUI() function
+3. Display new info on Config Portal for ESP32
+4. Remove dependency on `LittleFS_esp32` library to prevent PIO error when using new ESP32 core v1.0.6+
 
 ### Releases v1.10.2
 
