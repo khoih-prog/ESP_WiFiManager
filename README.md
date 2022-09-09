@@ -2187,8 +2187,7 @@ ESP_wifiManager.setRemoveDuplicateAPs(false);
 
 ### Example [ConfigOnDRD_FS_MQTT_Ptr](examples/ConfigOnDRD_FS_MQTT_Ptr)
 
-https://github.com/khoih-prog/ESP_WiFiManager/blob/a85a4cf3e346f3849678dce69f9fec9cf1288729/examples/ConfigOnDRD_FS_MQTT_Ptr/ConfigOnDRD_FS_MQTT_Ptr.ino#L17-L1410
-
+https://github.com/khoih-prog/ESP_WiFiManager/blob/a73dbe26dba2491b40b38100f29ceb12fbaa98a9/examples/ConfigOnDRD_FS_MQTT_Ptr/ConfigOnDRD_FS_MQTT_Ptr.ino#L17-L1410
 
 
 ---
