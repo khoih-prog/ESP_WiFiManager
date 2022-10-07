@@ -47,6 +47,7 @@ setBreakAfterConfig KEYWORD2
 setCustomHeadElement  KEYWORD2
 setRemoveDuplicateAPs KEYWORD2
 scanWifiNetworks  KEYWORD2
+setCredentials	KEYWORD2
 getSSID	KEYWORD2
 getPW	KEYWORD2
 getSSID1	KEYWORD2

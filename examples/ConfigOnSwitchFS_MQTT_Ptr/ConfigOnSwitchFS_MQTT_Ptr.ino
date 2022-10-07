@@ -35,11 +35,15 @@
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.11.0"
-#define ESP_WIFIMANAGER_VERSION_MIN             1011000
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.12.0"
+#define ESP_WIFIMANAGER_VERSION_MIN             1012000
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
-#define _WIFIMGR_LOGLEVEL_    3
+#define _WIFIMGR_LOGLEVEL_    1
+
+// To not display stored SSIDs and PWDs on Config Portal, select false. Default is true
+// Even the stored Credentials are not display, just leave them all blank to reconnect and reuse the stored Credentials 
+//#define DISPLAY_STORED_CREDENTIALS_IN_CP        false
 
 #include <Arduino.h>            // for button
 #include <OneButton.h>          // for button
@@ -1028,6 +1032,12 @@ void wifi_manager()
   // SSID to uppercase
   ssid.toUpperCase();
   password = "My" + ssid;
+
+#if DISPLAY_STORED_CREDENTIALS_IN_CP
+    // New. Update Credentials, got from loadConfigData(), to display on CP
+    ESP_wifiManager.setCredentials(WM_config.WiFi_Creds[0].wifi_ssid, WM_config.WiFi_Creds[0].wifi_pw, 
+                                   WM_config.WiFi_Creds[1].wifi_ssid, WM_config.WiFi_Creds[1].wifi_pw);
+#endif
   
   // Start an access point
   // and goes into a blocking loop awaiting configuration.
@@ -1432,6 +1442,8 @@ void setup()
   if (initialConfig)
   {
     Serial.println(F("Open Config Portal without Timeout: No stored WiFi Credentials"));
+
+    loadConfigData();
   
     wifi_manager();
   }

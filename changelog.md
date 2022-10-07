@@ -13,6 +13,7 @@
 ## Table of Contents
 
 * [Changelog](#changelog)
+  * [Releases v1.12.0](#releases-v1120)
   * [Releases v1.11.0](#releases-v1110)
   * [Releases v1.10.2](#releases-v1102)
   * [Releases v1.10.1](#releases-v1101)
@@ -54,6 +55,12 @@
 
 
 ## Changelog
+
+### Releases v1.12.0
+
+1. Optionally display Credentials (SSIDs, PWDs) in Config Portal. Check [Populate portal wifi with saved credentials #91](https://github.com/khoih-prog/ESP_WiFiManager/discussions/91)
+2. Display `Credentials` Hint on Config Portal
+3. Periodic code clean-up
 
 ### Releases v1.11.0
 

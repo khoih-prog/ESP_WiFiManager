@@ -16,7 +16,7 @@
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
   
-  Version: 1.11.0
+  Version: 1.12.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -28,6 +28,7 @@
   1.10.1  K Hoang      11/02/2022 Add LittleFS support to ESP32-C3. Use core LittleFS instead of Lorol's LITTLEFS for v2.0.0+
   1.10.2  K Hoang      13/03/2022 Send CORS header in handleWifiSave() function
   1.11.0  K Hoang      09/09/2022 Fix ESP32 chipID and add ESP_getChipOUI()
+  1.12.0  K Hoang      07/10/2022 Optional display Credentials (SSIDs, PWDs) in Config Portal
  *****************************************************************************************************************************/
 
 #pragma once
@@ -35,11 +36,15 @@
 #ifndef ESP_WiFiManager_Debug_H
 #define ESP_WiFiManager_Debug_H
 
+//////////////////////////////////////////
+
 #ifdef WIFIMGR_DEBUG_PORT
   #define WM_DBG_PORT      WIFIMGR_DEBUG_PORT
 #else
   #define WM_DBG_PORT      Serial
 #endif
+
+//////////////////////////////////////////
 
 // Change _WIFIMGR_LOGLEVEL_ to set tracing and logging verbosity
 // 0: DISABLED: no logging
@@ -51,6 +56,8 @@
 #ifndef _WIFIMGR_LOGLEVEL_
   #define _WIFIMGR_LOGLEVEL_       0
 #endif
+
+//////////////////////////////////////////
 
 const char WM_MARK[] = "[WM] ";
 const char WM_SP[]   = " ";

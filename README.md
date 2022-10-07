@@ -162,7 +162,7 @@ ESP32 `chipID` is now correct and unique. The previous releases' 32-bit wrong `c
 
 For example
 
-```
+```ini
 Chip_ID_64 : 0x98F4AB085288
 chipOUI    : 0x98F4AB
 chipId     : 0x85288
@@ -175,13 +175,13 @@ Please have a look at [HOWTO Fix `Multiple Definitions` Linker Error](#howto-fix
 
 From v1.9.0, you just use
 
-```
+```cpp
 #include <ESP_WiFiManager.h>               //https://github.com/khoih-prog/ESP_WiFiManager
 ```
 
 instead of both
 
-```
+```cpp
 #include <ESP_WiFiManager.h>               //https://github.com/khoih-prog/ESP_WiFiManager
 
 // To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
@@ -191,14 +191,14 @@ instead of both
 
 For complex project having `Multiple Definitions Linker Error` issue, you can use in many files (**Be careful**: `.hpp`, not `.h`)
 
-```
+```cpp
 #include <ESP_WiFiManager.hpp>             //https://github.com/khoih-prog/ESP_WiFiManager
 ```
 
 but only in main(), .ino with setup() to avoid `Multiple Definitions Linker Error`
 
 
-```
+```cpp
 #include <ESP_WiFiManager.h>               //https://github.com/khoih-prog/ESP_WiFiManager
 ```
 
@@ -213,7 +213,7 @@ Please have a look at [HOWTO Fix `Multiple Definitions` Linker Error](#howto-fix
 
 From v1.8.0, you must use
 
-```
+```cpp
 #include <ESP_WiFiManager.h>               //https://github.com/khoih-prog/ESP_WiFiManager
 
 // To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
@@ -222,7 +222,7 @@ From v1.8.0, you must use
 
 instead of only
 
-```
+```cpp
 #include <ESP_WiFiManager.h>               //https://github.com/khoih-prog/ESP_WiFiManager
 ```
 
@@ -261,7 +261,7 @@ Thanks to [cancodr](https://github.com/cancodr) for requesting an enhancement in
 
 #### Features
 
-This is a WiFiManager Library for configuring/auto(re)connecting **ESP8266/ESP32** modules to the best or available MultiWiFi APs at runtime. Configuration data to be saved in either LittleFS, SPIFFS or EEPROM. Default Credentials as well as Dynamic custom parameters can be added and modified easily. DoubleResetDetector is used to force Config Portal opening even if the Credentials are still valid.
+This is a WiFiManager Library for configuring/auto(re)connecting **ESP8266/ESP32** modules to the best or available `MultiWiFi` APs at runtime. Configuration data to be saved in either `LittleFS`, `SPIFFS` or `EEPROM`. Default Credentials as well as Dynamic custom parameters can be added and modified easily. `DoubleResetDetector` is used to force Config Portal opening even if the Credentials are still valid.
  
 This library is designed to help you to eliminate `hardcoding` your Wifi credentials for ESP8266 and ESP32, and updating/reflashing every time you need to change them.
 
@@ -303,9 +303,9 @@ It's using a web ConfigPortal, served from the `ESP32 / ESP8266`, and operating 
 
  1. [`Arduino IDE 1.8.19+` for Arduino](https://github.com/arduino/Arduino). [![GitHub release](https://img.shields.io/github/release/arduino/Arduino.svg)](https://github.com/arduino/Arduino/releases/latest)
  2. [`ESP8266 Core 3.0.2+`](https://github.com/esp8266/Arduino) for ESP8266-based boards. [![Latest release](https://img.shields.io/github/release/esp8266/Arduino.svg)](https://github.com/esp8266/Arduino/releases/latest/). To use ESP8266 core 2.7.1+ for LittleFS.
- 3. [`ESP32 Core 2.0.4+`](https://github.com/espressif/arduino-esp32) for ESP32-based boards. [![Latest release](https://img.shields.io/github/release/espressif/arduino-esp32.svg)](https://github.com/espressif/arduino-esp32/releases/latest/)
- 4. [`ESP_DoubleResetDetector v1.3.1+`](https://github.com/khoih-prog/ESP_DoubleResetDetector) if using DRD feature. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_DoubleResetDetector.svg?)](https://www.ardu-badge.com/ESP_DoubleResetDetector). Use v1.1.0+ if using LittleFS for ESP32.
- 5. [`ESP_MultiResetDetector v1.3.1+`](https://github.com/khoih-prog/ESP_MultiResetDetector) if using MRD feature. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_MultiResetDetector.svg?)](https://www.ardu-badge.com/ESP_MultiResetDetector).
+ 3. [`ESP32 Core 2.0.5+`](https://github.com/espressif/arduino-esp32) for ESP32-based boards. [![Latest release](https://img.shields.io/github/release/espressif/arduino-esp32.svg)](https://github.com/espressif/arduino-esp32/releases/latest/)
+ 4. [`ESP_DoubleResetDetector v1.3.2+`](https://github.com/khoih-prog/ESP_DoubleResetDetector) if using DRD feature. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_DoubleResetDetector.svg?)](https://www.ardu-badge.com/ESP_DoubleResetDetector). Use v1.1.0+ if using LittleFS for ESP32.
+ 5. [`ESP_MultiResetDetector v1.3.2+`](https://github.com/khoih-prog/ESP_MultiResetDetector) if using MRD feature. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/ESP_MultiResetDetector.svg?)](https://www.ardu-badge.com/ESP_MultiResetDetector).
  6. [`LittleFS_esp32 v1.0.6+`](https://github.com/lorol/LITTLEFS) for ESP32-based boards using LittleFS with ESP32 core **v1.0.5-**. To install, check [![arduino-library-badge](https://www.ardu-badge.com/badge/LittleFS_esp32.svg?)](https://www.ardu-badge.com/LittleFS_esp32). **Notice**: This [`LittleFS_esp32 library`](https://github.com/lorol/LITTLEFS) has been integrated to Arduino [ESP32 core v1.0.6+](https://github.com/espressif/arduino-esp32/tree/master/libraries/LITTLEFS) and **you don't need to install it if using ESP32 core v1.0.6+**
 
 ---
@@ -338,19 +338,19 @@ The best and easiest way is to use `Arduino Library Manager`. Search for `ESP_Wi
 
 #### Necessary only for esp32 core v1.0.6-
 
-From esp32 core v1.0.6+, [`LittleFS_esp32 v1.0.6`](https://github.com/lorol/LITTLEFS) has been included and this step is not necessary anymore.
+From esp32 core `v1.0.6+`, [`LittleFS_esp32 v1.0.6`](https://github.com/lorol/LITTLEFS) has been included and this step is not necessary anymore.
 
 In Platform IO, to fix the error when using [`LittleFS_esp32 v1.0`](https://github.com/lorol/LITTLEFS) for ESP32-based boards with ESP32 core v1.0.4- (ESP-IDF v3.2-), uncomment the following line
 
 from
 
-```
+```cpp
 //#define CONFIG_LITTLEFS_FOR_IDF_3_2   /* For old IDF - like in release 1.0.4 */
 ```
 
 to
 
-```
+```cpp
 #define CONFIG_LITTLEFS_FOR_IDF_3_2   /* For old IDF - like in release 1.0.4 */
 ```
 
@@ -367,13 +367,13 @@ The current library implementation, using `xyz-Impl.h` instead of standard `xyz.
 
 You can use
 
-```
+```cpp
 #include <ESP_WiFiManager.hpp>               //https://github.com/khoih-prog/ESP_WiFiManager
 ```
 
 in many files. But be sure to use the following `#include <ESP_WiFiManager.h>` **in just 1 `.h`, `.cpp` or `.ino` file**, which must **not be included in any other file**, to avoid `Multiple Definitions` Linker Error
 
-```
+```cpp
 // To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
 #include <ESP_WiFiManager.h>                //https://github.com/khoih-prog/ESP_WiFiManager
 ```
@@ -394,22 +394,22 @@ Please have a look at [**ESP_WiFiManager Issue 39: Not able to read analog port 
 
 #### 2. ESP32 ADCs functions
 
-- ADC1 controls ADC function for pins **GPIO32-GPIO39**
-- ADC2 controls ADC function for pins **GPIO0, 2, 4, 12-15, 25-27**
+- `ADC1` controls ADC function for pins **GPIO32-GPIO39**
+- `ADC2` controls ADC function for pins **GPIO0, 2, 4, 12-15, 25-27**
 
 #### 3.. ESP32 WiFi uses ADC2 for WiFi functions
 
 Look in file [**adc_common.c**](https://github.com/espressif/esp-idf/blob/master/components/driver/adc_common.c#L61)
 
-> In ADC2, there're two locks used for different cases:
+> In `ADC2`, there're two locks used for different cases:
 > 1. lock shared with app and Wi-Fi:
 >    ESP32:
->         When Wi-Fi using the ADC2, we assume it will never stop, so app checks the lock and returns immediately if failed.
+>         When Wi-Fi using the `ADC2`, we assume it will never stop, so app checks the lock and returns immediately if failed.
 >    ESP32S2:
->         The controller's control over the ADC is determined by the arbiter. There is no need to control by lock.
+>         The controller's control over the `ADC` is determined by the arbiter. There is no need to control by lock.
 > 
 > 2. lock shared between tasks:
->    when several tasks sharing the ADC2, we want to guarantee
+>    when several tasks sharing the `ADC2`, we want to guarantee
 >    all the requests will be handled.
 >    Since conversions are short (about 31us), app returns the lock very soon,
 >    we use a spinlock to stand there waiting to do conversions one by one.
@@ -417,10 +417,10 @@ Look in file [**adc_common.c**](https://github.com/espressif/esp-idf/blob/master
 > adc2_spinlock should be acquired first, then adc2_wifi_lock or rtc_spinlock.
 
 
-- In order to use ADC2 for other functions, we have to **acquire complicated firmware locks and very difficult to do**
-- So, it's not advisable to use ADC2 with WiFi/BlueTooth (BT/BLE).
-- Use ADC1, and pins GPIO32-GPIO39
-- If somehow it's a must to use those pins serviced by ADC2 (**GPIO0, 2, 4, 12, 13, 14, 15, 25, 26 and 27**), use the **fix mentioned at the end** of [**ESP_WiFiManager Issue 39: Not able to read analog port when using the autoconnect example**](https://github.com/khoih-prog/ESP_WiFiManager/issues/39) to work with ESP32 WiFi/BlueTooth (BT/BLE).
+- In order to use `ADC2` for other functions, we have to **acquire complicated firmware locks and very difficult to do**
+- So, it's not advisable to use `ADC2` with WiFi/BlueTooth (BT/BLE).
+- Use `ADC1`, and pins GPIO32-GPIO39
+- If somehow it's a must to use those pins serviced by `ADC2` (**GPIO0, 2, 4, 12, 13, 14, 15, 25, 26 and 27**), use the **fix mentioned at the end** of [**ESP_WiFiManager Issue 39: Not able to read analog port when using the autoconnect example**](https://github.com/khoih-prog/ESP_WiFiManager/issues/39) to work with ESP32 WiFi/BlueTooth (BT/BLE).
 
 
 ---
@@ -438,7 +438,7 @@ String ssid = "ESP_" + String(ESP_getChipId(), HEX);
 const char* password = "your_password";
 ```
 
-then connect WebBrowser to configurable ConfigPortal IP address, default is 192.168.4.1
+then connect WebBrowser to configurable ConfigPortal IP address, default is `192.168.4.1`
 
 - Choose one of the access points scanned, enter password, click **Save**.
 - ESP will restart, then try to connect to the WiFi netwotk using STA-only mode, **without running the ConfigPortal WebServer and WiFi AP**. See [Accessing manager after connection](https://github.com/khoih-prog/ESP_WiFiManager/issues/15).
@@ -1017,7 +1017,7 @@ ESP_wifiManager.setSTAStaticIPConfig(WM_STA_IPconfig);
 
 #### 14. Using AUTOCONNECT_NO_INVALIDATE feature
 
-1. Don't invalidate WiFi SSID/PW when calling autoConnect()  (default)
+1. Don't invalidate WiFi SSID/PW when calling `autoConnect()`  (default)
 
 ```cpp
 #define AUTOCONNECT_NO_INVALIDATE     true
@@ -1032,14 +1032,14 @@ ESP_wifiManager.setSTAStaticIPConfig(WM_STA_IPconfig);
 
 #### 15. Using CORS (Cross-Origin Resource Sharing) feature
 
-1. To use CORS feature with **default** CORS Header "*". Some WebBrowsers won't accept this allowing-all "*" CORS Header.
+1. To use `CORS` feature with **default** `CORS Header` "*". Some WebBrowsers won't accept this allowing-all "*" CORS Header.
 
 ```cpp
 // Default false for using only whenever necessary to avoid security issue
 #define USING_CORS_FEATURE     true
 ```
 
-2. To use CORS feature with specific CORS Header "Your Access-Control-Allow-Origin". **To be modified** according to your specific Allowed-Origin.
+2. To use `CORS` feature with specific `CORS Header` "Your Access-Control-Allow-Origin". **To be modified** according to your specific Allowed-Origin.
 
 ```cpp
 // Default false for using only whenever necessary to avoid security issue
@@ -1053,7 +1053,7 @@ ESP_wifiManager.setSTAStaticIPConfig(WM_STA_IPconfig);
 #endif
 ```
 
-3. Not use CORS feature (default)
+3. Not use `CORS` feature (default)
 
 ```cpp
 // Default false for using only whenever necessary to avoid security issue
@@ -1064,10 +1064,10 @@ ESP_wifiManager.setSTAStaticIPConfig(WM_STA_IPconfig);
 
 #### 16. Using MultiWiFi auto(Re)connect feature
 
-1. In loop()
+1. In `loop()`
 
 ```cpp
-void check_WiFi(void)
+void check_WiFi()
 {
   if ( (WiFi.status() != WL_CONNECTED) )
   {
@@ -1076,7 +1076,7 @@ void check_WiFi(void)
   }
 }
 
-void check_status(void)
+void check_status()
 {
   static ulong checkwifi_timeout    = 0;
 
@@ -1106,9 +1106,9 @@ void loop()
 #### 17. How to auto getting _timezoneName
 
 
-1. Turn on auto NTP configuration by
+1. Turn on auto `NTP` configuration by
 
-```
+```cpp
 // Use false to disable NTP config. Advisable when using Cellphone, Tablet to access Config Portal.
 // See Issue 23: On Android phone ConfigPortal is unresponsive (https://github.com/khoih-prog/ESP_WiFiManager/issues/23)
 #define USE_ESP_WIFIMANAGER_NTP     true
@@ -1126,9 +1126,9 @@ String tempTZ = ESP_wifiManager.getTimezoneName();
 #### 18. How to get TZ variable to configure Timezone
 
 
-1. ESP32 and ESP8266 TZ can be configured, using the  similar to `EST5EDT,M3.2.0,M11.1.0` (for America/New_York) , as follows:
+1. ESP32 and ESP8266 `TZ` can be configured, using the  similar to `EST5EDT,M3.2.0,M11.1.0` (for America/New_York), as follows:
 
-```
+```cpp
 // EST5EDT,M3.2.0,M11.1.0 (for America/New_York)
 // EST5EDT is the name of the time zone
 // EST is the abbreviation used when DST is off
@@ -1149,24 +1149,24 @@ String tempTZ = ESP_wifiManager.getTimezoneName();
 #endif
 ```
 
-2. To convert from `_timezoneName` to TZ, use the function getTZ() as follows:
+2. To convert from `_timezoneName` to `TZ`, use the function `getTZ()` as follows:
 
-```
+```cpp
 const char * TZ_Result = ESP_wifiManager.getTZ(_timezoneName);
 ```
 
-The conversion depends on the stored TZs, which is using some memory, and can cause issue for ESP8266 in certain cases. Therefore, enable just the region you're interested.
+The conversion depends on the stored TZs, which is using some memory, and can cause issue for `ESP8266` in certain cases. Therefore, enable just the region you're interested.
 
 For example, your application is used in America continent, you need just
 
-```
+```cpp
 #define USING_AMERICA       true
 ```
 
 Hereafter is the regions' list
 
 
-```
+```cpp
 // Just use enough to save memory. On ESP8266, can cause blank ConfigPortal screen
 // if using too much memory
 #define USING_AFRICA        false
@@ -1187,7 +1187,7 @@ Hereafter is the regions' list
 #### 19. How to use the TZ variable to configure Timezone
 
 
-```
+```cpp
 #if ESP8266
       configTime(WM_config.TZ, "pool.ntp.org");
 #else
@@ -1199,7 +1199,7 @@ Hereafter is the regions' list
 then to print local time
 
 
-```
+```cpp
 void printLocalTime()
 {
 #if ESP8266
@@ -1305,7 +1305,7 @@ The Label can be any arbitrary string that help you identify the variable, but m
 
 The initial code will be
 
-```
+```cpp
 #define API_KEY_LEN                 17
 
 // Default configuration values
@@ -1327,7 +1327,7 @@ int pinScl                          = PIN_D1;     // Pin D1 mapped to pin GPIO5 
 
 The example [ConfigOnSwitchFS](examples/ConfigOnSwitchFS) will open the CP whenever a SW press is detected in loop(). So the code to add `dynamic variables` will be there, just after the CP `ESP_WiFiManager` class initialization to create `ESP_wifiManager` object.
 
-```
+```cpp
 void loop()
 {
   // is configuration portal requested?
@@ -1354,7 +1354,7 @@ The `ESP_WMParameter` class constructor will be used to initialize each newly-ad
 
 #### 2.1 Use the following simple constructor for simple variables such as `thingspeakApiKey`, `pinSda` and `pinScl` :
 
-```
+```cpp
 ESP_WMParameter(const char *id, const char *placeholder, const char *defaultValue, int length);
 ```
 
@@ -1363,7 +1363,7 @@ ESP_WMParameter(const char *id, const char *placeholder, const char *defaultValu
 The command to use will be 
 
 
-```
+```cpp
 ESP_WMParameter p_thingspeakApiKey(ThingSpeakAPI_Label, "Thingspeak API Key", thingspeakApiKey, API_KEY_LEN);
 
 ```
@@ -1380,7 +1380,7 @@ where
 
 For `pinSda` and `pinScl`, the command will be similar
 
-```
+```cpp
 // I2C SCL and SDA parameters are integers so we need to convert them to char array but
 // no other special considerations
 char convertedValue[3];
@@ -1405,7 +1405,7 @@ where
 
 #### 2.3 Use the more complex following constructor for variables such as `sensorDht22`:
 
-```
+```cpp
 ESP_WMParameter(const char *id, const char *placeholder, const char *defaultValue, int length, const char *custom, int labelPlacement);
 ```
 
@@ -1414,7 +1414,7 @@ ESP_WMParameter(const char *id, const char *placeholder, const char *defaultValu
 The command to use will be 
 
 
-```
+```cpp
 ESP_WMParameter p_sensorDht22(SensorDht22_Label, "DHT-22 Sensor", "T", 2, customhtml, WFM_LABEL_AFTER);
 ```
 
@@ -1432,7 +1432,7 @@ where
 
 and customhtml Code is:
 
-```
+```cpp
 char customhtml[24] = "type=\"checkbox\"";
 
 if (sensorDht22)
@@ -1449,7 +1449,7 @@ Adding those `ESP_WMParameter` objects created in Step 2 using the function `add
 
 #### 3.1 addParameter() function Prototype:
 
-```
+```cpp
 //adds a custom parameter
 bool addParameter(ESP_WMParameter *p);
 ```
@@ -1459,7 +1459,7 @@ bool addParameter(ESP_WMParameter *p);
 
 Add parameter objects, previously created in Step 2, such as : `p_thingspeakApiKey`, `p_sensorDht22`, `p_pinSda` and `p_pinScl`
 
-```
+```cpp
 //add all parameters here
 
 ESP_wifiManager.addParameter(&p_thingspeakApiKey);
@@ -1488,7 +1488,7 @@ We can now retrieve the data, using `getValue()` function, for each `ESP_WMParam
 
 The code is as follows:
 
-```
+```cpp
 // Getting posted form values and overriding local variables parameters
 // Config file is written regardless the connection state
 strcpy(thingspeakApiKey, p_thingspeakApiKey.getValue());
@@ -1499,7 +1499,7 @@ pinScl = atoi(p_pinScl.getValue());
 
 We can also save to FS file to use later in next boot.
 
-```
+```cpp
 // Writing JSON config file to flash for next boot
 writeConfigFile();
 ```
@@ -1516,7 +1516,7 @@ This documentation will discuss only ArduinoJson v6.x.x+ (`ARDUINOJSON_VERSION_M
 Then have a look at the code snippet of `writeConfigFile()` function and the following step-by-step explanations.
 
 
-```
+```cpp
 bool writeConfigFile()
 {
   Serial.println("Saving config file");
@@ -1564,7 +1564,7 @@ bool writeConfigFile()
 
 We'll create an object with size 1024 bytes, enough to hold our data:
 
-```
+```cpp
 DynamicJsonDocument json(1024);
 ```
 
@@ -1572,13 +1572,13 @@ DynamicJsonDocument json(1024);
 
 Then `JSONify` all local parameters we've just received from CP and wish to store into FS by using the function prototype:
 
-```
+```cpp
 json[Unique_Label] = Value_For_Unique_Label;
 ```
 
 as follows:
 
-```
+```cpp
 // JSONify local configuration parameters
 json[ThingSpeakAPI_Label] = thingspeakApiKey;
 json[SensorDht22_Label]   = sensorDht22;
@@ -1592,7 +1592,7 @@ json[PinSCL_Label]        = pinScl;
 
 This is the `CONFIG_FILE` file name we already declared at the beginning of the sketch (for ESP32):
 
-```
+```cpp
 #include <SPIFFS.h>
 FS* filesystem =      &SPIFFS;
 #define FileFS        SPIFFS
@@ -1603,7 +1603,7 @@ const char* CONFIG_FILE = "/ConfigSW.json";
 Now just open the file for writing, and abort if open-for-writing error:
 
 
-```
+```cpp
 // Open file for writing
 File f = FileFS.open(CONFIG_FILE, "w");
 
@@ -1619,7 +1619,7 @@ if (!f)
 
 As simple as this single command to write the whole `json` object we declared then filled with data in steps 5.1 and 5.2
 
-```
+```cpp
 // Write data to file and close it
 serializeJson(json, f);
 ```
@@ -1628,7 +1628,7 @@ serializeJson(json, f);
 
 Soooo simple !!! Now everybody can do it.
 
-```
+```cpp
 f.close();
 ```
 
@@ -1639,7 +1639,7 @@ But **HOWTO use the saved data in the next startup** ???? That's in next step 6.
 ### 6. Read from FS using JSON format
 
 
-Now, you have familiarized yourself with ArduinoJson library, its functions. We'll discuss HOWTO read data from the CONFIG_FILE in Jsonified format, then HOWTO parse the to use.
+Now, you have familiarized yourself with `ArduinoJson` library, its functions. We'll discuss HOWTO read data from the `CONFIG_FILE` in `Jsonified` format, then HOWTO parse the to use.
 
 The documentation will discuss only ArduinoJson v6.x.x+ (`ARDUINOJSON_VERSION_MAJOR >= 6`)
 
@@ -1647,7 +1647,7 @@ The documentation will discuss only ArduinoJson v6.x.x+ (`ARDUINOJSON_VERSION_MA
 First, have a look at the code snippet of `readConfigFile()` function.
 
 
-```
+```cpp
 bool readConfigFile()
 {
   // this opens the config file in read-mode
@@ -1728,14 +1728,14 @@ and the following step-by-step explanations.
 
 As simple as this
 
-```
+```cpp
 // this opens the config file in read-mode
 File f = FileFS.open(CONFIG_FILE, "r");
 ```
 
-We'll inform and abort if the CONFIG_FILE can't be opened (file not found, can't be opened, etc.)
+We'll inform and abort if the `CONFIG_FILE` can't be opened (file not found, can't be opened, etc.)
 
-```
+```cpp
 if (!f)
 {
   Serial.println("Configuration file not found");
@@ -1747,7 +1747,7 @@ if (!f)
 
 Now we have to determine the file size to create a buffer large enough to store the to-be-read data
 
-```
+```cpp
 // we could open the file
 size_t size = f.size();
 // Allocate a buffer to store contents of the file.
@@ -1759,7 +1759,7 @@ std::unique_ptr<char[]> buf(new char[size + 1]);
 
 Then just read the file into the buffer, and close the file to be safe
 
-```
+```cpp
 // Read and store file contents in buf
 f.readBytes(buf.get(), size);
 // Closing file
@@ -1775,19 +1775,19 @@ Why the same complicated `DynamicJsonDocument json` object ?? Because in steps 5
 
 We first create the object with enough size
 
-```
+```cpp
 DynamicJsonDocument json(1024);
 ```
 
 then populate it with data from buffer we read from CONFIG_FILE in step 6.2, pre-parse and check for error. All is done just by one command `deserializeJson()`
 
-```
+```cpp
 auto deserializeError = deserializeJson(json, buf.get());
 ```
 
 Abort if there is any data error in the process of writing, storing, reading back. If OK, just nicely print out to the Debug Terminal
 
-```
+```cpp
 if ( deserializeError )
 {
   Serial.println("JSON parseObject() failed");
@@ -1803,18 +1803,18 @@ serializeJson(json, Serial);
 This is as simple as in the step 5.2, but in reverse direction.
 
 To be sure there is good corresponding data, not garbage, for each variable, we have to perform **sanity checks** by 
-verifying the `DynamicJsonDocument json object` still contains the correct keys we passed to it when we wrote into CONFIG_FILE. 
+verifying the `DynamicJsonDocument json object` still contains the correct keys we passed to it when we wrote into `CONFIG_FILE`. 
 
 For example:
 
-```
+```cpp
 if (json.containsKey(ThingSpeakAPI_Label))
 ```
 
 Then proceed to get every parameter we know we stored there from last CP `Save`.
 
 
-```
+```cpp
 // Parse all config file parameters, override
 // local config variables with parsed values
 if (json.containsKey(ThingSpeakAPI_Label))
@@ -1844,7 +1844,7 @@ if (json.containsKey(PinSCL_Label))
 **Just use those parameters for whatever purpose you designed them for in step 1:**
 
 
-```
+```cpp
 The application will use DHT sensor (either DHT11 or DHT22) and need to connect to ThingSpeak with unique user's API Key. The DHT sensor is connected to the ESP boards using SDA/SCL pins which also need to be configurable.
 ```
 
@@ -1861,7 +1861,7 @@ In `ConfigPortal Mode`, it starts an access point called `ESP_XXXXXX`. Connect t
 String ssid = "ESP_" + String(ESP_getChipId(), HEX);
 const char* password = "your_password";
 ```
-After you connected, please, go to http://192.168.4.1, you'll see this `Main` page:
+After you connected, please, go to `http://192.168.4.1`, you'll see this `Main` page:
 
 <p align="center">
     <img src="https://github.com/khoih-prog/ESP_WiFiManager/blob/master/Images/Main.png">
@@ -1914,11 +1914,14 @@ ESP_wifiManager.startConfigPortal( SSID , password )
 
 This gets called when custom parameters have been set **AND** a connection has been established. Use it to set a flag, so when all the configuration finishes, you can save the extra parameters somewhere.
 
-See [ConfigOnSwitchFS Example](examples/ConfigOnSwitchFS).
+See [ConfigOnSwitchFS Example](examples/ConfigOnSwitchFS)
+
 ```cpp
 ESP_wifiManager.setSaveConfigCallback(saveConfigCallback);
 ```
+
 saveConfigCallback declaration and example
+
 ```cpp
 //flag for saving data
 bool shouldSaveConfig = false;
@@ -1937,8 +1940,9 @@ If you need to set a timeout so the `ESP32 / ESP8266` doesn't hang waiting to be
 ```cpp
 ESP_wifiManager.setConfigPortalTimeout(120);
 ```
-which will wait 2 minutes (120 seconds). When the time passes, the startConfigPortal function will return and continue the sketch, 
-unless you're accessing the Config Portal. In this case, the `startConfigPortal` function will stay until you save config data or exit 
+
+which will wait 2 minutes (120 seconds). When the time passes, the `startConfigPortal()` function will return and continue the sketch, 
+unless you're accessing the Config Portal. In this case, the `startConfigPortal()` function will stay until you save config data or exit 
 the Config Portal.
 
 
@@ -2091,6 +2095,7 @@ You can set a custom IP for both AP (access point, config mode) and STA (station
 #### Custom Access Point IP Configuration
 
 This will set your captive portal to a specific IP should you need/want such a feature. Add the following snippet before `startConfigPortal()`
+
 ```cpp
 //set custom ip for portal
 //ESP_wifiManager.setAPStaticIPConfig(IPAddress(10,0,1,1), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
@@ -2099,7 +2104,8 @@ ESP_wifiManager.setAPStaticIPConfig(WM_AP_IPconfig);
 
 #### Custom Station (client) Static IP Configuration
 
-This will use the specified IP configuration instead of using DHCP in station mode.
+This will use the specified IP configuration instead of using `DHCP` in station mode
+
 ```cpp
 //ESP_wifiManager.setSTAStaticIPConfig(IPAddress(192,168,0,99), IPAddress(192,168,0,1), IPAddress(255,255,255,0));
 ESP_wifiManager.setSTAStaticIPConfig(WM_STA_IPconfig);
@@ -2107,10 +2113,11 @@ ESP_wifiManager.setSTAStaticIPConfig(WM_STA_IPconfig);
 
 ### Custom HTML, CSS, Javascript
 
-There are various ways in which you can inject custom HTML, CSS or Javascript into the ConfigPortal.
+There are various ways in which you can inject custom `HTML`, `CSS` or `Javascript` into the ConfigPortal.
 
 The options are:
 - inject custom head element
+
 You can use this to any html bit to the head of the ConfigPortal. If you add a `<style>` element, bare in mind it overwrites the included css, not replaces.
 
 ```cpp
@@ -2197,11 +2204,11 @@ https://github.com/khoih-prog/ESP_WiFiManager/blob/a73dbe26dba2491b40b38100f29ce
 
 #### 1. [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr) on ESP8266_NODEMCU_ESP12E
 
-This is terminal debug output when running [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr) on **ESP8266_NODEMCU_ESP12E**. Config Portal was requested to input and save MQTT Credentials. The boards then connected to Adafruit MQTT Server successfully.
+This is terminal debug output when running [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr) on **ESP8266_NODEMCU_ESP12E**. Config Portal was requested to input and save `MQTT Credentials`. The boards then connected to `Adafruit MQTT Server` successfully
 
-```
+```cpp
 Starting ConfigOnSwichFS_MQTT_Ptr using LittleFS on ESP8266_NODEMCU_ESP12E
-ESP_WiFiManager v1.11.0
+ESP_WiFiManager v1.12.0
 Configuration file not found
 Failed to read configuration file, using default values
 [WM] RFC925 Hostname = ConfigOnSwichFS-MQTT
@@ -2305,16 +2312,17 @@ Connecting to WiFi MQTT (3 attempts)...
 WiFi MQTT connection successful!
 TWWWW WTWWWW WWTWWW WWWTWW WWWWTW 
 ```
+
 ---
 
 #### 2. [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD) on ESP32_DEV
 
-This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD) on **ESP32 ESP32_DEV using SPIFFS.**. Config Portal was requested by DRD to input and save Credentials. The boards then connected to WiFi AP **HueNet1** using new Static IP successfully. WiFi AP **HueNet1** is then lost, and board **autoreconnects** itself to backup WiFi AP **HueNet2**.
+This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD) on **ESP32 ESP32_DEV using SPIFFS.**. `Config Portal` was requested by `DRD` to input and save Credentials. The boards then connected to WiFi AP **HueNet1** using new Static IP successfully. WiFi AP **HueNet1** is then lost, and board **autoreconnects** itself to backup WiFi AP **HueNet2**.
 
 ```cpp
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using SPIFFS on ESP32_DEV
-ESP_WiFiManager v1.11.0
-ESP_DoubleResetDetector v1.3.1
+ESP_WiFiManager v1.12.0
+ESP_DoubleResetDetector v1.3.2
 FS File: /ConfigSW.json, size: 150B
 FS File: /CanadaFlag_1.png, size: 40.25KB
 FS File: /CanadaFlag_2.png, size: 8.12KB
@@ -2374,12 +2382,12 @@ HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH
 
 #### 3. [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD) on ESP32_DEV using newly-supported LittleFS
 
-This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD) on **ESP32 ESP32_DEV using newly-supported LittleFS.**. Config Portal was requested by DRD to input and save Credentials. The boards then connected to WiFi AP **HueNet1** using new Static IP successfully.
+This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD) on **ESP32 ESP32_DEV using newly-supported LittleFS.**. `Config Portal` was requested by `DRD` to input and save Credentials. The boards then connected to WiFi AP **HueNet1** using new Static IP successfully.
 
-```
+```cpp
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.11.0
-ESP_DoubleResetDetector v1.3.1
+ESP_WiFiManager v1.12.0
+ESP_DoubleResetDetector v1.3.2
 FS File: /CanadaFlag_1.png, size: 40.25KB
 FS File: /CanadaFlag_2.png, size: 8.12KB
 FS File: /CanadaFlag_3.jpg, size: 10.89KB
@@ -2431,14 +2439,14 @@ HHHHHHHHHH HHHHHHHHHH HHH
 
 #### 4. [ConfigOnDRD_FS_MQTT_Ptr_Complex](examples/ConfigOnDRD_FS_MQTT_Ptr_Complex) on ESP32_DEV
 
-This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](examples/ConfigOnDRD_FS_MQTT_Ptr_Complex) on **ESP32 ESP32_DEV using LittleFS.**. Config Portal was then requested by DRD to input and save MQTT Credentials. The boards then connected to Adafruit MQTT Server successfully.
+This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](examples/ConfigOnDRD_FS_MQTT_Ptr_Complex) on **ESP32 ESP32_DEV using LittleFS.**. `Config Portal` was then requested by `DRD` to input and save `MQTT Credentials`. The boards then connected to `Adafruit MQTT Server` successfully.
 
 ##### 4.1 With Config Data => Run normally
 
-```
+```cpp
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.11.0
-ESP_DoubleResetDetector v1.3.1
+ESP_WiFiManager v1.12.0
+ESP_DoubleResetDetector v1.3.2
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
 LittleFS Flag read = 0xd0d04321
@@ -2478,10 +2486,10 @@ WWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 #### 4.2 DRD => Config Portal
 
-```
+```cpp
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.11.0
-ESP_DoubleResetDetector v1.3.1
+ESP_WiFiManager v1.12.0
+ESP_DoubleResetDetector v1.3.2
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
 LittleFS Flag read = 0xd0d01234
@@ -2513,7 +2521,7 @@ Opening Configuration Portal. No timeout : DRD or No stored Credentials..
 
 #### 4.3 Config Portal Done
 
-```
+```cpp
 [WM] Connecting to new AP
 [WM] Previous settings invalidated
 [WM] Custom STA IP/GW/Subnet
@@ -2559,14 +2567,14 @@ TWWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 #### 5. [ConfigOnDRD_FS_MQTT_Ptr_Medium](examples/ConfigOnDRD_FS_MQTT_Ptr_Medium) on ESP8266_NODEMCU_ESP12E
 
-This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](examples/ConfigOnDRD_FS_MQTT_Ptr_Complex) on **ESP8266_NODEMCU_ESP12E using LittleFS.**. Config Portal was then requested by DRD to input and save MQTT Credentials. The boards then connected to Adafruit MQTT Server successfully.
+This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](examples/ConfigOnDRD_FS_MQTT_Ptr_Complex) on **ESP8266_NODEMCU_ESP12E using LittleFS.**. `Config Portal` was then requested by `DRD` to input and save `MQTT Credentials`. The boards then connected to `Adafruit MQTT Server` successfully.
 
 ##### 5.1 With Config Data => Run normally
 
-```
+```cpp
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU_ESP12E
-ESP_WiFiManager v1.11.0
-ESP_DoubleResetDetector v1.3.1
+ESP_WiFiManager v1.12.0
+ESP_DoubleResetDetector v1.3.2
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
 LittleFS Flag read = 0xd0d04321
@@ -2603,10 +2611,10 @@ TWWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 #### 5.2 DRD => Config Portal
 
-```
+```cpp
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU_ESP12E
-ESP_WiFiManager v1.11.0
-ESP_DoubleResetDetector v1.3.1
+ESP_WiFiManager v1.12.0
+ESP_DoubleResetDetector v1.3.2
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
 LittleFS Flag read = 0xd0d01234
@@ -2638,7 +2646,7 @@ Opening Configuration Portal. No timeout : DRD or No stored Credentials..
 
 #### 5.3 Config Portal Done
 
-```
+```cpp
 [WM] Connecting to new AP
 [WM] Already connected. Bailing out.
 Connected...yeey :)
@@ -2680,10 +2688,10 @@ TWWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 This is terminal debug output when running [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) on **ESP32S2_DEV**.
 
 
-```
+```cpp
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
-ESP_WiFiManager v1.11.0
-ESP_DoubleResetDetector v1.3.1
+ESP_WiFiManager v1.12.0
+ESP_DoubleResetDetector v1.3.2
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] setAPStaticIPConfig
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
@@ -2725,15 +2733,15 @@ HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHH
 
 #### 7. [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) on ESP32_DEV
 
-This is terminal debug output when running [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) on **ESP32_DEV.**. Config Portal was requested by DRD to input and save Credentials. The boards then connected to WiFi using new Static IP successfully, with correct local time, TZ set and using NTP
+This is terminal debug output when running [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) on **ESP32_DEV.**. `Config Portal` was requested by `DRD` to input and save Credentials. The boards then connected to WiFi using new Static IP successfully, with correct local time, TZ set and using NTP
 
 
 #### 7.1 DRD => Config Portal
 
-```
+```cpp
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.11.0
-ESP_DoubleResetDetector v1.3.1
+ESP_WiFiManager v1.12.0
+ESP_DoubleResetDetector v1.3.2
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
 ESP Self-Stored: SSID = HueNet1, Pass = password
@@ -2756,7 +2764,7 @@ Starting configuration portal @ 192.168.4.1:80, SSID = ESP_85288, PWD = MyESP_85
 
 #### 7.2 Data Saved => Connect to WiFi with correct local time, TZ set and using NTP
 
-```
+```cpp
 [WM] WiFi.waitForConnectResult Done
 [WM] SET AP
 [WM] Configuring AP SSID = ESP_85288
@@ -2840,10 +2848,10 @@ Local Date/Time: Thu May  6 21:29:18 2021
 
 #### 7.3 Normal running with correct local time, TZ set and using NTP
 
-```
+```cpp
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.11.0
-ESP_DoubleResetDetector v1.3.1
+ESP_WiFiManager v1.12.0
+ESP_DoubleResetDetector v1.3.2
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
 ESP Self-Stored: SSID = HueNet1, Pass = password
@@ -2886,15 +2894,15 @@ Local Date/Time: Thu May  6 21:33:18 2021
 
 #### 8. [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) on ESP32S2_DEV
 
-This is terminal debug output when running [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) on **ESP32S2_DEV.**. Config Portal was requested by DRD to input and save Credentials. The boards then connected to WiFi using new Static IP successfully, with correct local time, TZ set and using NTP
+This is terminal debug output when running [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) on **ESP32S2_DEV.**. `Config Portal` was requested by `DRD` to input and save Credentials. The boards then connected to WiFi using new Static IP successfully, with correct local time, TZ set and using NTP
 
 
 #### 8.1 No Data => Config Portal
 
-```
+```cpp
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
-ESP_WiFiManager v1.11.0
-ESP_DoubleResetDetector v1.3.1
+ESP_WiFiManager v1.12.0
+ESP_DoubleResetDetector v1.3.2
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
 ESP Self-Stored: SSID = HueNet1, Pass = password
@@ -2913,7 +2921,7 @@ Starting configuration portal @ 192.168.4.1:80, SSID = ESP_8A1DF7C, PWD = MyESP_
 
 #### 8.2 Data Saved => Connect to WiFi with correct local time, TZ set and using NTP
 
-```
+```cpp
 [WM] WiFi.waitForConnectResult Done
 [WM] SET AP
 [WM] Configuring AP SSID = ESP_8A1DF7C
@@ -3037,10 +3045,10 @@ Local Date/Time: Thu May  6 21:29:18 2021
 
 #### 8.3 Normal running with correct local time, TZ set and using NTP
 
-```
+```cpp
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
-ESP_WiFiManager v1.11.0
-ESP_DoubleResetDetector v1.3.1
+ESP_WiFiManager v1.12.0
+ESP_DoubleResetDetector v1.3.2
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
 ESP Self-Stored: SSID = HueNet1, Pass = password
@@ -3088,12 +3096,12 @@ Local Date/Time: Thu May  6 21:48:41 2021
 
 #### 9. [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD) on ESP32C3_DEV using SPIFFS
 
-This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD) on **ESP32C3_DEV using SPIFFS and ESP32 core v2.0.0-rc1.**. Config Portal was requested by DRD to input and save Credentials. The boards then connected to WiFi AP **HueNet** using new Static IP successfully.
+This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD) on **ESP32C3_DEV using SPIFFS and ESP32 core v2.0.0-rc1.**. `Config Portal` was requested by `DRD` to input and save Credentials. The boards then connected to WiFi AP **HueNet** using new Static IP successfully.
 
-```
+```cpp
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using SPIFFS on ESP32C3_DEV
-ESP_WiFiManager v1.11.0
-ESP_DoubleResetDetector v1.3.1
+ESP_WiFiManager v1.12.0
+ESP_DoubleResetDetector v1.3.2
 FS File: wm_cp.dat, size: 4B
 FS File: wm_cp.bak, size: 4B
 FS File: wmssl_conf.dat, size: 376B
@@ -3162,10 +3170,10 @@ Local Date/Time: Thu Jul 29 23:23:53 2021
 This is terminal debug output when running [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) on **ESP32S3_DEV**.
 
 
-```
+```cpp
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S3_DEV
-ESP_WiFiManager v1.11.0
-ESP_DoubleResetDetector v1.3.1
+ESP_WiFiManager v1.12.0
+ESP_DoubleResetDetector v1.3.2
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
 ESP Self-Stored: SSID = HueNet1, Pass = password
@@ -3220,10 +3228,10 @@ Local Date/Time: Thu Feb 10 23:26:26 2022
 This is terminal debug output when running [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) on **ESP32C3_DEV**.
 
 
-```
+```cpp
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32C3_DEV
-ESP_WiFiManager v1.11.0
-ESP_DoubleResetDetector v1.3.1
+ESP_WiFiManager v1.12.0
+ESP_DoubleResetDetector v1.3.2
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
 ESP Self-Stored: SSID = HueNet1, Pass = password
@@ -3367,6 +3375,7 @@ Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiF
 ### Contributing
 
 If you want to contribute to this project:
+
 - Report bugs and errors
 - Ask for enhancements
 - Create issues and pull requests

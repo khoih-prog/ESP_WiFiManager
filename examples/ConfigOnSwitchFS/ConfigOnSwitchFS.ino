@@ -53,11 +53,15 @@
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
 #endif
 
-#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.11.0"
-#define ESP_WIFIMANAGER_VERSION_MIN             1011000
+#define ESP_WIFIMANAGER_VERSION_MIN_TARGET      "ESP_WiFiManager v1.12.0"
+#define ESP_WIFIMANAGER_VERSION_MIN             1012000
 
 // Use from 0 to 4. Higher number, more debugging messages and memory usage.
-#define _WIFIMGR_LOGLEVEL_    3
+#define _WIFIMGR_LOGLEVEL_    1
+
+// To not display stored SSIDs and PWDs on Config Portal, select false. Default is true
+// Even the stored Credentials are not display, just leave them all blank to reconnect and reuse the stored Credentials 
+//#define DISPLAY_STORED_CREDENTIALS_IN_CP        false
 
 #include <FS.h>
 // Now support ArduinoJson 6.0.0+ ( tested with v6.14.1 )
@@ -1096,6 +1100,12 @@ void setup()
     //switched off via webserver or device is restarted.
     //ESP_wifiManager.setConfigPortalTimeout(600);
 
+#if DISPLAY_STORED_CREDENTIALS_IN_CP
+    // New. Update Credentials, got from loadConfigData(), to display on CP
+    ESP_wifiManager.setCredentials(WM_config.WiFi_Creds[0].wifi_ssid, WM_config.WiFi_Creds[0].wifi_pw, 
+                                   WM_config.WiFi_Creds[1].wifi_ssid, WM_config.WiFi_Creds[1].wifi_pw);
+#endif
+
     // Starts an access point
     if (!ESP_wifiManager.startConfigPortal((const char *) ssid.c_str(), password.c_str()))
       Serial.println(F("Not connected to WiFi but continuing anyway."));
@@ -1285,12 +1295,8 @@ void loop()
     sprintf(convertedValue, "%d", pinScl);
     ESP_WMParameter p_pinScl(PinSCL_Label, "I2C SCL pin", convertedValue, 3);
 
-    // Just a quick hint
-    ESP_WMParameter p_hint("<small>*Hint: if you want to reuse the currently active WiFi credentials, leave SSID and Password fields empty</small>");
-
     //add all parameters here
 
-    ESP_wifiManager.addParameter(&p_hint);
     ESP_wifiManager.addParameter(&p_thingspeakApiKey);
     ESP_wifiManager.addParameter(&p_sensorDht22);
     ESP_wifiManager.addParameter(&p_pinSda);
@@ -1328,6 +1334,12 @@ void loop()
   // New from v1.1.1
 #if USING_CORS_FEATURE
   ESP_wifiManager.setCORSHeader("Your Access-Control-Allow-Origin");
+#endif
+
+#if DISPLAY_STORED_CREDENTIALS_IN_CP
+    // New. Update Credentials, got from loadConfigData(), to display on CP
+    ESP_wifiManager.setCredentials(WM_config.WiFi_Creds[0].wifi_ssid, WM_config.WiFi_Creds[0].wifi_pw, 
+                                   WM_config.WiFi_Creds[1].wifi_ssid, WM_config.WiFi_Creds[1].wifi_pw);
 #endif
 
     // Start an access point

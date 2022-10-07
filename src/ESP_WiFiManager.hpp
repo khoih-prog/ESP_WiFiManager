@@ -16,7 +16,7 @@
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
   
-  Version: 1.11.0
+  Version: 1.12.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -28,12 +28,15 @@
   1.10.1  K Hoang      11/02/2022 Add LittleFS support to ESP32-C3. Use core LittleFS instead of Lorol's LITTLEFS for v2.0.0+
   1.10.2  K Hoang      13/03/2022 Send CORS header in handleWifiSave() function
   1.11.0  K Hoang      09/09/2022 Fix ESP32 chipID and add ESP_getChipOUI()
+  1.12.0  K Hoang      07/10/2022 Optional display Credentials (SSIDs, PWDs) in Config Portal
  *****************************************************************************************************************************/
 
 #pragma once
 
 #ifndef ESP_WiFiManager_hpp
 #define ESP_WiFiManager_hpp
+
+////////////////////////////////////////////////////
 
 #if !( defined(ESP8266) ||  defined(ESP32) )
   #error This code is intended to run on the ESP8266 or ESP32 platform! Please check your Tools->Board setting.
@@ -52,9 +55,10 @@
 		#else
 		  #warning Using ESP32_C3 using core v1.0.6-. To follow library instructions to install esp32-c3 core. Only SPIFFS and EEPROM OK.
 		#endif
+		
+		#warning You have to select Flash size 2MB and Minimal APP (1.3MB + 700KB) for some boards
   #endif
-  
-  #warning You have to select Flash size 2MB and Minimal APP (1.3MB + 700KB) for some boards
+    
   #define USING_ESP32_C3        true
 #elif ( defined(ARDUINO_ESP32S3_DEV) || defined(ARDUINO_ESP32_S3_BOX) || defined(ARDUINO_TINYS3) || \
         defined(ARDUINO_PROS3) || defined(ARDUINO_FEATHERS3) )
@@ -64,15 +68,21 @@
   #define USING_ESP32_S3        true   
 #endif
 
-#define ESP_WIFIMANAGER_VERSION           "ESP_WiFiManager v1.11.0"
+////////////////////////////////////////////////////
+
+#define ESP_WIFIMANAGER_VERSION           "ESP_WiFiManager v1.12.0"
 
 #define ESP_WIFIMANAGER_VERSION_MAJOR     1
-#define ESP_WIFIMANAGER_VERSION_MINOR     11
+#define ESP_WIFIMANAGER_VERSION_MINOR     12
 #define ESP_WIFIMANAGER_VERSION_PATCH     0
 
-#define ESP_WIFIMANAGER_VERSION_INT      1011000
+#define ESP_WIFIMANAGER_VERSION_INT      1012000
+
+////////////////////////////////////////////////////
 
 #include "ESP_WiFiManager_Debug.h"
+
+////////////////////////////////////////////////////
 
 #if ( defined(HTTP_PORT) && (HTTP_PORT < 65536) && (HTTP_PORT > 0) )
   #if (_WIFIMGR_LOGLEVEL_ > 3)
@@ -88,6 +98,8 @@
   #define HTTP_PORT_TO_USE     80
 #endif
 
+////////////////////////////////////////////////////
+
 //KH, for ESP32
 #ifdef ESP8266
   #include <ESP8266WiFi.h>
@@ -102,6 +114,8 @@
 #undef min
 #undef max
 #include <algorithm>
+
+////////////////////////////////////////////////////
 
 //KH, for ESP32
 #ifdef ESP8266
@@ -127,7 +141,8 @@
   #define ESP_getChipOUI() 	getChipOUI()		// ((uint32_t)ESP.getEfuseMac())
 #endif
 
-// New in v1.4.0
+////////////////////////////////////////////////////
+
 typedef struct
 {
   IPAddress _ap_static_ip;
@@ -136,12 +151,16 @@ typedef struct
 
 }  WiFi_AP_IPConfig;
 
+////////////////////////////////////////////////////
+
 // Thanks to @Amorphous for the feature and code
 // (https://community.blynk.cc/t/esp-wifimanager-for-esp32-and-esp8266/42257/13)
 // To enable to configure from sketch
 #if !defined(USE_CONFIGURABLE_DNS)
   #define USE_CONFIGURABLE_DNS        false
 #endif
+
+////////////////////////////////////////////////////
 
 typedef struct
 {
@@ -151,11 +170,14 @@ typedef struct
   IPAddress _sta_static_dns1;
   IPAddress _sta_static_dns2;
 }  WiFi_STA_IPConfig;
-//////
 
-#define WFM_LABEL_BEFORE 1
-#define WFM_LABEL_AFTER 2
-#define WFM_NO_LABEL 0
+////////////////////////////////////////////////////
+
+#define WFM_LABEL_BEFORE			1
+#define WFM_LABEL_AFTER				2
+#define WFM_NO_LABEL          0
+
+////////////////////////////////////////////////////
 
 /** Handle CORS in pages */
 // Default false for using only whenever necessary to avoid security issue when using CORS (Cross-Origin Resource Sharing)
@@ -165,24 +187,31 @@ typedef struct
   #define USING_CORS_FEATURE     false
 #endif
 
+////////////////////////////////////////////////////
+
 //KH
 //Mofidy HTTP_HEAD to WM_HTTP_HEAD_START to avoid conflict in Arduino esp8266 core 2.6.0+
 const char WM_HTTP_200[] PROGMEM = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
 const char WM_HTTP_HEAD_START[] PROGMEM = "<!DOCTYPE html><html lang='en'><head><meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=no'/><title>{v}</title>";
 
-// KH, update from v1.0.10
+////////////////////////////////////////////////////
+
 const char WM_HTTP_STYLE[] PROGMEM = "<style>div{padding:2px;font-size:1em;}body,textarea,input,select{background: 0;border-radius: 0;font: 16px sans-serif;margin: 0}textarea,input,select{outline: 0;font-size: 14px;border: 1px solid #ccc;padding: 8px;width: 90%}.btn a{text-decoration: none}.container{margin: auto;width: 90%}@media(min-width:1200px){.container{margin: auto;width: 30%}}@media(min-width:768px) and (max-width:1200px){.container{margin: auto;width: 50%}}.btn,h2{font-size: 2em}h1{font-size: 3em}.btn{background: #0ae;border-radius: 4px;border: 0;color: #fff;cursor: pointer;display: inline-block;margin: 2px 0;padding: 10px 14px 11px;width: 100%}.btn:hover{background: #09d}.btn:active,.btn:focus{background: #08b}label>*{display: inline}form>*{display: block;margin-bottom: 10px}textarea:focus,input:focus,select:focus{border-color: #5ab}.msg{background: #def;border-left: 5px solid #59d;padding: 1.5em}.q{float: right;width: 64px;text-align: right}.l{background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAALVBMVEX///8EBwfBwsLw8PAzNjaCg4NTVVUjJiZDRUUUFxdiZGSho6OSk5Pg4eFydHTCjaf3AAAAZElEQVQ4je2NSw7AIAhEBamKn97/uMXEGBvozkWb9C2Zx4xzWykBhFAeYp9gkLyZE0zIMno9n4g19hmdY39scwqVkOXaxph0ZCXQcqxSpgQpONa59wkRDOL93eAXvimwlbPbwwVAegLS1HGfZAAAAABJRU5ErkJggg==') no-repeat left center;background-size: 1em}input[type='checkbox']{float: left;width: 20px}.table td{padding:.5em;text-align:left}.table tbody>:nth-child(2n-1){background:#ddd}fieldset{border-radius:0.5rem;margin:0px;}</style>";
-//////
 
-// KH, update from v1.1.0
+////////////////////////////////////////////////////
+
 const char WM_HTTP_SCRIPT[] PROGMEM = "<script>function c(l){document.getElementById('s').value=l.innerText||l.textContent;document.getElementById('p').focus();document.getElementById('s1').value=l.innerText||l.textContent;document.getElementById('p1').focus();document.getElementById('timezone').value=timezone.name();}</script>";
-//////
 
-// From v1.0.9 to permit disable or configure NTP from sketch
+////////////////////////////////////////////////////
+////////////////////////////////////////////////////
+
+// To permit disable or configure NTP from sketch
 #ifndef USE_ESP_WIFIMANAGER_NTP
-  // From v1.0.6 to enable NTP config
+  // To enable NTP config
   #define USE_ESP_WIFIMANAGER_NTP     true
 #endif
+
+////////////////////////////////////////////////////
 
 #if USE_ESP_WIFIMANAGER_NTP
 
@@ -219,38 +248,62 @@ const char WM_HTTP_SCRIPT_NTP[] PROGMEM = "<script>(function(e){var t=function()
   const char WM_HTTP_SCRIPT_NTP[]         PROGMEM   = "";
 #endif
 
-// KH, update from v1.0.10
+////////////////////////////////////////////////////
+////////////////////////////////////////////////////
+
 const char WM_HTTP_HEAD_END[] PROGMEM = "</head><body><div class='container'><div style='text-align:left;display:inline-block;min-width:260px;'>";
 
 const char WM_FLDSET_START[]  PROGMEM = "<fieldset>";
 const char WM_FLDSET_END[]    PROGMEM = "</fieldset>";
-//////
+
+////////////////////////////////////////////////////
 
 const char WM_HTTP_PORTAL_OPTIONS[] PROGMEM = "<form action='/wifi' method='get'><button class='btn'>Configuration</button></form><br/><form action='/i' method='get'><button class='btn'>Information</button></form><br/><form action='/close' method='get'><button class='btn'>Exit Portal</button></form><br/>";
 const char WM_HTTP_ITEM[] PROGMEM = "<div><a href='#p' onclick='c(this)'>{v}</a>&nbsp;<span class='q {i}'>{r}%</span></div>";
 const char JSON_ITEM[] PROGMEM    = "{\"SSID\":\"{v}\", \"Encryption\":{i}, \"Quality\":\"{r}\"}";
 
-// KH, update from v1.1.0
-const char WM_HTTP_FORM_START[] PROGMEM = "<form method='get' action='wifisave'><fieldset><div><label>SSID</label><input id='s' name='s' length=32 placeholder='SSID'><div></div></div><div><label>Password</label><input id='p' name='p' length=64 placeholder='password'><div></div></div><div><label>SSID1</label><input id='s1' name='s1' length=32 placeholder='SSID1'><div></div></div><div><label>Password</label><input id='p1' name='p1' length=64 placeholder='password1'><div></div></div></fieldset>";
-//////
+////////////////////////////////////////////////////
 
-// KH, add from v1.0.10
+// KH, update from v1.12.0
+// To permit display stored Credentials on CP
+#ifndef DISPLAY_STORED_CREDENTIALS_IN_CP   
+  #define DISPLAY_STORED_CREDENTIALS_IN_CP          true
+#endif
+
+#if ( (_WIFIMGR_LOGLEVEL_ > 3) && DISPLAY_STORED_CREDENTIALS_IN_CP )
+  #warning Enable DISPLAY_STORED_CREDENTIALS_IN_CP
+#endif
+
+#if DISPLAY_STORED_CREDENTIALS_IN_CP
+const char WM_HTTP_FORM_START[] PROGMEM = "<form method='get' action='wifisave'><fieldset><div><label>SSID</label><input value='[[ssid]]' id='s' name='s' length=32 placeholder='SSID'><div></div></div><div><label>Password</label><input value='[[pwd]]' id='p' name='p' length=64 placeholder='password'><div></div></div><div><label>SSID1</label><input value='[[ssid1]]' id='s1' name='s1' length=32 placeholder='SSID1'><div></div></div><div><label>Password</label><input value='[[pwd1]]' id='p1' name='p1' length=64 placeholder='password1'><div></div></div></fieldset>";
+#else
+const char WM_HTTP_FORM_START[] PROGMEM = "<form method='get' action='wifisave'><fieldset><div><label>SSID</label><input id='s' name='s' length=32 placeholder='SSID'><div></div></div><div><label>Password</label><input id='p' name='p' length=64 placeholder='password'><div></div></div><div><label>SSID1</label><input id='s1' name='s1' length=32 placeholder='SSID1'><div></div></div><div><label>Password</label><input id='p1' name='p1' length=64 placeholder='password1'><div></div></div></fieldset>";
+#endif
+
+////////////////////////////////////////////////////
+
 const char WM_HTTP_FORM_LABEL_BEFORE[] PROGMEM = "<div><label for='{i}'>{p}</label><input id='{i}' name='{n}' length={l} placeholder='{p}' value='{v}' {c}><div></div></div>";
 const char WM_HTTP_FORM_LABEL_AFTER[] PROGMEM = "<div><input id='{i}' name='{n}' length={l} placeholder='{p}' value='{v}' {c}><label for='{i}'>{p}</label><div></div></div>";
-//////
+
+////////////////////////////////////////////////////
 
 const char WM_HTTP_FORM_LABEL[] PROGMEM = "<label for='{i}'>{p}</label>";
 const char WM_HTTP_FORM_PARAM[] PROGMEM = "<input id='{i}' name='{n}' length={l} placeholder='{p}' value='{v}' {c}>";
 
+////////////////////////////////////////////////////
+
 const char WM_HTTP_FORM_END[] PROGMEM = "<button class='btn' type='submit'>Save</button></form>";
 
-// KH, update from v1.1.0
+////////////////////////////////////////////////////
+
 const char WM_HTTP_SAVED[] PROGMEM = "<div class='msg'><b>Credentials Saved</b><br>Try connecting ESP to the {x}/{x1} network. Wait around 10 seconds then check <a href='/'>if it's OK.</a> <p/>The {v} AP will run on the same WiFi channel of the {x}/{x1} AP. You may have to manually reconnect to the {v} AP.</div>";
-//////
+
+////////////////////////////////////////////////////
 
 const char WM_HTTP_END[] PROGMEM = "</div></body></html>";
 
-//KH, from v1.1.0
+////////////////////////////////////////////////////
+
 const char WM_HTTP_HEAD_CL[]         PROGMEM = "Content-Length";
 const char WM_HTTP_HEAD_CT[]         PROGMEM = "text/html";
 const char WM_HTTP_HEAD_CT2[]        PROGMEM = "text/plain";
@@ -264,6 +317,8 @@ const char WM_HTTP_EXPIRES[]         PROGMEM = "Expires";
 const char WM_HTTP_CORS[]            PROGMEM = "Access-Control-Allow-Origin";
 const char WM_HTTP_CORS_ALLOW_ALL[]  PROGMEM = "*";
 
+////////////////////////////////////////////////////
+
 #if USE_AVAILABLE_PAGES
 const char WM_HTTP_AVAILABLE_PAGES[] PROGMEM = "<h3>Available Pages</h3><table class='table'><thead><tr><th>Page</th><th>Function</th></tr></thead><tbody><tr><td><a href='/'>/</a></td><td>Menu page.</td></tr><tr><td><a href='/wifi'>/wifi</a></td><td>Show WiFi scan results and enter WiFi configuration.</td></tr><tr><td><a href='/wifisave'>/wifisave</a></td><td>Save WiFi configuration information and configure device. Needs variables supplied.</td></tr><tr><td><a href='/close'>/close</a></td><td>Close the configuration server and configuration WiFi network.</td></tr><tr><td><a href='/i'>/i</a></td><td>This page.</td></tr><tr><td><a href='/r'>/r</a></td><td>Delete WiFi configuration and reboot. ESP device will not reconnect to a network until new WiFi configuration data is entered.</td></tr><tr><td><a href='/state'>/state</a></td><td>Current device state in JSON format. Interface for programmatic WiFi configuration.</td></tr><tr><td><a href='/scan'>/scan</a></td><td>Run a WiFi scan and return results in JSON format. Interface for programmatic WiFi configuration.</td></tr></table>";
 #else
@@ -273,8 +328,8 @@ const char WM_HTTP_AVAILABLE_PAGES[] PROGMEM = "";
 //KH
 #define WIFI_MANAGER_MAX_PARAMS 20
 
-/////////////////////////////////////////////////////////////////////////////
-// New in v1.4.0
+////////////////////////////////////////////////////
+
 typedef struct
 {
   const char *_id;
@@ -284,7 +339,9 @@ typedef struct
   int         _labelPlacement;
 
 }  WMParam_Data;
-//////
+
+////////////////////////////////////////////////////
+////////////////////////////////////////////////////
 
 class ESP_WMParameter 
 {
@@ -292,17 +349,13 @@ class ESP_WMParameter
     ESP_WMParameter(const char *custom);
     ESP_WMParameter(const char *id, const char *placeholder, const char *defaultValue, const int& length, 
                     const char *custom = "", const int& labelPlacement = WFM_LABEL_BEFORE);
-    
-    // New in v1.4.0              
+              
     ESP_WMParameter(const WMParam_Data& WMParam_data);                   
-    //////
                    
     ~ESP_WMParameter();
     
-    // New in v1.4.0
     void setWMParam_Data(const WMParam_Data& WMParam_data);
     void getWMParam_Data(WMParam_Data& WMParam_data);
-    //////
 
     const char *getID();
     const char *getValue();
@@ -323,6 +376,8 @@ class ESP_WMParameter
     friend class ESP_WiFiManager;
 };
 
+////////////////////////////////////////////////////
+
 #define USE_DYNAMIC_PARAMS				true
 #define DEFAULT_PORTAL_TIMEOUT  	60000L
 
@@ -332,6 +387,9 @@ class ESP_WMParameter
   #define USE_STATIC_IP_CONFIG_IN_CP          true
 #endif
 
+////////////////////////////////////////////////////
+////////////////////////////////////////////////////
+
 class ESP_WiFiManager
 {
   public:
@@ -340,10 +398,9 @@ class ESP_WiFiManager
 
     ~ESP_WiFiManager();
 
-    // Update feature from v1.0.11. Can use with STA staticIP now
+    // Can use with STA staticIP now
     bool          autoConnect();
     bool          autoConnect(char const *apName, char const *apPassword = NULL);
-    //////
 
     //if you want to start the config portal
     bool          startConfigPortal();
@@ -351,6 +408,7 @@ class ESP_WiFiManager
 
     // get the AP name of the config portal, so it can be used in the callback
     String        getConfigPortalSSID();
+    
     // get the AP password of the config portal, so it can be used in the callback
     String        getConfigPortalPW();
 
@@ -365,30 +423,25 @@ class ESP_WiFiManager
     //sets timeout for which to attempt connecting, usefull if you get a lot of failed connects
     void          setConnectTimeout(const unsigned long& seconds);
 
-
     void          setDebugOutput(bool debug);
     //defaults to not showing anything under 8% signal quality if called
     void          setMinimumSignalQuality(const int& quality = 8);
     
-    // KH, new from v1.0.10 to enable dynamic/random channel
+    // KH, To enable dynamic/random channel
     int           setConfigPortalChannel(const int& channel = 1);
     //////
     
     //sets a custom ip /gateway /subnet configuration
     void          setAPStaticIPConfig(const IPAddress& ip, const IPAddress& gw, const IPAddress& sn);
     
-    // New in v1.4.0
     void          setAPStaticIPConfig(const WiFi_AP_IPConfig& WM_AP_IPconfig);
     void          getAPStaticIPConfig(WiFi_AP_IPConfig& WM_AP_IPconfig);
-    //////
     
     //sets config for a static IP
     void          setSTAStaticIPConfig(const IPAddress& ip, const IPAddress& gw, const IPAddress& sn);
     
-    // New in v1.4.0
     void          setSTAStaticIPConfig(const WiFi_STA_IPConfig&  WM_STA_IPconfig);
     void          getSTAStaticIPConfig(WiFi_STA_IPConfig& WM_STA_IPconfig);
-    //////
     
 #if USE_CONFIGURABLE_DNS
     void          setSTAStaticIPConfig(const IPAddress& ip, const IPAddress& gw, const IPAddress& sn,
@@ -397,50 +450,75 @@ class ESP_WiFiManager
 
     //called when AP mode and config portal is started
     void          setAPCallback(void(*func)(ESP_WiFiManager*));
+    
     //called when settings have been changed and connection was successful
     void          setSaveConfigCallback(void(*func)());
 
 #if USE_DYNAMIC_PARAMS
     //adds a custom parameter
-    bool 				addParameter(ESP_WMParameter *p);
+    bool 				  addParameter(ESP_WMParameter *p);
 #else
     //adds a custom parameter
-    void 				addParameter(ESP_WMParameter *p);
+    void 				  addParameter(ESP_WMParameter *p);
 #endif
 
     //if this is set, it will exit after config, even if connection is unsucessful.
     void          setBreakAfterConfig(bool shouldBreak);
+    
     //if this is set, try WPS setup when starting (this will delay config portal for up to 2 mins)
     //TODO
     //if this is set, customise style
     void          setCustomHeadElement(const char* element);
+    
     //if this is true, remove duplicated Access Points - defaut true
     void          setRemoveDuplicateAPs(bool removeDuplicates);
+    
     //Scan for WiFiNetworks in range and sort by signal strength
     //space for indices array allocated on the heap and should be freed when no longer required
     int           scanWifiNetworks(int **indicesptr);
 
+////////////////////////////////////////////////////
+
+    // KH add to display SSIDs and PWDs in CP   
+    void				  setCredentials(const char* ssid, const char* pwd, const char* ssid1, const char* pwd1)
+    {
+      _ssid   = String(ssid);
+      _pass   = String(pwd);
+      _ssid1  = String(ssid1);
+      _pass1  = String(pwd1);
+    }
+    
+    inline void	  setCredentials(String & ssid, String & pwd, String & ssid1, String & pwd1)
+    {
+      _ssid   = ssid;
+      _pass   = pwd;
+      _ssid1  = ssid1;
+      _pass1  = pwd1;
+    }
+
+////////////////////////////////////////////////////
+
     // return SSID of router in STA mode got from config portal. NULL if no user's input //KH
-    String				getSSID() 
+    inline String	getSSID() 
     {
       return _ssid;
     }
 
     // return password of router in STA mode got from config portal. NULL if no user's input //KH
-    String				getPW() 
+    inline String	getPW() 
     {
       return _pass;
     }
     
     // New from v1.1.0
     // return SSID of router in STA mode got from config portal. NULL if no user's input //KH
-    String				getSSID1() 
+    inline String	getSSID1() 
     {
       return _ssid1;
     }
 
     // return password of router in STA mode got from config portal. NULL if no user's input //KH
-    String				getPW1() 
+    inline String	getPW1() 
     {
       return _pass1;
     }
@@ -466,9 +544,10 @@ class ESP_WiFiManager
       else     
         return String("");
     }
-    //////
+
+////////////////////////////////////////////////////
     
-    // New from v1.1.1, for configure CORS Header, default to WM_HTTP_CORS_ALLOW_ALL = "*"
+    // New For configuring CORS Header, default to WM_HTTP_CORS_ALLOW_ALL = "*"
 #if USING_CORS_FEATURE
     void setCORSHeader(const char* CORSHeaders)
     {     
@@ -477,11 +556,13 @@ class ESP_WiFiManager
       LOGWARN1(F("Set CORS Header to : "), _CORS_Header);
     }
     
-    const char* getCORSHeader()
+    inline const char* getCORSHeader()
     {
       return _CORS_Header;
     }
 #endif   
+
+////////////////////////////////////////////////////
     
     //returns the list of Parameters
     ESP_WMParameter** getParameters();
@@ -495,7 +576,7 @@ class ESP_WiFiManager
     String getStoredWiFiPass();
 #endif
 
-    String WiFi_SSID()
+    inline String WiFi_SSID()
     {
 #ifdef ESP8266
       return WiFi.SSID();
@@ -504,7 +585,7 @@ class ESP_WiFiManager
 #endif
     }
 
-    String WiFi_Pass()
+    inline String WiFi_Pass()
     {
 #ifdef ESP8266
       return WiFi.psk();
@@ -538,18 +619,19 @@ class ESP_WiFiManager
       }
     }
 
+////////////////////////////////////////////////////
+
 #if USE_ESP_WIFIMANAGER_NTP
     
-    String getTimezoneName() 
+    inline String getTimezoneName() 
     {  
       return _timezoneName;
     }
 
-    void setTimezoneName(const String& inTimezoneName) 
+    inline void setTimezoneName(const String& inTimezoneName) 
     {  
       _timezoneName = inTimezoneName;
     }
-    //////
     
     //See: https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html
     // EST5EDT,M3.2.0,M11.1.0 (for America/New_York)
@@ -584,9 +666,9 @@ class ESP_WiFiManager
     {
       return getTZ(timezoneName.c_str());      
     }
-    
-    
 #endif    
+
+////////////////////////////////////////////////////
 
   private:
     std::unique_ptr<DNSServer>        dnsServer;
@@ -613,15 +695,17 @@ class ESP_WiFiManager
     String        _ssid   = "";
     String        _pass   = "";
     
-    // New from v1.1.0
     String        _ssid1  = "";
     String        _pass1  = "";
-    //////
+
+    ////////////////////////////////////////////////////
     
 #if USE_ESP_WIFIMANAGER_NTP
     // Timezone info
     String        _timezoneName         = "";
 #endif
+
+    ////////////////////////////////////////////////////
 
     unsigned long _configPortalTimeout  = 0;
 
@@ -631,20 +715,19 @@ class ESP_WiFiManager
     int           numberOfNetworks;
     int           *networkIndices;
     
-    // KH, new from v1.0.10 to enable dynamic/random channel
+    // KH, To enable dynamic/random channel
     // default to channel 1
     #define MIN_WIFI_CHANNEL      1
     #define MAX_WIFI_CHANNEL      11    // Channel 12,13 is flaky, because of bad number 13 ;-)
 
     int _WiFiAPChannel = 1;
-    //////
 
-    // New in v1.4.0
     WiFi_AP_IPConfig  _WiFi_AP_IPconfig;
     
     WiFi_STA_IPConfig _WiFi_STA_IPconfig = { IPAddress(0, 0, 0, 0), IPAddress(192, 168, 2, 1), IPAddress(255, 255, 255, 0),
                                              IPAddress(192, 168, 2, 1), IPAddress(8, 8, 8, 8) };
-    //////
+
+    ////////////////////////////////////////////////////
     
     int           _paramsCount            = 0;
     int           _minimumQuality         = -1;
@@ -656,23 +739,15 @@ class ESP_WiFiManager
 
     int           status                  = WL_IDLE_STATUS;
     
-    // New from v1.1.0, for configure CORS Header, default to WM_HTTP_CORS_ALLOW_ALL = "*"
+    // For configuring CORS Header, default to WM_HTTP_CORS_ALLOW_ALL = "*"
 #if USING_CORS_FEATURE
     const char*     _CORS_Header          = WM_HTTP_CORS_ALLOW_ALL;   //"*";
 #endif   
-    //////
-    
-    // New v1.0.8
-    void          setWifiStaticIP();
-    
-    // New v1.1.0
+
+    void          setWifiStaticIP();   
     int           reconnectWifi();
-    //////
-    
-    // New v1.0.11
     int           connectWifi(const String& ssid = "", const String& pass = "");
-    //////
-    
+   
     uint8_t       waitForConnectResult();
 
     void          handleRoot();
@@ -702,7 +777,9 @@ class ESP_WiFiManager
     bool          _debug = false;     //true;
 
     void(*_apcallback)  (ESP_WiFiManager*)  = NULL;
-    void(*_savecallback)()              = NULL;
+    void(*_savecallback)()                  = NULL;
+
+    ////////////////////////////////////////////////////
 
 #if USE_DYNAMIC_PARAMS
     int                    _max_params;
@@ -710,6 +787,8 @@ class ESP_WiFiManager
 #else
     ESP_WMParameter* _params[WIFI_MANAGER_MAX_PARAMS];
 #endif
+
+    ////////////////////////////////////////////////////
 
     template <typename Generic>
     void          DEBUG_WM(Generic text);
@@ -723,9 +802,12 @@ class ESP_WiFiManager
     auto optionalIPFromString(...) -> bool 
     {
       LOGINFO("NO fromString METHOD ON IPAddress, you need ESP8266 core 2.1.0 or newer for Custom IP configuration to work.");
+      
       return false;
     }
 };
+
+////////////////////////////////////////////////////
 
 #endif    // ESP_WiFiManager_h
 
