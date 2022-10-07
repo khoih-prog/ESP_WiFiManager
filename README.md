@@ -2194,7 +2194,7 @@ ESP_wifiManager.setRemoveDuplicateAPs(false);
 
 ### Example [ConfigOnDRD_FS_MQTT_Ptr](examples/ConfigOnDRD_FS_MQTT_Ptr)
 
-https://github.com/khoih-prog/ESP_WiFiManager/blob/a73dbe26dba2491b40b38100f29ceb12fbaa98a9/examples/ConfigOnDRD_FS_MQTT_Ptr/ConfigOnDRD_FS_MQTT_Ptr.ino#L17-L1410
+https://github.com/khoih-prog/ESP_WiFiManager/blob/fca2fcd8e98b8361b101d0d76c26ecf1e2a2c88d/examples/ConfigOnDRD_FS_MQTT_Ptr/ConfigOnDRD_FS_MQTT_Ptr.ino#L17-L1422
 
 
 ---
@@ -2206,7 +2206,7 @@ https://github.com/khoih-prog/ESP_WiFiManager/blob/a73dbe26dba2491b40b38100f29ce
 
 This is terminal debug output when running [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr) on **ESP8266_NODEMCU_ESP12E**. Config Portal was requested to input and save `MQTT Credentials`. The boards then connected to `Adafruit MQTT Server` successfully
 
-```cpp
+```
 Starting ConfigOnSwichFS_MQTT_Ptr using LittleFS on ESP8266_NODEMCU_ESP12E
 ESP_WiFiManager v1.12.0
 Configuration file not found
@@ -2319,7 +2319,7 @@ TWWWW WTWWWW WWTWWW WWWTWW WWWWTW
 
 This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD) on **ESP32 ESP32_DEV using SPIFFS.**. `Config Portal` was requested by `DRD` to input and save Credentials. The boards then connected to WiFi AP **HueNet1** using new Static IP successfully. WiFi AP **HueNet1** is then lost, and board **autoreconnects** itself to backup WiFi AP **HueNet2**.
 
-```cpp
+```
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using SPIFFS on ESP32_DEV
 ESP_WiFiManager v1.12.0
 ESP_DoubleResetDetector v1.3.2
@@ -2384,7 +2384,7 @@ HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH HHHHHHHHHH
 
 This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD) on **ESP32 ESP32_DEV using newly-supported LittleFS.**. `Config Portal` was requested by `DRD` to input and save Credentials. The boards then connected to WiFi AP **HueNet1** using new Static IP successfully.
 
-```cpp
+```
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using LittleFS on ESP32_DEV
 ESP_WiFiManager v1.12.0
 ESP_DoubleResetDetector v1.3.2
@@ -2443,7 +2443,7 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ##### 4.1 With Config Data => Run normally
 
-```cpp
+```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
 ESP_WiFiManager v1.12.0
 ESP_DoubleResetDetector v1.3.2
@@ -2486,7 +2486,7 @@ WWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 #### 4.2 DRD => Config Portal
 
-```cpp
+```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
 ESP_WiFiManager v1.12.0
 ESP_DoubleResetDetector v1.3.2
@@ -2521,7 +2521,7 @@ Opening Configuration Portal. No timeout : DRD or No stored Credentials..
 
 #### 4.3 Config Portal Done
 
-```cpp
+```
 [WM] Connecting to new AP
 [WM] Previous settings invalidated
 [WM] Custom STA IP/GW/Subnet
@@ -2571,7 +2571,7 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ##### 5.1 With Config Data => Run normally
 
-```cpp
+```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU_ESP12E
 ESP_WiFiManager v1.12.0
 ESP_DoubleResetDetector v1.3.2
@@ -2611,7 +2611,7 @@ TWWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 #### 5.2 DRD => Config Portal
 
-```cpp
+```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU_ESP12E
 ESP_WiFiManager v1.12.0
 ESP_DoubleResetDetector v1.3.2
@@ -2646,7 +2646,7 @@ Opening Configuration Portal. No timeout : DRD or No stored Credentials..
 
 #### 5.3 Config Portal Done
 
-```cpp
+```
 [WM] Connecting to new AP
 [WM] Already connected. Bailing out.
 Connected...yeey :)
@@ -2688,7 +2688,7 @@ TWWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 This is terminal debug output when running [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) on **ESP32S2_DEV**.
 
 
-```cpp
+```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
 ESP_WiFiManager v1.12.0
 ESP_DoubleResetDetector v1.3.2
@@ -2738,7 +2738,7 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 #### 7.1 DRD => Config Portal
 
-```cpp
+```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32_DEV
 ESP_WiFiManager v1.12.0
 ESP_DoubleResetDetector v1.3.2
@@ -2764,7 +2764,7 @@ Starting configuration portal @ 192.168.4.1:80, SSID = ESP_85288, PWD = MyESP_85
 
 #### 7.2 Data Saved => Connect to WiFi with correct local time, TZ set and using NTP
 
-```cpp
+```
 [WM] WiFi.waitForConnectResult Done
 [WM] SET AP
 [WM] Configuring AP SSID = ESP_85288
@@ -2840,15 +2840,15 @@ WiFi connected...yeey :)
 [WM] OK
 After waiting 0.00 secs more in setup(), connection result is connected. Local IP: 192.168.2.45
 [WM] freeing allocated params!
-Local Date/Time: Thu May  6 21:26:18 2021
-Local Date/Time: Thu May  6 21:27:18 2021
-Local Date/Time: Thu May  6 21:28:18 2021
-Local Date/Time: Thu May  6 21:29:18 2021
+Local Date/Time: Fri Oct  7 15:53:07 2022
+Local Date/Time: Fri Oct  7 15:54:03 2022
+Local Date/Time: Fri Oct  7 15:55:03 2022
+Local Date/Time: Fri Oct  7 15:56:03 2022
 ```
 
 #### 7.3 Normal running with correct local time, TZ set and using NTP
 
-```cpp
+```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32_DEV
 ESP_WiFiManager v1.12.0
 ESP_DoubleResetDetector v1.3.2
@@ -2885,9 +2885,11 @@ After waiting 18.87 secs more in setup(), connection result is connected. Local 
 Stop doubleResetDetecting
 Saving config file...
 Saving config file OK
-Local Date/Time: Thu May  6 21:31:18 2021
-Local Date/Time: Thu May  6 21:32:18 2021
-Local Date/Time: Thu May  6 21:33:18 2021
+Local Date/Time: Fri Oct  7 15:57:03 2022
+Local Date/Time: Fri Oct  7 15:58:03 2022
+Local Date/Time: Fri Oct  7 15:59:03 2022
+Local Date/Time: Fri Oct  7 16:00:03 2022
+Local Date/Time: Fri Oct  7 16:01:03 2022
 ```
 
 ---
@@ -2899,7 +2901,7 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 #### 8.1 No Data => Config Portal
 
-```cpp
+```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
 ESP_WiFiManager v1.12.0
 ESP_DoubleResetDetector v1.3.2
@@ -2921,7 +2923,7 @@ Starting configuration portal @ 192.168.4.1:80, SSID = ESP_8A1DF7C, PWD = MyESP_
 
 #### 8.2 Data Saved => Connect to WiFi with correct local time, TZ set and using NTP
 
-```cpp
+```
 [WM] WiFi.waitForConnectResult Done
 [WM] SET AP
 [WM] Configuring AP SSID = ESP_8A1DF7C
@@ -3045,7 +3047,7 @@ Local Date/Time: Thu May  6 21:29:18 2021
 
 #### 8.3 Normal running with correct local time, TZ set and using NTP
 
-```cpp
+```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
 ESP_WiFiManager v1.12.0
 ESP_DoubleResetDetector v1.3.2
@@ -3083,13 +3085,12 @@ Local Date/Time: Wed Dec 31 19:00:13 1969
 Stop doubleResetDetecting
 Saving config file...
 Saving config file OK
-Local Date/Time: Thu May  6 21:47:41 2021
-Local Date/Time: Thu May  6 21:47:51 2021
-Local Date/Time: Thu May  6 21:48:01 2021
-Local Date/Time: Thu May  6 21:48:11 2021
-Local Date/Time: Thu May  6 21:48:21 2021
-Local Date/Time: Thu May  6 21:48:31 2021
-Local Date/Time: Thu May  6 21:48:41 2021
+Local Date/Time: Fri Oct  7 16:03:03 2022
+Local Date/Time: Fri Oct  7 16:04:03 2022
+Local Date/Time: Fri Oct  7 16:05:03 2022
+Local Date/Time: Fri Oct  7 16:06:03 2022
+Local Date/Time: Fri Oct  7 16:07:03 2022
+Local Date/Time: Fri Oct  7 16:08:03 2022
 ```
 
 ---
@@ -3098,7 +3099,7 @@ Local Date/Time: Thu May  6 21:48:41 2021
 
 This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP32_FSWebServer_DRD) on **ESP32C3_DEV using SPIFFS and ESP32 core v2.0.0-rc1.**. `Config Portal` was requested by `DRD` to input and save Credentials. The boards then connected to WiFi AP **HueNet** using new Static IP successfully.
 
-```cpp
+```
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using SPIFFS on ESP32C3_DEV
 ESP_WiFiManager v1.12.0
 ESP_DoubleResetDetector v1.3.2
@@ -3159,8 +3160,10 @@ handleFileRead: /index.htm
 handleFileList: /
 handleFileList: [{"type":"file","name":"wm_cp.dat"},{"type":"file","name":"wm_cp.bak"},{"type":"file","name":"wmssl_conf.dat"},{"type":"file","name":"wmssl_conf.bak"},{"type":"file","name":"wmssl_cred.dat"},{"type":"file","name":"wmssl_cred.bak"},{"type":"file","name":"mrd.dat"},{"type":"file","name":"wifi_cred.dat"},{"type":"file","name":"CanadaFlag_1.png"},{"type":"file","name":"CanadaFlag_2.png"},{"type":"file","name":"CanadaFlag_3.jpg"},{"type":"file","name":"edit.htm.gz"},{"type":"file","name":"favicon.ico"},{"type":"file","name":"graphs.js.gz"},{"type":"file","name":"index.htm"},{"type":"file","name":"drd.dat"}]
 handleFileRead: /CanadaFlag_1.png
-Local Date/Time: Thu Jul 29 23:22:53 2021
-Local Date/Time: Thu Jul 29 23:23:53 2021
+Local Date/Time: Fri Oct  7 16:12:03 2022
+Local Date/Time: Fri Oct  7 16:13:03 2022
+Local Date/Time: Fri Oct  7 16:14:03 2022
+Local Date/Time: Fri Oct  7 16:15:03 2022
 ```
 
 ---
@@ -3170,7 +3173,7 @@ Local Date/Time: Thu Jul 29 23:23:53 2021
 This is terminal debug output when running [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) on **ESP32S3_DEV**.
 
 
-```cpp
+```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S3_DEV
 ESP_WiFiManager v1.12.0
 ESP_DoubleResetDetector v1.3.2
@@ -3207,18 +3210,13 @@ After waiting 7.92 secs more in setup(), connection result is connected. Local I
 Stop doubleResetDetecting
 Saving config file...
 Saving config file OK
-Local Date/Time: Thu Feb 10 23:15:26 2022
-Local Date/Time: Thu Feb 10 23:16:26 2022
-Local Date/Time: Thu Feb 10 23:17:26 2022
-Local Date/Time: Thu Feb 10 23:18:26 2022
-Local Date/Time: Thu Feb 10 23:19:26 2022
-Local Date/Time: Thu Feb 10 23:20:26 2022
-Local Date/Time: Thu Feb 10 23:21:26 2022
-Local Date/Time: Thu Feb 10 23:22:26 2022
-Local Date/Time: Thu Feb 10 23:23:26 2022
-Local Date/Time: Thu Feb 10 23:24:26 2022
-Local Date/Time: Thu Feb 10 23:25:26 2022
-Local Date/Time: Thu Feb 10 23:26:26 2022
+Local Date/Time: Fri Oct  7 16:16:03 2022
+Local Date/Time: Fri Oct  7 16:17:03 2022
+Local Date/Time: Fri Oct  7 16:18:03 2022
+Local Date/Time: Fri Oct  7 16:19:03 2022
+Local Date/Time: Fri Oct  7 16:20:03 2022
+Local Date/Time: Fri Oct  7 16:21:03 2022
+Local Date/Time: Fri Oct  7 16:22:03 2022
 ```
 
 ---
@@ -3228,7 +3226,7 @@ Local Date/Time: Thu Feb 10 23:26:26 2022
 This is terminal debug output when running [ConfigOnDoubleReset](examples/ConfigOnDoubleReset) on **ESP32C3_DEV**.
 
 
-```cpp
+```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32C3_DEV
 ESP_WiFiManager v1.12.0
 ESP_DoubleResetDetector v1.3.2
@@ -3265,10 +3263,10 @@ After waiting 8.31 secs more in setup(), connection result is connected. Local I
 Stop doubleResetDetecting
 Saving config file...
 Saving config file OK
-Local Date/Time: Fri Feb 11 18:40:46 2022
-Local Date/Time: Fri Feb 11 18:41:46 2022
-Local Date/Time: Fri Feb 11 18:42:46 2022
-Local Date/Time: Fri Feb 11 18:43:46 2022
+Local Date/Time: Fri Oct  7 16:24:03 2022
+Local Date/Time: Fri Oct  7 16:25:03 2022
+Local Date/Time: Fri Oct  7 16:26:03 2022
+Local Date/Time: Fri Oct  7 16:27:03 2022
 ```
 
 ---
