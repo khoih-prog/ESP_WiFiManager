@@ -16,7 +16,7 @@
   Built by Khoi Hoang https://github.com/khoih-prog/ESP_WiFiManager
   Licensed under MIT license
   
-  Version: 1.12.0
+  Version: 1.12.1
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -29,6 +29,7 @@
   1.10.2  K Hoang      13/03/2022 Send CORS header in handleWifiSave() function
   1.11.0  K Hoang      09/09/2022 Fix ESP32 chipID and add ESP_getChipOUI()
   1.12.0  K Hoang      07/10/2022 Optional display Credentials (SSIDs, PWDs) in Config Portal
+  1.12.1  K Hoang      25/10/2022 Using random channel for softAP without password. Add astyle using allman style
  *****************************************************************************************************************************/
 
 #pragma once
@@ -70,13 +71,13 @@
 
 ////////////////////////////////////////////////////
 
-#define ESP_WIFIMANAGER_VERSION           "ESP_WiFiManager v1.12.0"
+#define ESP_WIFIMANAGER_VERSION           "ESP_WiFiManager v1.12.1"
 
 #define ESP_WIFIMANAGER_VERSION_MAJOR     1
 #define ESP_WIFIMANAGER_VERSION_MINOR     12
-#define ESP_WIFIMANAGER_VERSION_PATCH     0
+#define ESP_WIFIMANAGER_VERSION_PATCH     1
 
-#define ESP_WIFIMANAGER_VERSION_INT      1012000
+#define ESP_WIFIMANAGER_VERSION_INT       1012001
 
 ////////////////////////////////////////////////////
 

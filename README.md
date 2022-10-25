@@ -458,7 +458,6 @@ then connect WebBrowser to configurable ConfigPortal IP address, default is `192
   #include <WiFi.h>
   #include <WiFiClient.h>
 
-  // From v1.1.0
   #include <WiFiMulti.h>
   WiFiMulti wifiMulti;
 
@@ -520,7 +519,6 @@ then connect WebBrowser to configurable ConfigPortal IP address, default is `192
   #include <DNSServer.h>
   #include <ESP8266WebServer.h>
 
-  // From v1.1.0
   #include <ESP8266WiFiMulti.h>
   ESP8266WiFiMulti wifiMulti;
 
@@ -544,7 +542,6 @@ then connect WebBrowser to configurable ConfigPortal IP address, default is `192
   #define LED_OFF     HIGH
 #endif
 
-// From v1.1.0
 // You only need to format the filesystem once
 //#define FORMAT_FILESYSTEM       true
 #define FORMAT_FILESYSTEM         false
@@ -552,7 +549,7 @@ then connect WebBrowser to configurable ConfigPortal IP address, default is `192
 #define MIN_AP_PASSWORD_SIZE    8
 
 #define SSID_MAX_LEN            32
-//From v1.0.10, WPA2 passwords can be up to 63 characters long.
+//WPA2 passwords can be up to 63 characters long.
 #define PASS_MAX_LEN            64
 
 typedef struct
@@ -601,7 +598,6 @@ String Router_Pass;
   #include <WiFi.h>
   #include <WiFiClient.h>
 
-  // From v1.1.0
   #include <WiFiMulti.h>
   WiFiMulti wifiMulti;
 
@@ -657,7 +653,6 @@ String Router_Pass;
   #include <DNSServer.h>
   #include <ESP8266WebServer.h>
 
-  // From v1.1.0
   #include <ESP8266WiFiMulti.h>
   ESP8266WiFiMulti wifiMulti;
 
@@ -681,7 +676,6 @@ String Router_Pass;
   #define LED_OFF     HIGH
 #endif
 
-// From v1.1.0
 // You only need to format the filesystem once
 //#define FORMAT_FILESYSTEM       true
 #define FORMAT_FILESYSTEM         false
@@ -689,7 +683,7 @@ String Router_Pass;
 #define MIN_AP_PASSWORD_SIZE    8
 
 #define SSID_MAX_LEN            32
-//From v1.0.10, WPA2 passwords can be up to 63 characters long.
+// WPA2 passwords can be up to 63 characters long.
 #define PASS_MAX_LEN            64
 
 typedef struct
@@ -778,7 +772,6 @@ bool initialConfig = false;
 IPAddress dns1IP      = gatewayIP;
 IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
 
-// New in v1.4.0
 IPAddress APStaticIP  = IPAddress(192, 168, 100, 1);
 IPAddress APStaticGW  = IPAddress(192, 168, 100, 1);
 IPAddress APStaticSN  = IPAddress(255, 255, 255, 0);
@@ -794,7 +787,6 @@ String Router_SSID;
 String Router_Pass;
 
 ///////////////////////////////////////////
-// New in v1.4.0
 /******************************************
  * // Defined in ESP_WiFiManager.h
 typedef struct
@@ -1009,7 +1001,7 @@ ESP_wifiManager.setConfigPortalChannel(3);
 
 
 ```cpp
-// Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
+// Set static IP, Gateway, Subnetmask, DNS1 and DNS2
 //ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
 ESP_wifiManager.setSTAStaticIPConfig(WM_STA_IPconfig);
 ```
@@ -1047,7 +1039,6 @@ ESP_wifiManager.setSTAStaticIPConfig(WM_STA_IPconfig);
 
 ...
 
-  // New from v1.1.1
 #if USING_CORS_FEATURE
   ESP_wifiManager.setCORSHeader("Your Access-Control-Allow-Origin");
 #endif
@@ -1974,7 +1965,7 @@ void loop()
 
 #if !USE_DHCP_IP    
   #if USE_CONFIGURABLE_DNS  
-    // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
+    // Set static IP, Gateway, Subnetmask, DNS1 and DNS2
     ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);  
   #else
     // Set static IP, Gateway, Subnetmask, Use auto DNS1 and DNS2.
@@ -1982,7 +1973,6 @@ void loop()
   #endif 
 #endif       
 
-  // New from v1.1.1
 #if USING_CORS_FEATURE
   ESP_wifiManager.setCORSHeader("Your Access-Control-Allow-Origin");
 #endif
@@ -1997,7 +1987,7 @@ void loop()
     //Remove this line if you do not want to see WiFi password printed
     Serial.println("ESP Self-Stored: SSID = " + Router_SSID + ", Pass = " + Router_Pass);
    
-    // From v1.1.0, Don't permit NULL password
+    // Don't permit NULL password
     if ( (Router_SSID != "") && (Router_Pass != "") )
     {
       LOGERROR3(F("* Add SSID = "), Router_SSID, F(", PW = "), Router_Pass);
@@ -2062,7 +2052,6 @@ void loop()
         }
       }
     
-      // New in v1.4.0
       ESP_wifiManager.getSTAStaticIPConfig(WM_STA_IPconfig);
       //////
       
@@ -2208,7 +2197,7 @@ This is terminal debug output when running [ConfigOnSwitchFS_MQTT_Ptr](examples/
 
 ```
 Starting ConfigOnSwichFS_MQTT_Ptr using LittleFS on ESP8266_NODEMCU_ESP12E
-ESP_WiFiManager v1.12.0
+ESP_WiFiManager v1.12.1
 Configuration file not found
 Failed to read configuration file, using default values
 [WM] RFC925 Hostname = ConfigOnSwichFS-MQTT
@@ -2321,7 +2310,7 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using SPIFFS on ESP32_DEV
-ESP_WiFiManager v1.12.0
+ESP_WiFiManager v1.12.1
 ESP_DoubleResetDetector v1.3.2
 FS File: /ConfigSW.json, size: 150B
 FS File: /CanadaFlag_1.png, size: 40.25KB
@@ -2386,7 +2375,7 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.12.0
+ESP_WiFiManager v1.12.1
 ESP_DoubleResetDetector v1.3.2
 FS File: /CanadaFlag_1.png, size: 40.25KB
 FS File: /CanadaFlag_2.png, size: 8.12KB
@@ -2445,7 +2434,7 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.12.0
+ESP_WiFiManager v1.12.1
 ESP_DoubleResetDetector v1.3.2
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -2488,7 +2477,7 @@ WWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Complex using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.12.0
+ESP_WiFiManager v1.12.1
 ESP_DoubleResetDetector v1.3.2
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -2573,7 +2562,7 @@ This is terminal debug output when running [ConfigOnDRD_FS_MQTT_Ptr_Complex](exa
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU_ESP12E
-ESP_WiFiManager v1.12.0
+ESP_WiFiManager v1.12.1
 ESP_DoubleResetDetector v1.3.2
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -2613,7 +2602,7 @@ TWWWW WTWWWW WWTWWW WWWTWW WWWWTW WWWWW
 
 ```
 Starting ConfigOnDRD_FS_MQTT_Ptr_Medium using LittleFS on ESP8266_NODEMCU_ESP12E
-ESP_WiFiManager v1.12.0
+ESP_WiFiManager v1.12.1
 ESP_DoubleResetDetector v1.3.2
 {"AIO_KEY_Label":"aio_key","AIO_SERVER_Label":"io.adafruit.com","AIO_SERVERPORT_Label":"1883","AIO_USERNAME_Label":"user_name"}
 Config File successfully parsed
@@ -2690,7 +2679,7 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
-ESP_WiFiManager v1.12.0
+ESP_WiFiManager v1.12.1
 ESP_DoubleResetDetector v1.3.2
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] setAPStaticIPConfig
@@ -2740,7 +2729,7 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.12.0
+ESP_WiFiManager v1.12.1
 ESP_DoubleResetDetector v1.3.2
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
@@ -2850,7 +2839,7 @@ Local Date/Time: Fri Oct  7 15:56:03 2022
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32_DEV
-ESP_WiFiManager v1.12.0
+ESP_WiFiManager v1.12.1
 ESP_DoubleResetDetector v1.3.2
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
@@ -2903,7 +2892,7 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
-ESP_WiFiManager v1.12.0
+ESP_WiFiManager v1.12.1
 ESP_DoubleResetDetector v1.3.2
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
@@ -3049,7 +3038,7 @@ Local Date/Time: Thu May  6 21:29:18 2021
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S2_DEV
-ESP_WiFiManager v1.12.0
+ESP_WiFiManager v1.12.1
 ESP_DoubleResetDetector v1.3.2
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
@@ -3101,7 +3090,7 @@ This is terminal debug output when running [ESP32_FSWebServer_DRD](examples/ESP3
 
 ```
 Starting ESP32_FSWebServer_DRD with DoubleResetDetect using SPIFFS on ESP32C3_DEV
-ESP_WiFiManager v1.12.0
+ESP_WiFiManager v1.12.1
 ESP_DoubleResetDetector v1.3.2
 FS File: wm_cp.dat, size: 4B
 FS File: wm_cp.bak, size: 4B
@@ -3175,7 +3164,7 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32S3_DEV
-ESP_WiFiManager v1.12.0
+ESP_WiFiManager v1.12.1
 ESP_DoubleResetDetector v1.3.2
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin
@@ -3228,7 +3217,7 @@ This is terminal debug output when running [ConfigOnDoubleReset](examples/Config
 
 ```
 Starting ConfigOnDoubleReset with DoubleResetDetect using LittleFS on ESP32C3_DEV
-ESP_WiFiManager v1.12.0
+ESP_WiFiManager v1.12.1
 ESP_DoubleResetDetector v1.3.2
 [WM] RFC925 Hostname = ConfigOnDoubleReset
 [WM] Set CORS Header to :  Your Access-Control-Allow-Origin

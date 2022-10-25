@@ -13,6 +13,7 @@
 ## Table of Contents
 
 * [Changelog](#changelog)
+  * [Releases v1.12.1](#releases-v1121)
   * [Releases v1.12.0](#releases-v1120)
   * [Releases v1.11.0](#releases-v1110)
   * [Releases v1.10.2](#releases-v1102)
@@ -55,6 +56,11 @@
 
 
 ## Changelog
+
+### Releases v1.12.1
+
+1. Using random channel for softAP without password. Check [fix: using random CH for non-password use too #118](https://github.com/khoih-prog/ESPAsync_WiFiManager/pull/118)
+2. Add astyle using `allman` style. Restyle the library
 
 ### Releases v1.12.0
 
