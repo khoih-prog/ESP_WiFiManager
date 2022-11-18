@@ -1329,7 +1329,7 @@ void loop()
     Serial.println("\nConfiguration portal requested.");
     digitalWrite(PIN_LED, LED_ON); // turn the LED on by making the voltage LOW to tell us we are in configuration mode.
 
-    //Local intialization. Once its business is done, there is no need to keep it around
+    //Local initialization. Once its business is done, there is no need to keep it around
     ESP_WiFiManager ESP_wifiManager("ConfigOnSwitchFS");
 
     //Check if there is stored WiFi router/password credentials.
@@ -1761,7 +1761,7 @@ f.close();
 
 #### 6.3 Populate the just-read Jsonified data into the DynamicJsonDocument json object
 
-We again use the same `DynamicJsonDocument json` object to store the data we've just read fron `CONFIG_FILE`.
+We again use the same `DynamicJsonDocument json` object to store the data we've just read from `CONFIG_FILE`.
 
 Why the same complicated `DynamicJsonDocument json` object ?? Because in steps 5, we did store `Jsonified data` using the same `DynamicJsonDocument json` object. It's much easier we now use it again to facilitate the parsing of `Jsonified data` back to the data we can use easily.
 
@@ -1952,7 +1952,7 @@ void loop()
     Serial.println(F("\nConfiguration portal requested."));
     digitalWrite(PIN_LED, LED_ON); // turn the LED on by making the voltage LOW to tell us we are in configuration mode.
 
-    //Local intialization. Once its business is done, there is no need to keep it around
+    //Local initialization. Once its business is done, there is no need to keep it around
     ESP_WiFiManager ESP_wifiManager("ConfigOnSwitch");
 
     ESP_wifiManager.setMinimumSignalQuality(-1);
@@ -3307,14 +3307,14 @@ Submit issues to: [ESP_WiFiManager issues](https://github.com/khoih-prog/ESP_WiF
  5. Thanks to [Giuseppe](https://github.com/Gius-8) for reporting [Static Station IP doesn't work](https://github.com/khoih-prog/ESP_WiFiManager/issues/17) bug.
  6. Thanks to [AlesSt](https://github.com/AlesSt) for reporting then help provide the fixes:
   - [On Android phone ConfigPortal is unresponsive](https://github.com/khoih-prog/ESP_WiFiManager/issues/23) and request an enhancement (**HOWTO disable the static IP inputs on the config page**) leading to [ESP_WiFiManager v1.0.10](https://github.com/khoih-prog/ESP_WiFiManager/releases/tag/v1.0.10).
-  - [Issue #25: API call /r doesnt clear credentials](https://github.com/khoih-prog/ESP_WiFiManager/issues/25), [Issue #26: softAP with custom IP not working](https://github.com/khoih-prog/ESP_WiFiManager/issues/26) and [Issue #27: CORS protection fires up with AJAX](https://github.com/khoih-prog/ESP_WiFiManager/issues/27) leading to [ESP_WiFiManager v1.0.11](https://github.com/khoih-prog/ESP_WiFiManager/releases/tag/v1.0.11).
+  - [Issue #25: API call /r doesn't clear credentials](https://github.com/khoih-prog/ESP_WiFiManager/issues/25), [Issue #26: softAP with custom IP not working](https://github.com/khoih-prog/ESP_WiFiManager/issues/26) and [Issue #27: CORS protection fires up with AJAX](https://github.com/khoih-prog/ESP_WiFiManager/issues/27) leading to [ESP_WiFiManager v1.0.11](https://github.com/khoih-prog/ESP_WiFiManager/releases/tag/v1.0.11).
  7. Thanks to [Marko](https://github.com/wackoo-arduino) for agreeing to contribute the sample code dealing with MQTT which the  [ConfigOnSwitchFS_MQTT_Ptr](examples/ConfigOnSwitchFS_MQTT_Ptr) is based on. See [Custom MQTT parameters using Wifi Manager](https://forum.arduino.cc/index.php?topic=692108.75).
  8. Thanks to [05prateek](https://github.com/05prateek) for reporting [Stationmode Static IP changes to dhcp when esp8266 is restarted](https://github.com/khoih-prog/ESP_WiFiManager/issues/28) bug which is fixed in v1.0.11 by enhance autoConnect() function.
- 9. Thanks to [Egor](https://github.com/eg321) and [HenrikW](https://github.com/Invento3D) to make [`Support building in PlatformIO PR`](https://github.com/khoih-prog/ESP_WiFiManager/pull/20) and post issue [`Change Implementation to seperate *.h and *.cpp file instead of *.h and *-Impl.h`](https://github.com/khoih-prog/ESP_WiFiManager/issues/38) to address the `multiple definition` linker error in certain cases, leading to v1.2.0
+ 9. Thanks to [Egor](https://github.com/eg321) and [HenrikW](https://github.com/Invento3D) to make [`Support building in PlatformIO PR`](https://github.com/khoih-prog/ESP_WiFiManager/pull/20) and post issue [`Change Implementation to separate *.h and *.cpp file instead of *.h and *-Impl.h`](https://github.com/khoih-prog/ESP_WiFiManager/issues/38) to address the `multiple definition` linker error in certain cases, leading to v1.2.0
 10. Thanks to [Maurice Poos](https://github.com/MaPoLom) to report issue [`ESP_WiFiManager Issue 39: Not able to read analog port when using the autoconnect example`](https://github.com/khoih-prog/ESP_WiFiManager/issues/39).
 11. Thanks to [Vague Rabbit](https://github.com/thewhiterabbit) for requesting, collarborating in creating the [**HOWTO Add Dynamic Parameters**](#howto-add-dynamic-parameters).
 12. Thanks to [Roshan](https://github.com/solroshan) to report the issue in [Error esp_littlefs.c 'utime_p'](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues/28) to fix PIO error in using ESP32 LittleFS with old [`LittleFS_esp32 v1.0`](https://github.com/lorol/LITTLEFS)
-13. Thanks to [yiancar](https://github.com/yiancar) to report the issue and propose a fix in [In AP, DNS server always redirects to 192.168.4.1 no mater what APStaticIP is set to. #58](https://github.com/khoih-prog/ESP_WiFiManager/issues/58) leading to v1.6.1
+13. Thanks to [yiancar](https://github.com/yiancar) to report the issue and propose a fix in [In AP, DNS server always redirects to 192.168.4.1 no matter what APStaticIP is set to. #58](https://github.com/khoih-prog/ESP_WiFiManager/issues/58) leading to v1.6.1
 14. Thanks to [Stephen Lavelle](https://github.com/increpare) and [Ben Peart](https://github.com/benpeart) for requesting enhancement in [_timezoneName never getting set? #51](https://github.com/khoih-prog/ESP_WiFiManager/issues/51) and [How to retrieve timezone? #51](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues/51) leading to new v1.7.0
 15. Thanks to [energise](https://github.com/energise) to report the issue in [Invalid Json generated #60](https://github.com/khoih-prog/ESP_WiFiManager/issues/60) leading to new v1.7.1
 16. Thanks to [eth0up](https://github.com/eth0up) to make the PR [Add support for Wifi hidden SSID scanning. #66](https://github.com/khoih-prog/ESP_WiFiManager/pull/66) leading to v1.7.4

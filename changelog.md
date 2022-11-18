@@ -154,7 +154,7 @@
 
 ### Releases v1.6.1
 
-1. Fix captive-portal bug if Config Portal AP address is not default 192.168.4.1. Check [In AP, DNS server always redirects to 192.168.4.1 no mater what APStaticIP is set to. #58](https://github.com/khoih-prog/ESP_WiFiManager/issues/58)
+1. Fix captive-portal bug if Config Portal AP address is not default 192.168.4.1. Check [In AP, DNS server always redirects to 192.168.4.1 no matter what APStaticIP is set to. #58](https://github.com/khoih-prog/ESP_WiFiManager/issues/58)
 2. Fix MultiWiFi bug.
 
 ### Releases v1.6.0
@@ -216,7 +216,7 @@
 
 ### Releases v1.2.0
 
-1. Restore cpp code besides Impl.h code to use in case of `multiple definition` linker error. See [`Change Implementation to seperate *.h and *.cpp file instead of *.h and *-Impl.h`](https://github.com/khoih-prog/ESP_WiFiManager/issues/38) and [`Support building in PlatformIO PR`](https://github.com/khoih-prog/ESP_WiFiManager/pull/20). Also have a look at [**HOWTO Fix Multiple Definitions Linker Error**](https://github.com/khoih-prog/ESP_WiFiManager#HOWTO-Fix-Multiple-Definitions-Linker-Error)
+1. Restore cpp code besides Impl.h code to use in case of `multiple definition` linker error. See [`Change Implementation to separate *.h and *.cpp file instead of *.h and *-Impl.h`](https://github.com/khoih-prog/ESP_WiFiManager/issues/38) and [`Support building in PlatformIO PR`](https://github.com/khoih-prog/ESP_WiFiManager/pull/20). Also have a look at [**HOWTO Fix Multiple Definitions Linker Error**](https://github.com/khoih-prog/ESP_WiFiManager#HOWTO-Fix-Multiple-Definitions-Linker-Error)
 2. Fix bug [/close does not close the config portal](https://github.com/khoih-prog/ESPAsync_WiFiManager/issues/16).
 
 ### Releases v1.1.2
@@ -240,7 +240,7 @@
 
 1. Add optional **CORS (Cross-Origin Resource Sharing)** feature. Thanks to [AlesSt](https://github.com/AlesSt). See more in [Issue #27: CORS protection fires up with AJAX](https://github.com/khoih-prog/ESP_WiFiManager/issues/27) and [Cross Origin Resource Sharing](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing). To use, you must explicitly use `#define USING_CORS_FEATURE true`
 2. Solve issue softAP with custom IP sometimes not working. Thanks to [AlesSt](https://github.com/AlesSt). See [Issue #26: softAP with custom IP not working](https://github.com/khoih-prog/ESP_WiFiManager/issues/26) and [Wifi.softAPConfig() sometimes set the wrong IP address](https://github.com/espressif/arduino-esp32/issues/985).
-3. Temporary fix for issue of not clearing WiFi SSID/PW from flash of ESP32. Thanks to [AlesSt](https://github.com/AlesSt). See more in [Issue #25: API call /r doesnt clear credentials](https://github.com/khoih-prog/ESP_WiFiManager/issues/25) and [WiFi.disconnect(true) problem](https://github.com/espressif/arduino-esp32/issues/400).
+3. Temporary fix for issue of not clearing WiFi SSID/PW from flash of ESP32. Thanks to [AlesSt](https://github.com/AlesSt). See more in [Issue #25: API call /r doesn't clear credentials](https://github.com/khoih-prog/ESP_WiFiManager/issues/25) and [WiFi.disconnect(true) problem](https://github.com/espressif/arduino-esp32/issues/400).
 4. Fix autoConnect() feature to permit autoConnect() to use STA static IP or DHCP IP. Remove from deprecated function list.
 5. Enhance README.md with more instructions and illustrations.
 
