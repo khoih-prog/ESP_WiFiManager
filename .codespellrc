@@ -4,4 +4,4 @@
 ignore-words-list = ,
 check-filenames =
 check-hidden =
-skip = ./.git,./src,./examples
+skip = ./.git,./src,./examples,./Packages_Patches,./LibraryPatches
